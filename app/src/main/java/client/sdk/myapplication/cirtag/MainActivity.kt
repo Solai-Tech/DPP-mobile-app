@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     data object Home : Screen("home", "Home", Icons.Filled.Home)
     data object Scan : Screen("scan", "Scan", Icons.Filled.PhotoCamera)
-    data object Tickets : Screen("tickets", "Tickets", Icons.Filled.Public)
+    data object Tickets : Screen("tickets", "Help Center", Icons.Filled.Public)
     data object Profile : Screen("profile", "Profile", Icons.Outlined.Person)
     data object ProductDetail : Screen("product_detail/{productId}", "Detail", Icons.Filled.Home) {
         fun createRoute(productId: Long) = "product_detail/$productId"
