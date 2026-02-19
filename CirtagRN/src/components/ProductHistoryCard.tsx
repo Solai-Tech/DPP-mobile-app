@@ -15,39 +15,39 @@ interface Props {
 }
 
 export default function ProductHistoryCard({ product, onPress, onDelete }: Props) {
-  const displayName = (() => {
-    if (product.productName) return product.productName;
+  // Extract product name - try productName first, then extract from URL
+  let displayName = product.productName && product.productName.trim() !== '' ? product.productName : '';
 
-    const isUrl = product.rawValue.startsWith('http://') || product.rawValue.startsWith('https://');
-    const isNumeric = /^\d{6,}$/.test(product.displayValue || product.rawValue);
-
-    if (product.imageUrl) {
-      try {
-        const imgParts = product.imageUrl.split('/');
-        const filename = imgParts[imgParts.length - 1];
-        const cleanName = filename
-          .replace(/\.\w+$/, '')
-          .replace(/[-_]/g, ' ')
-          .replace(/\b\w/g, (c) => c.toUpperCase())
-          .trim();
-        if (cleanName.length > 2 && !/^\d+$/.test(cleanName)) {
-          return cleanName;
+  // If no productName, try to extract from URL path
+  if (!displayName && product.rawValue) {
+    try {
+      const url = new URL(product.rawValue);
+      const nameParam = url.searchParams.get('name') ||
+                        url.searchParams.get('product') ||
+                        url.searchParams.get('title');
+      if (nameParam) {
+        displayName = decodeURIComponent(nameParam).replace(/[-_]/g, ' ').trim();
+      } else {
+        const pathParts = url.pathname.split('/').filter(p =>
+          p && p !== 'dpp' && p !== 'dppx' && p !== 'product' && p !== 'products'
+        );
+        if (pathParts.length > 0) {
+          const lastPart = pathParts[pathParts.length - 1];
+          if (!/^\d+$/.test(lastPart)) {
+            displayName = decodeURIComponent(lastPart).replace(/[-_]/g, ' ').trim();
+          } else {
+            displayName = `Product ${lastPart}`;
+          }
         }
-      } catch {
-        // ignore
       }
+    } catch {
+      // Not a URL
     }
+  }
 
-    if (product.productDescription) {
-      const desc = product.productDescription.trim();
-      if (desc.length > 0 && desc.length < 60) return desc;
-      if (desc.length >= 60) return desc.substring(0, 57) + '...';
-    }
-
-    if (product.supplier) return `${product.supplier} Product`;
-    if (!isUrl && !isNumeric && product.displayValue) return product.displayValue;
-    return 'Scanned Product';
-  })();
+  if (!displayName) {
+    displayName = product.displayValue || product.rawValue || 'Unknown Product';
+  }
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
@@ -71,6 +71,12 @@ export default function ProductHistoryCard({ product, onPress, onDelete }: Props
         <Text style={styles.name} numberOfLines={1}>
           {displayName}
         </Text>
+
+        {product.productId ? (
+          <Text style={styles.productId} numberOfLines={1}>
+            ID: {product.productId}
+          </Text>
+        ) : null}
 
         <View style={styles.metaRow}>
           <MaterialIcons name="history" size={12} color={TextMuted} />
@@ -116,6 +122,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: TextPrimary,
+  },
+  productId: {
+    ...typography.bodySmall,
+    color: Accent,
+    fontWeight: '500',
+    marginTop: 3,
   },
   metaRow: {
     flexDirection: 'row',

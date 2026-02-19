@@ -4,13 +4,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.outlined.ConfirmationNumber
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -25,7 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -35,11 +43,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import client.sdk.myapplication.cirtag.data.ScannedProduct
 import client.sdk.myapplication.cirtag.scanner.ScannerScreen
-import client.sdk.myapplication.cirtag.screens.HistoryScreen
+import client.sdk.myapplication.cirtag.screens.HomeScreen
 import client.sdk.myapplication.cirtag.screens.ProductDetailScreen
+import client.sdk.myapplication.cirtag.screens.ProfileScreen
+import client.sdk.myapplication.cirtag.screens.TicketsScreen
+import client.sdk.myapplication.cirtag.ui.theme.CirtagDarkBg
+import client.sdk.myapplication.cirtag.ui.theme.CirtagGreen
+import client.sdk.myapplication.cirtag.ui.theme.CirtagGreenLight
 import client.sdk.myapplication.cirtag.ui.theme.MyApplicationCirtagTheme
-import client.sdk.myapplication.cirtag.ui.theme.Primary
-import client.sdk.myapplication.cirtag.ui.theme.PrimaryDark
 import com.google.mlkit.vision.barcode.common.Barcode
 
 class MainActivity : ComponentActivity() {
@@ -47,19 +58,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationCirtagTheme {
+            MyApplicationCirtagTheme(darkTheme = false) {
                 CirtagApp()
             }
         }
     }
 }
 
-sealed class Screen(val route: String, val label: String) {
-    data object Scanner : Screen("scanner", "Scanner")
-    data object History : Screen("history", "History")
-    data object ProductDetail : Screen("product_detail/{productId}", "Detail") {
+sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
+    data object Home : Screen("home", "Home", Icons.Filled.Home)
+    data object Scan : Screen("scan", "Scan", Icons.Filled.PhotoCamera)
+    data object Tickets : Screen("tickets", "Help Center", Icons.Filled.Public)
+    data object Profile : Screen("profile", "Profile", Icons.Outlined.Person)
+    data object ProductDetail : Screen("product_detail/{productId}", "Detail", Icons.Filled.Home) {
         fun createRoute(productId: Long) = "product_detail/$productId"
     }
+    data object SampleProductLifecycle : Screen("sample_product_lifecycle", "Product Lifecycle", Icons.Filled.Home)
 }
 
 @Composable
@@ -70,52 +84,59 @@ fun CirtagApp(viewModel: MainViewModel = viewModel()) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    val bottomBarScreens = listOf(Screen.Scanner, Screen.History)
-    val showBottomBar = currentDestination?.route != Screen.ProductDetail.route
+    // Bottom navigation bar screens
+    val bottomBarScreens = listOf(Screen.Home, Screen.Scan, Screen.Tickets, Screen.Profile)
+    val showBottomBar = currentDestination?.route != Screen.ProductDetail.route &&
+            currentDestination?.route != Screen.SampleProductLifecycle.route
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
-                    containerColor = PrimaryDark,
-                    contentColor = Color.White
+                    containerColor = CirtagDarkBg,
+                    contentColor = Color.White,
+                    tonalElevation = 0.dp,
+                    modifier = Modifier.background(CirtagDarkBg)
                 ) {
                     bottomBarScreens.forEach { screen ->
-                        val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                        val selected = currentDestination?.route == screen.route
                         NavigationBarItem(
                             icon = {
                                 Icon(
-                                    imageVector = when (screen) {
-                                        Screen.Scanner -> Icons.Filled.QrCodeScanner
-                                        Screen.History -> Icons.Filled.History
-                                        else -> Icons.Filled.QrCodeScanner
-                                    },
-                                    contentDescription = screen.label
+                                    imageVector = screen.icon,
+                                    contentDescription = screen.label,
+                                    modifier = Modifier.size(26.dp)
                                 )
                             },
                             label = {
                                 Text(
                                     screen.label,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                    fontSize = 11.sp
                                 )
                             },
                             selected = selected,
                             onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                                if (screen.route == Screen.Home.route) {
+                                    // For Home, pop back to it instead of navigating
+                                    navController.popBackStack(Screen.Home.route, inclusive = false)
+                                } else {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(Screen.Home.route) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.White,
-                                selectedTextColor = Color.White,
+                                selectedIconColor = CirtagGreenLight,
+                                selectedTextColor = CirtagGreenLight,
                                 unselectedIconColor = Color.White.copy(alpha = 0.5f),
                                 unselectedTextColor = Color.White.copy(alpha = 0.5f),
-                                indicatorColor = Primary
+                                indicatorColor = CirtagGreen.copy(alpha = 0.2f)
                             )
                         )
                     }
@@ -125,12 +146,20 @@ fun CirtagApp(viewModel: MainViewModel = viewModel()) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Scanner.route,
+            startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Scanner.route) {
+            composable(Screen.Home.route) {
+                HomeScreen(
+                    onProductsHistoryClick = { navController.navigate(Screen.Scan.route) },
+                    onLifeCycleClick = { navController.navigate(Screen.SampleProductLifecycle.route) }
+                )
+            }
+
+            composable(Screen.Scan.route) {
                 ScannerScreen(
                     isLoading = isLoading,
+                    products = products,
                     onBarcodeScanned = { barcode ->
                         val product = ScannedProduct(
                             rawValue = barcode.rawValue ?: "",
@@ -141,20 +170,19 @@ fun CirtagApp(viewModel: MainViewModel = viewModel()) {
                         viewModel.scanAndSaveProduct(product) { savedId ->
                             navController.navigate(Screen.ProductDetail.createRoute(savedId))
                         }
+                    },
+                    onProductClick = { product ->
+                        navController.navigate(Screen.ProductDetail.createRoute(product.id))
                     }
                 )
             }
 
-            composable(Screen.History.route) {
-                HistoryScreen(
-                    products = products,
-                    onProductClick = { product ->
-                        navController.navigate(Screen.ProductDetail.createRoute(product.id))
-                    },
-                    onDeleteProduct = { product ->
-                        viewModel.deleteProduct(product)
-                    }
-                )
+            composable(Screen.Tickets.route) {
+                TicketsScreen()
+            }
+
+            composable(Screen.Profile.route) {
+                ProfileScreen()
             }
 
             composable(Screen.ProductDetail.route) { backStackEntry ->
@@ -170,9 +198,40 @@ fun CirtagApp(viewModel: MainViewModel = viewModel()) {
                 product?.let { p ->
                     ProductDetailScreen(
                         product = p,
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() },
+                        onGetSupport = { navController.navigate(Screen.Tickets.route) },
+                        onRaiseTicket = { navController.navigate(Screen.Tickets.route) }
                     )
                 }
+            }
+
+            composable(Screen.SampleProductLifecycle.route) {
+                val sampleProduct = ScannedProduct(
+                    id = 0,
+                    rawValue = "https://example.com/dpp/eco-packaging-unit-pro",
+                    displayValue = "Eco Packaging Unit Pro",
+                    format = "QR Code",
+                    type = "Product",
+                    productName = "Eco Packaging\nUnit Pro",
+                    productDescription = "Sustainable packaging solution",
+                    imageUrl = "",
+                    productId = "DPP-2024-ECO-00412",
+                    price = "",
+                    supplier = "GreenPack AB",
+                    skuId = "204",
+                    weight = "",
+                    co2Total = "0.4t",
+                    co2Details = "Raw Material:0.18,Manufacturing:0.12,Transport:0.10",
+                    certifications = "",
+                    datasheetUrl = "",
+                    scannedAt = System.currentTimeMillis()
+                )
+                ProductDetailScreen(
+                    product = sampleProduct,
+                    onBack = { navController.popBackStack() },
+                    onGetSupport = { navController.navigate(Screen.Tickets.route) },
+                    onRaiseTicket = { navController.navigate(Screen.Tickets.route) }
+                )
             }
         }
     }

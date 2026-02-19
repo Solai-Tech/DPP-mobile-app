@@ -1,3 +1,4 @@
+// Updated: Extract product name from URL path (e.g., HP-laptop45 -> HP laptop45)
 import React, { useRef, useCallback, useState } from 'react';
 import {
   View,
@@ -5,10 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Linking,
 } from 'react-native';
 import { CameraView, BarcodeScanningResult } from 'expo-camera';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -77,64 +76,48 @@ export default function ScanScreen() {
     [isLoading, scanAndSaveProduct, router]
   );
 
-  const getDisplayName = (item: ScannedProduct): string => {
-    if (item.productName) return item.productName;
+  const renderProductCard = (item: ScannedProduct) => {
+    // Extract product name from URL path
+    let name = '';
 
-    const isUrl = item.rawValue.startsWith('http://') || item.rawValue.startsWith('https://');
-    const isNumeric = /^\d{6,}$/.test(item.displayValue || item.rawValue);
-
-    // Try to extract name from image URL filename
-    if (item.imageUrl) {
+    // Always try to extract from URL first
+    const rawUrl = item.rawValue || '';
+    if (rawUrl.startsWith('http')) {
       try {
-        const imgParts = item.imageUrl.split('/');
-        const filename = imgParts[imgParts.length - 1];
-        const cleanName = filename
-          .replace(/\.\w+$/, '')
-          .replace(/[-_]/g, ' ')
-          .replace(/\b\w/g, (c) => c.toUpperCase())
-          .trim();
-        if (cleanName.length > 2 && !/^\d+$/.test(cleanName)) {
-          return cleanName;
+        const url = new URL(rawUrl);
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        // Get the last meaningful part of the path
+        for (let i = pathParts.length - 1; i >= 0; i--) {
+          const part = pathParts[i];
+          if (part !== 'dpp' && part !== 'dppx' && part !== 'product' && part !== 'products') {
+            name = decodeURIComponent(part).replace(/[-_]/g, ' ').trim();
+            break;
+          }
         }
       } catch {
-        // ignore
+        // URL parsing failed
       }
     }
 
-    // Try description
-    if (item.productDescription) {
-      const desc = item.productDescription.trim();
-      if (desc.length > 0 && desc.length < 60) return desc;
-      if (desc.length >= 60) return desc.substring(0, 57) + '...';
+    // Use productName if we couldn't extract from URL
+    if (!name && item.productName) {
+      name = item.productName;
     }
 
-    // Supplier-based fallback (avoid showing IDs/URLs)
-    if (item.supplier) return `${item.supplier} Product`;
-    if (!isUrl && !isNumeric && item.displayValue) return item.displayValue;
-
-    return 'Scanned Product';
-  };
-
-  const handleProductPress = (item: ScannedProduct) => {
-    const isUrl = item.rawValue.startsWith('http://') || item.rawValue.startsWith('https://');
-    if (isUrl) {
-      // Open the product URL in browser
-      Linking.openURL(item.rawValue);
-    } else {
-      // For non-URL scans, go to internal detail page
-      router.push(`/product/${item.id}`);
+    // Final fallback - don't show URL, show generic name
+    if (!name || name.startsWith('http')) {
+      name = 'Product';
     }
-  };
 
-  const renderProductCard = (item: ScannedProduct) => {
-    const name = getDisplayName(item);
+    console.log('Product name extracted:', name, 'from:', rawUrl);
+    const co2Match = item.co2Total?.match(/([\d.]+)/);
+    const co2Val = co2Match ? co2Match[1] : null;
     const supplierInfo = [
       item.supplier,
       item.skuId ? `Batch #${item.skuId}` : null,
     ]
       .filter(Boolean)
       .join(' \u00B7 ');
-    const hasImage = !!item.imageUrl;
 
     const iconColors = ['#E8F5E9', '#E3F2FD', '#FFF3E0', '#F3E5F5', '#E0F7FA'];
     const colorIndex = item.id % iconColors.length;
@@ -144,30 +127,38 @@ export default function ScanScreen() {
       <TouchableOpacity
         key={item.id}
         style={styles.productCard}
-        onPress={() => handleProductPress(item)}
+        onPress={() => router.push(`/product/${item.id}`)}
         activeOpacity={0.7}
       >
-        {hasImage ? (
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={styles.productImage}
-            contentFit="cover"
-          />
-        ) : (
-          <View style={[styles.productIcon, { backgroundColor: iconBg }]}>
-            <MaterialIcons name="recycling" size={22} color={GreenAccent} />
-          </View>
-        )}
+        <View style={[styles.productIcon, { backgroundColor: iconBg }]}>
+          <MaterialIcons name="recycling" size={22} color={GreenAccent} />
+        </View>
         <View style={styles.productInfo}>
           <Text style={styles.productName} numberOfLines={1}>
             {name}
           </Text>
+          {item.productId ? (
+            <Text style={styles.productDppId} numberOfLines={1}>
+              {item.productId.startsWith('DPP-')
+                ? item.productId
+                : `DPP-${item.productId}`}
+            </Text>
+          ) : null}
           {supplierInfo ? (
             <Text style={styles.productMeta} numberOfLines={1}>
               {supplierInfo}
+              {co2Val ? (
+                <Text style={styles.productCo2Label}> {'\u00B7'} Low CO{'\u2082'}</Text>
+              ) : null}
             </Text>
           ) : null}
         </View>
+        {co2Val ? (
+          <View style={styles.co2Col}>
+            <Text style={styles.co2Value}>{co2Val}t</Text>
+            <Text style={styles.co2Label}>CO{'\u2082'}</Text>
+          </View>
+        ) : null}
         <MaterialIcons name="chevron-right" size={20} color={TextMutedLight} />
       </TouchableOpacity>
     );
@@ -311,7 +302,7 @@ export default function ScanScreen() {
 
         {/* Saved Products */}
         <View style={styles.savedHeader}>
-          <Text style={styles.savedTitle}>Saved Products</Text>
+          <Text style={styles.savedTitle}>My Products</Text>
           {products.length > 0 && (
             <TouchableOpacity>
               <Text style={styles.seeAll}>See all</Text>
@@ -523,17 +514,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  productImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    marginRight: 12,
-    backgroundColor: '#F0F2F5',
-  },
   productIcon: {
     width: 48,
     height: 48,
-    borderRadius: 12,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -546,9 +530,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: TextBlack,
   },
+  productDppId: {
+    fontSize: 12,
+    color: TextGray,
+    fontWeight: '500',
+    fontFamily: 'monospace',
+    marginTop: 2,
+  },
   productMeta: {
     fontSize: 12,
     color: TextMutedLight,
     marginTop: 2,
+  },
+  productCo2Label: {
+    color: GreenAccent,
+    fontWeight: '600',
+  },
+  co2Col: {
+    alignItems: 'flex-end',
+    marginRight: 4,
+  },
+  co2Value: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: TextBlack,
+  },
+  co2Label: {
+    fontSize: 11,
+    color: TextGray,
   },
 });
