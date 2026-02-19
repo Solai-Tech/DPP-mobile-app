@@ -5,8 +5,10 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Linking,
 } from 'react-native';
 import { CameraView, BarcodeScanningResult } from 'expo-camera';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -75,8 +77,38 @@ export default function ScanScreen() {
     [isLoading, scanAndSaveProduct, router]
   );
 
+  const getDisplayName = (item: ScannedProduct): string => {
+    if (item.productName) return item.productName;
+    // Extract a friendly name from URL
+    try {
+      const url = new URL(item.rawValue);
+      const parts = url.pathname.split('/').filter(Boolean);
+      if (parts.length > 0) {
+        const last = parts[parts.length - 1];
+        // If it's a number, show as "Product #123"
+        if (/^\d+$/.test(last)) return `Product #${last}`;
+        // Otherwise, clean up the slug
+        return last.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      }
+      return url.hostname;
+    } catch {
+      return item.displayValue || item.rawValue;
+    }
+  };
+
+  const handleProductPress = (item: ScannedProduct) => {
+    const isUrl = item.rawValue.startsWith('http://') || item.rawValue.startsWith('https://');
+    if (isUrl) {
+      // Open the product URL in browser
+      Linking.openURL(item.rawValue);
+    } else {
+      // For non-URL scans, go to internal detail page
+      router.push(`/product/${item.id}`);
+    }
+  };
+
   const renderProductCard = (item: ScannedProduct) => {
-    const name = item.productName || item.displayValue || item.rawValue;
+    const name = getDisplayName(item);
     const co2Match = item.co2Total?.match(/([\d.]+)/);
     const co2Val = co2Match ? co2Match[1] : null;
     const supplierInfo = [
@@ -85,6 +117,7 @@ export default function ScanScreen() {
     ]
       .filter(Boolean)
       .join(' \u00B7 ');
+    const hasImage = !!item.imageUrl;
 
     const iconColors = ['#E8F5E9', '#E3F2FD', '#FFF3E0', '#F3E5F5', '#E0F7FA'];
     const colorIndex = item.id % iconColors.length;
@@ -94,12 +127,20 @@ export default function ScanScreen() {
       <TouchableOpacity
         key={item.id}
         style={styles.productCard}
-        onPress={() => router.push(`/product/${item.id}`)}
+        onPress={() => handleProductPress(item)}
         activeOpacity={0.7}
       >
-        <View style={[styles.productIcon, { backgroundColor: iconBg }]}>
-          <MaterialIcons name="recycling" size={22} color={GreenAccent} />
-        </View>
+        {hasImage ? (
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={styles.productImage}
+            contentFit="cover"
+          />
+        ) : (
+          <View style={[styles.productIcon, { backgroundColor: iconBg }]}>
+            <MaterialIcons name="recycling" size={22} color={GreenAccent} />
+          </View>
+        )}
         <View style={styles.productInfo}>
           <Text style={styles.productName} numberOfLines={1}>
             {name}
@@ -481,10 +522,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+  productImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    marginRight: 12,
+    backgroundColor: '#F0F2F5',
+  },
   productIcon: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
