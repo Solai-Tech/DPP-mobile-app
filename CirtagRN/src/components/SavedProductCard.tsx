@@ -14,8 +14,39 @@ interface Props {
 }
 
 export default function SavedProductCard({ product, onPress, onDelete }: Props) {
-  const displayName =
-    product.productName || product.displayValue || product.rawValue;
+  const displayName = (() => {
+    if (product.productName) return product.productName;
+
+    const isUrl = product.rawValue.startsWith('http://') || product.rawValue.startsWith('https://');
+    const isNumeric = /^\d{6,}$/.test(product.displayValue || product.rawValue);
+
+    if (product.imageUrl) {
+      try {
+        const imgParts = product.imageUrl.split('/');
+        const filename = imgParts[imgParts.length - 1];
+        const cleanName = filename
+          .replace(/\.\w+$/, '')
+          .replace(/[-_]/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase())
+          .trim();
+        if (cleanName.length > 2 && !/^\d+$/.test(cleanName)) {
+          return cleanName;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (product.productDescription) {
+      const desc = product.productDescription.trim();
+      if (desc.length > 0 && desc.length < 60) return desc;
+      if (desc.length >= 60) return desc.substring(0, 57) + '...';
+    }
+
+    if (product.supplier) return `${product.supplier} Product`;
+    if (!isUrl && !isNumeric && product.displayValue) return product.displayValue;
+    return 'Scanned Product';
+  })();
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
@@ -39,11 +70,6 @@ export default function SavedProductCard({ product, onPress, onDelete }: Props) 
         <Text style={styles.name} numberOfLines={1}>
           {displayName}
         </Text>
-        {product.productId ? (
-          <Text style={styles.productId} numberOfLines={1}>
-            ID: {product.productId}
-          </Text>
-        ) : null}
         <View style={styles.metaRow}>
           <MaterialIcons name="access-time" size={11} color={TextMuted} />
           <Text style={styles.date}>{formatHistoryDate(product.scannedAt)}</Text>
@@ -90,12 +116,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: TextPrimary,
-  },
-  productId: {
-    fontSize: 12,
-    color: Accent,
-    fontWeight: '500',
-    marginTop: 2,
   },
   metaRow: {
     flexDirection: 'row',

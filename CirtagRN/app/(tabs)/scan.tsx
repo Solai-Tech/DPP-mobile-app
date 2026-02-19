@@ -79,21 +79,40 @@ export default function ScanScreen() {
 
   const getDisplayName = (item: ScannedProduct): string => {
     if (item.productName) return item.productName;
-    // Extract a friendly name from URL
-    try {
-      const url = new URL(item.rawValue);
-      const parts = url.pathname.split('/').filter(Boolean);
-      if (parts.length > 0) {
-        const last = parts[parts.length - 1];
-        // If it's a number, show as "Product #123"
-        if (/^\d+$/.test(last)) return `Product #${last}`;
-        // Otherwise, clean up the slug
-        return last.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+    const isUrl = item.rawValue.startsWith('http://') || item.rawValue.startsWith('https://');
+    const isNumeric = /^\d{6,}$/.test(item.displayValue || item.rawValue);
+
+    // Try to extract name from image URL filename
+    if (item.imageUrl) {
+      try {
+        const imgParts = item.imageUrl.split('/');
+        const filename = imgParts[imgParts.length - 1];
+        const cleanName = filename
+          .replace(/\.\w+$/, '')
+          .replace(/[-_]/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase())
+          .trim();
+        if (cleanName.length > 2 && !/^\d+$/.test(cleanName)) {
+          return cleanName;
+        }
+      } catch {
+        // ignore
       }
-      return url.hostname;
-    } catch {
-      return item.displayValue || item.rawValue;
     }
+
+    // Try description
+    if (item.productDescription) {
+      const desc = item.productDescription.trim();
+      if (desc.length > 0 && desc.length < 60) return desc;
+      if (desc.length >= 60) return desc.substring(0, 57) + '...';
+    }
+
+    // Supplier-based fallback (avoid showing IDs/URLs)
+    if (item.supplier) return `${item.supplier} Product`;
+    if (!isUrl && !isNumeric && item.displayValue) return item.displayValue;
+
+    return 'Scanned Product';
   };
 
   const handleProductPress = (item: ScannedProduct) => {
@@ -109,8 +128,6 @@ export default function ScanScreen() {
 
   const renderProductCard = (item: ScannedProduct) => {
     const name = getDisplayName(item);
-    const co2Match = item.co2Total?.match(/([\d.]+)/);
-    const co2Val = co2Match ? co2Match[1] : null;
     const supplierInfo = [
       item.supplier,
       item.skuId ? `Batch #${item.skuId}` : null,
@@ -145,28 +162,12 @@ export default function ScanScreen() {
           <Text style={styles.productName} numberOfLines={1}>
             {name}
           </Text>
-          {item.productId ? (
-            <Text style={styles.productDppId} numberOfLines={1}>
-              {item.productId.startsWith('DPP-')
-                ? item.productId
-                : `DPP-${item.productId}`}
-            </Text>
-          ) : null}
           {supplierInfo ? (
             <Text style={styles.productMeta} numberOfLines={1}>
               {supplierInfo}
-              {co2Val ? (
-                <Text style={styles.productCo2Label}> {'\u00B7'} Low CO{'\u2082'}</Text>
-              ) : null}
             </Text>
           ) : null}
         </View>
-        {co2Val ? (
-          <View style={styles.co2Col}>
-            <Text style={styles.co2Value}>{co2Val}t</Text>
-            <Text style={styles.co2Label}>CO{'\u2082'}</Text>
-          </View>
-        ) : null}
         <MaterialIcons name="chevron-right" size={20} color={TextMutedLight} />
       </TouchableOpacity>
     );
@@ -545,33 +546,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: TextBlack,
   },
-  productDppId: {
-    fontSize: 12,
-    color: TextGray,
-    fontWeight: '500',
-    fontFamily: 'monospace',
-    marginTop: 2,
-  },
   productMeta: {
     fontSize: 12,
     color: TextMutedLight,
     marginTop: 2,
-  },
-  productCo2Label: {
-    color: GreenAccent,
-    fontWeight: '600',
-  },
-  co2Col: {
-    alignItems: 'flex-end',
-    marginRight: 4,
-  },
-  co2Value: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: TextBlack,
-  },
-  co2Label: {
-    fontSize: 11,
-    color: TextGray,
   },
 });
