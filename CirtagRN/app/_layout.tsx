@@ -1,38 +1,26 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, LogBox } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { BackgroundDark } from '../src/theme/colors';
 
+LogBox.ignoreAllLogs(true);
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const [isReady, setIsReady] = useState(false);
-  const startTimeRef = useRef<number>(Date.now());
-  const minSplashMs = 1000;
-
   useEffect(() => {
-    setIsReady(true);
+    // Wait for the full component tree to mount and paint before hiding splash
+    const timer = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    }, 300);
+    return () => clearTimeout(timer);
   }, []);
 
-  const onLayoutRootView = useCallback(() => {
-    if (isReady) {
-      const elapsed = Date.now() - startTimeRef.current;
-      const delay = Math.max(0, minSplashMs - elapsed);
-      setTimeout(() => {
-        SplashScreen.hideAsync().catch(() => {});
-      }, delay);
-    }
-  }, [isReady]);
-
   return (
-    <View
-      style={{ flex: 1, backgroundColor: BackgroundDark }}
-      onLayout={onLayoutRootView}
-    >
+    <View style={{ flex: 1, backgroundColor: BackgroundDark }}>
       <StatusBar style="light" backgroundColor={BackgroundDark} />
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: BackgroundDark } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="product/[id]"

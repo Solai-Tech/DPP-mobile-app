@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -84,15 +84,27 @@ export default function LifeCycleScreen() {
 
         {/* Actions */}
         <View style={styles.actionsRow}>
-          <TouchableOpacity style={[styles.actionBtn, styles.actionPrimary]} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionPrimary]}
+            activeOpacity={0.7}
+            onPress={() => router.push('/(tabs)/tickets')}
+          >
             <MaterialIcons name="support-agent" size={18} color="#FFFFFF" />
             <Text style={styles.actionTextPrimary}>Get Support</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            activeOpacity={0.7}
+            onPress={() => router.push('/(tabs)/tickets')}
+          >
             <MaterialIcons name="campaign" size={18} color="#1A1A1A" />
             <Text style={styles.actionText}>Raise Ticket</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            activeOpacity={0.7}
+            onPress={() => Share.share({ message: 'Check out this Digital Product Passport from CirTag!' })}
+          >
             <MaterialIcons name="share" size={18} color="#1A1A1A" />
             <Text style={styles.actionText}>Share DPP</Text>
           </TouchableOpacity>

@@ -15,13 +15,12 @@ import { WebView } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system/legacy';
 import { TextMuted, TextPrimary } from '../src/theme/colors';
 
-async function downloadAndOpenPdf(pdfUrl: string) {
+async function downloadPdf(pdfUrl: string) {
   try {
     const filename = `datasheet-${Date.now()}.pdf`;
-    const dest = `${FileSystem.cacheDirectory}${filename}`;
-    const { uri } = await FileSystem.downloadAsync(pdfUrl, dest);
-    const contentUri = await FileSystem.getContentUriAsync(uri);
-    await Linking.openURL(contentUri);
+    const dest = `${FileSystem.documentDirectory}${filename}`;
+    await FileSystem.downloadAsync(pdfUrl, dest);
+    Alert.alert('Downloaded!', 'PDF has been saved successfully.');
   } catch {
     Alert.alert('Download failed', 'Unable to download the PDF.');
   }
@@ -95,9 +94,9 @@ export default function WebViewScreen() {
       if (data.type === 'pdf_download' && data.url) {
         if (isAutoDownload) {
           router.back();
-          downloadAndOpenPdf(data.url);
+          downloadPdf(data.url);
         } else {
-          downloadAndOpenPdf(data.url);
+          downloadPdf(data.url);
         }
       }
       if (data.type === 'no_pdf_found' && isAutoDownload) {
@@ -112,7 +111,7 @@ export default function WebViewScreen() {
   const handleShouldStartLoad = (request: { url: string }) => {
     if (/\.pdf(\?|#|$)/i.test(request.url) && !request.url.includes('docs.google.com')) {
       if (isAutoDownload) router.back();
-      downloadAndOpenPdf(request.url);
+      downloadPdf(request.url);
       return false;
     }
     return true;
@@ -160,7 +159,7 @@ export default function WebViewScreen() {
           onFileDownload={({ nativeEvent }) => {
             if (nativeEvent.downloadUrl) {
               if (isAutoDownload) router.back();
-              downloadAndOpenPdf(nativeEvent.downloadUrl);
+              downloadPdf(nativeEvent.downloadUrl);
             }
           }}
         />

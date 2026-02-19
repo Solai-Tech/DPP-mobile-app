@@ -2,12 +2,13 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TabBarBg, TabBarInactive } from '../../src/theme/colors';
+import { BackgroundDark, TabBarBg, TabBarInactive } from '../../src/theme/colors';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   return (
     <Tabs
+      sceneContainerStyle={{ backgroundColor: BackgroundDark }}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {

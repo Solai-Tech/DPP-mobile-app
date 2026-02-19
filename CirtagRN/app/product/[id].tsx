@@ -45,6 +45,8 @@ export default function ProductDetailScreen() {
   const insets = useSafeAreaInsets();
   const { getProductById } = useProducts();
   const [product, setProduct] = useState<ScannedProduct | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [pdfWebViewUrl, setPdfWebViewUrl] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -133,10 +135,8 @@ export default function ProductDetailScreen() {
     );
   };
 
-  const [downloading, setDownloading] = useState(false);
-  const [pdfWebViewUrl, setPdfWebViewUrl] = useState('');
-
   const handleDownloadPdf = () => {
+    if (!product) return;
     if (downloading) return;
     const url = product.datasheetUrl || product.rawValue;
     const safeUrl = normalizeUrl(url);
@@ -155,12 +155,10 @@ export default function ProductDetailScreen() {
         setPdfWebViewUrl('');
         const pdfUrl = data.url;
         const filename = `${(product.productName || 'datasheet').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-        const dest = `${FileSystem.cacheDirectory}${filename}`;
-        FileSystem.downloadAsync(pdfUrl, dest).then(({ uri }) => {
+        const dest = `${FileSystem.documentDirectory}${filename}`;
+        FileSystem.downloadAsync(pdfUrl, dest).then(() => {
           setDownloading(false);
-          FileSystem.getContentUriAsync(uri).then((contentUri) => {
-            Linking.openURL(contentUri);
-          });
+          Alert.alert('Downloaded!', 'PDF has been saved successfully.');
         }).catch(() => {
           setDownloading(false);
           Alert.alert('Download failed', 'Unable to download the PDF.');
@@ -412,9 +410,7 @@ export default function ProductDetailScreen() {
 
           <TouchableOpacity
             style={styles.actionBtnOutline}
-            onPress={() => {
-              router.push('/(tabs)/tickets');
-            }}
+            onPress={() => router.push('/(tabs)/tickets')}
             activeOpacity={0.7}
           >
             <MaterialIcons name="confirmation-number" size={16} color={GreenAccent} />

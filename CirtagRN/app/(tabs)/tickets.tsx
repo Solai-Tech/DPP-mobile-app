@@ -9,6 +9,7 @@ import {
   Platform,
   StyleSheet,
 } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import ChatBubble from '../../src/components/ChatBubble';
@@ -41,10 +42,27 @@ const QUICK_REPLIES = [
 
 export default function TicketsScreen() {
   const insets = useSafeAreaInsets();
+  const { tab, action } = useLocalSearchParams<{ tab?: string; action?: string }>();
   const { tickets, chatMessages, sendMessage, createTicket } = useTickets();
   const [activeTab, setActiveTab] = useState<TabMode>('chat');
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (tab === 'tickets') {
+      setActiveTab('tickets');
+    }
+    if (tab === 'chat') {
+      setActiveTab('chat');
+    }
+  }, [tab]);
+
+  useEffect(() => {
+    if (action === 'raise') {
+      setActiveTab('tickets');
+      createTicket('New Support Request', 'Created from product detail');
+    }
+  }, [action, createTicket]);
 
   useEffect(() => {
     if (activeTab === 'chat') {
