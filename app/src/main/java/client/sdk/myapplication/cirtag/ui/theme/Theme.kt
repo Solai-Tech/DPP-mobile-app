@@ -1,7 +1,6 @@
 package client.sdk.myapplication.cirtag.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -14,35 +13,43 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = Primary,
+    primary = CirtagGreen,
     onPrimary = Color.White,
-    primaryContainer = PrimaryContainer,
-    onPrimaryContainer = OnPrimaryContainer,
-    secondary = Secondary,
-    secondaryContainer = SecondaryContainer,
-    tertiary = Accent,
-    tertiaryContainer = AccentLight,
-    background = BackgroundLight,
-    surface = SurfaceLight,
-    error = Error,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F)
+    primaryContainer = CirtagGreenPale,
+    onPrimaryContainer = TextDark,
+    secondary = CirtagGreenLight,
+    secondaryContainer = CirtagGreenPale,
+    tertiary = CirtagGreenMedium,
+    tertiaryContainer = CirtagGreenPale,
+    background = OffWhite,
+    surface = Color.White,
+    error = RedStatus,
+    onBackground = TextDark,
+    onSurface = TextDark,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    surfaceVariant = Gray100,
+    onSurfaceVariant = TextSecondary
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryLight,
-    onPrimary = Color(0xFF003731),
-    primaryContainer = PrimaryDark,
-    onPrimaryContainer = PrimaryContainer,
-    secondary = Color(0xFF9FA8DA),
-    secondaryContainer = Secondary,
-    tertiary = Accent,
-    tertiaryContainer = Color(0xFF004D40),
-    background = BackgroundDark,
-    surface = SurfaceDark,
-    error = Color(0xFFCF6679),
+    primary = CirtagGreenLight,
+    onPrimary = CirtagDarkBg,
+    primaryContainer = CirtagDarkGradient1,
+    onPrimaryContainer = CirtagGreenPale,
+    secondary = CirtagGreenMedium,
+    secondaryContainer = CirtagDarkGradient2,
+    tertiary = CirtagGreenLight,
+    tertiaryContainer = CirtagDarkGradient1,
+    background = CirtagDarkBg,
+    surface = CirtagDarkSurface,
+    error = RedStatus,
     onBackground = Color.White,
-    onSurface = Color.White
+    onSurface = Color.White,
+    onSecondary = CirtagDarkBg,
+    onTertiary = CirtagDarkBg,
+    surfaceVariant = CirtagDarkGradient1,
+    onSurfaceVariant = Gray400
 )
 
 @Composable
@@ -56,7 +63,7 @@ fun MyApplicationCirtagTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = PrimaryDark.toArgb()
+            window.statusBarColor = CirtagDarkBg.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }

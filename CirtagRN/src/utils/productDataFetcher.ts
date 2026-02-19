@@ -43,13 +43,62 @@ export async function fetchProductData(urlString: string): Promise<ProductData> 
       },
     });
     const html = await response.text();
-    return parseHtml(html, baseUrl);
+    return parseHtml(html, baseUrl, urlString);
   } catch {
-    return emptyProductData();
+    // If fetch fails, try to extract name from URL path
+    return extractNameFromUrl(urlString);
   }
 }
 
-function parseHtml(html: string, baseUrl: string): ProductData {
+function extractNameFromUrl(urlString: string): ProductData {
+  const data = emptyProductData();
+  try {
+    const url = new URL(urlString);
+
+    // Try query parameters first (e.g., ?name=HP-laptop45 or ?product=HP-laptop45)
+    const nameParam = url.searchParams.get('name') ||
+                      url.searchParams.get('product') ||
+                      url.searchParams.get('title') ||
+                      url.searchParams.get('id');
+    if (nameParam) {
+      data.name = decodeURIComponent(nameParam)
+        .replace(/[-_]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return data;
+    }
+
+    // Try URL path
+    const pathParts = url.pathname.split('/').filter(p =>
+      p && p !== 'dpp' && p !== 'dppx' && p !== 'product' && p !== 'products' && p !== 'item' && p !== 'view'
+    );
+    if (pathParts.length > 0) {
+      const lastPart = pathParts[pathParts.length - 1];
+      // Skip if it looks like just a number ID
+      if (!/^\d+$/.test(lastPart)) {
+        data.name = decodeURIComponent(lastPart)
+          .replace(/[-_]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        return data;
+      }
+    }
+
+    // Fallback: use domain + path as a short name
+    const shortPath = url.pathname.split('/').filter(Boolean).slice(-1)[0] || '';
+    if (shortPath) {
+      data.name = `Product ${shortPath}`;
+    } else {
+      data.name = `Product from ${url.hostname}`;
+    }
+  } catch {
+    // URL parsing failed - use a generic name
+    data.name = 'Scanned Product';
+  }
+  return data;
+}
+
+function parseHtml(html: string, baseUrl: string, fullUrl: string): ProductData {
   let name = '';
   let description = '';
   let imageUrl = '';
@@ -63,21 +112,38 @@ function parseHtml(html: string, baseUrl: string): ProductData {
   const certs: string[] = [];
   let datasheetUrl = '';
 
-  // Product name from <h1>
+  // Product name - try multiple patterns
   const namePatterns = [
-    /<h1[^>]*>(.*?)<\/h1>/i,
+    /<h1[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/h1>/is,
+    /<h1[^>]*>(.*?)<\/h1>/is,
+    /<h2[^>]*class="[^"]*product[^"]*"[^>]*>(.*?)<\/h2>/is,
     /"name"\s*:\s*"([^"]+)"/i,
+    /"productName"\s*:\s*"([^"]+)"/i,
     /product_name['"]\s*:\s*['"]([^'"]+)/i,
+    /<title[^>]*>(.*?)<\/title>/i,
+    /<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i,
+    /<meta[^>]*name="title"[^>]*content="([^"]+)"/i,
+    /class="[^"]*product-title[^"]*"[^>]*>(.*?)</is,
+    /class="[^"]*product-name[^"]*"[^>]*>(.*?)</is,
+    /id="product-name"[^>]*>(.*?)</is,
   ];
   for (const pattern of namePatterns) {
     const match = html.match(pattern);
     if (match) {
-      const extracted = match[1].replace(/<[^>]+>/g, '').trim();
-      if (extracted.length > 0 && extracted.length < 200) {
+      let extracted = match[1].replace(/<[^>]+>/g, '').trim();
+      // Clean up common suffixes like " | Site Name" or " - Company"
+      extracted = extracted.split(/\s*[\|\-–—]\s*/)[0].trim();
+      if (extracted.length > 0 && extracted.length < 200 && !extracted.toLowerCase().includes('404')) {
         name = extracted;
         break;
       }
     }
+  }
+
+  // If still no name, try to extract from URL
+  if (!name) {
+    const extracted = extractNameFromUrl(fullUrl);
+    name = extracted.name;
   }
 
   // Product image

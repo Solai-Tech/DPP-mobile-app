@@ -2,36 +2,64 @@ package client.sdk.myapplication.cirtag.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary - Teal/Green (sustainability theme)
-val Primary = Color(0xFF009688)
-val PrimaryDark = Color(0xFF00796B)
-val PrimaryLight = Color(0xFF4DB6AC)
-val PrimaryContainer = Color(0xFFB2DFDB)
-val OnPrimaryContainer = Color(0xFF00352F)
+// Primary Green
+val CirtagGreen = Color(0xFF16A34A)
+val CirtagGreenLight = Color(0xFF22C55E)
+val CirtagGreenPale = Color(0xFFDCFCE7)
+val CirtagGreenMedium = Color(0xFF4ADE80)
 
-// Secondary - Deep Blue
+// Dark theme colors
+val CirtagDarkBg = Color(0xFF071A09)
+val CirtagDarkSurface = Color(0xFF0D2410)
+val CirtagDarkCard = Color(0xFF0F2D12)
+val CirtagDarkGradient1 = Color(0xFF0F3512)
+val CirtagDarkGradient2 = Color(0xFF1A5E16)
+val CirtagDarkGradient3 = Color(0xFF22881A)
+
+// Neutral
+val OffWhite = Color(0xFFF7FAF7)
+val Gray50 = Color(0xFFF9FBF9)
+val Gray100 = Color(0xFFF0F4F0)
+val Gray200 = Color(0xFFE2E8E2)
+val Gray300 = Color(0xFFD1D9D1)
+val Gray400 = Color(0xFF9CB09C)
+val Gray500 = Color(0xFF6B8A6B)
+val Gray600 = Color(0xFF4A6B4A)
+val TextDark = Color(0xFF0F2010)
+val TextSecondary = Color(0xFF4A6B4A)
+
+// Status colors
+val AmberStatus = Color(0xFFF59E0B)
+val AmberPale = Color(0xFFFEF3C7)
+val RedStatus = Color(0xFFEF4444)
+val RedPale = Color(0xFFFEE2E2)
+val BlueStatus = Color(0xFF3B82F6)
+val BluePale = Color(0xFFDBEAFE)
+
+// Legacy colors (kept for compatibility)
+val Primary = CirtagGreen
+val PrimaryDark = CirtagDarkBg
+val PrimaryLight = CirtagGreenLight
+val PrimaryContainer = CirtagGreenPale
+val OnPrimaryContainer = TextDark
+
 val Secondary = Color(0xFF1A237E)
 val SecondaryContainer = Color(0xFFC5CAE9)
 
-// Accent
-val Accent = Color(0xFF00BFA5)
-val AccentLight = Color(0xFFE0F2F1)
+val Accent = CirtagGreenMedium
+val AccentLight = CirtagGreenPale
 
-// Background
-val BackgroundLight = Color(0xFFF5F7FA)
-val SurfaceLight = Color(0xFFFFFFFF)
-val BackgroundDark = Color(0xFF121212)
-val SurfaceDark = Color(0xFF1E1E1E)
+val BackgroundLight = OffWhite
+val SurfaceLight = Color.White
+val BackgroundDark = CirtagDarkBg
+val SurfaceDark = CirtagDarkSurface
 
-// Status
-val Success = Color(0xFF4CAF50)
-val Warning = Color(0xFFFF9800)
-val Error = Color(0xFFE53935)
+val Success = CirtagGreen
+val Warning = AmberStatus
+val Error = RedStatus
 
-// CO2 colors
-val Co2Green = Color(0xFF2E7D32)
-val Co2Banner = Color(0xFF80CBC4)
-val Co2BannerText = Color(0xFF004D40)
+val Co2Green = CirtagGreen
+val Co2Banner = CirtagGreenPale
+val Co2BannerText = TextDark
 
-// Card colors
-val CardDark = Color(0xFF263238)
+val CardDark = CirtagDarkCard

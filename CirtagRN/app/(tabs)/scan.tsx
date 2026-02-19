@@ -1,3 +1,4 @@
+// Updated: Extract product name from URL path (e.g., HP-laptop45 -> HP laptop45)
 import React, { useRef, useCallback, useState } from 'react';
 import {
   View,
@@ -76,7 +77,39 @@ export default function ScanScreen() {
   );
 
   const renderProductCard = (item: ScannedProduct) => {
-    const name = item.productName || item.displayValue || item.rawValue;
+    // Extract product name from URL path
+    let name = '';
+
+    // Always try to extract from URL first
+    const rawUrl = item.rawValue || '';
+    if (rawUrl.startsWith('http')) {
+      try {
+        const url = new URL(rawUrl);
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        // Get the last meaningful part of the path
+        for (let i = pathParts.length - 1; i >= 0; i--) {
+          const part = pathParts[i];
+          if (part !== 'dpp' && part !== 'dppx' && part !== 'product' && part !== 'products') {
+            name = decodeURIComponent(part).replace(/[-_]/g, ' ').trim();
+            break;
+          }
+        }
+      } catch {
+        // URL parsing failed
+      }
+    }
+
+    // Use productName if we couldn't extract from URL
+    if (!name && item.productName) {
+      name = item.productName;
+    }
+
+    // Final fallback - don't show URL, show generic name
+    if (!name || name.startsWith('http')) {
+      name = 'Product';
+    }
+
+    console.log('Product name extracted:', name, 'from:', rawUrl);
     const co2Match = item.co2Total?.match(/([\d.]+)/);
     const co2Val = co2Match ? co2Match[1] : null;
     const supplierInfo = [
@@ -269,7 +302,7 @@ export default function ScanScreen() {
 
         {/* Saved Products */}
         <View style={styles.savedHeader}>
-          <Text style={styles.savedTitle}>Saved Products</Text>
+          <Text style={styles.savedTitle}>My Products</Text>
           {products.length > 0 && (
             <TouchableOpacity>
               <Text style={styles.seeAll}>See all</Text>

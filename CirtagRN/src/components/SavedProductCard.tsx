@@ -14,8 +14,33 @@ interface Props {
 }
 
 export default function SavedProductCard({ product, onPress, onDelete }: Props) {
-  const displayName =
-    product.productName || product.displayValue || product.rawValue;
+  // Extract product name from URL path
+  let displayName = '';
+
+  const rawUrl = product.rawValue || '';
+  if (rawUrl.startsWith('http')) {
+    try {
+      const url = new URL(rawUrl);
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      for (let i = pathParts.length - 1; i >= 0; i--) {
+        const part = pathParts[i];
+        if (part !== 'dpp' && part !== 'dppx' && part !== 'product' && part !== 'products') {
+          displayName = decodeURIComponent(part).replace(/[-_]/g, ' ').trim();
+          break;
+        }
+      }
+    } catch {
+      // URL parsing failed
+    }
+  }
+
+  if (!displayName && product.productName) {
+    displayName = product.productName;
+  }
+
+  if (!displayName || displayName.startsWith('http')) {
+    displayName = 'Product';
+  }
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>

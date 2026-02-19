@@ -1,7 +1,11 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { TabBarBg, TabBarActive, TabBarInactive } from '../../src/theme/colors';
+
+// Tab bar colors matching the screenshot
+const TabBarBg = '#FFFFFF';
+const TabBarActive = '#16A34A';
+const TabBarInactive = '#9CA3AF';
 
 export default function TabLayout() {
   return (
@@ -10,9 +14,11 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: TabBarBg,
-          borderTopWidth: 0,
-          height: 60,
-          paddingBottom: 6,
+          borderTopWidth: 1,
+          borderTopColor: '#E5E7EB',
+          height: 65,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
         tabBarActiveTintColor: TabBarActive,
         tabBarInactiveTintColor: TabBarInactive,
@@ -27,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={size} color={color} />
+            <MaterialIcons name="home" size={26} color={color} />
           ),
         }}
       />
@@ -36,16 +42,16 @@ export default function TabLayout() {
         options={{
           title: 'Scan',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="qr-code-scanner" size={size} color={color} />
+            <MaterialIcons name="photo-camera" size={26} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="tickets"
         options={{
-          title: 'Help',
+          title: 'Tickets',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="support-agent" size={size} color={color} />
+            <MaterialIcons name="confirmation-number" size={26} color={color} />
           ),
         }}
       />
@@ -54,7 +60,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size} color={color} />
+            <MaterialIcons name="person-outline" size={26} color={color} />
           ),
         }}
       />

@@ -15,8 +15,39 @@ interface Props {
 }
 
 export default function ProductHistoryCard({ product, onPress, onDelete }: Props) {
-  const displayName =
-    product.productName || product.displayValue || product.rawValue;
+  // Extract product name - try productName first, then extract from URL
+  let displayName = product.productName && product.productName.trim() !== '' ? product.productName : '';
+
+  // If no productName, try to extract from URL path
+  if (!displayName && product.rawValue) {
+    try {
+      const url = new URL(product.rawValue);
+      const nameParam = url.searchParams.get('name') ||
+                        url.searchParams.get('product') ||
+                        url.searchParams.get('title');
+      if (nameParam) {
+        displayName = decodeURIComponent(nameParam).replace(/[-_]/g, ' ').trim();
+      } else {
+        const pathParts = url.pathname.split('/').filter(p =>
+          p && p !== 'dpp' && p !== 'dppx' && p !== 'product' && p !== 'products'
+        );
+        if (pathParts.length > 0) {
+          const lastPart = pathParts[pathParts.length - 1];
+          if (!/^\d+$/.test(lastPart)) {
+            displayName = decodeURIComponent(lastPart).replace(/[-_]/g, ' ').trim();
+          } else {
+            displayName = `Product ${lastPart}`;
+          }
+        }
+      }
+    } catch {
+      // Not a URL
+    }
+  }
+
+  if (!displayName) {
+    displayName = product.displayValue || product.rawValue || 'Unknown Product';
+  }
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
