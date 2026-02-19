@@ -1,16 +1,15 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import GradientBackground from '../../src/components/GradientBackground';
 import { useProducts } from '../../src/hooks/useProducts';
-import { useTickets } from '../../src/hooks/useTickets';
 import { useUserProfile } from '../../src/hooks/useUserProfile';
 import {
   Accent,
-  AccentDim,
   TextPrimary,
   TextMuted,
 } from '../../src/theme/colors';
@@ -21,18 +20,27 @@ const GreenBorder = 'rgba(0,230,118,0.25)';
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { products } = useProducts();
-  const { tickets } = useTickets();
+  const { products, refreshProducts } = useProducts();
   const { profile } = useUserProfile();
 
-  const totalCo2 = products.reduce((sum, p) => {
-    const match = p.co2Total?.match(/([\d.]+)/);
-    return sum + (match ? parseFloat(match[1]) : 0);
-  }, 0);
+  const totalScans = products.length;
+  const totalScansDisplay = `${totalScans}`;
 
-  const openTickets = tickets.filter(
-    (t) => t.status === 'open' || t.status === 'in_progress'
-  ).length;
+  const handleLifeCyclePress = () => {
+    router.push('/lifecycle');
+  };
+  const handleHistoryPress = () => {
+    router.push('/(tabs)/scan');
+  };
+  const handleSolaiPress = () => {
+    WebBrowser.openBrowserAsync('https://solai.se/dppx/');
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshProducts();
+    }, [refreshProducts])
+  );
 
   return (
     <GradientBackground>
@@ -43,7 +51,7 @@ export default function HomeScreen() {
           <Text style={styles.topLabel}>CirTag</Text>
           <View style={styles.activePill}>
             <View style={styles.activeDot} />
-            <Text style={styles.activeText}>Platform Active</Text>
+            <Text style={styles.activeText}>Live Tracking</Text>
           </View>
         </View>
 
@@ -65,70 +73,68 @@ export default function HomeScreen() {
           <View style={styles.welcomeLeft}>
             <Text style={styles.welcomeHi}>Welcome to</Text>
             <Text style={styles.welcomeName}>{profile.company}</Text>
+            <Text style={styles.welcomeSub}>Track your products sustainably</Text>
           </View>
           <View style={styles.avatar}>
-            <MaterialIcons name="eco" size={24} color="#FFFFFF" />
+            <MaterialIcons name="recycling" size={22} color="#FFFFFF" />
           </View>
         </View>
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{totalCo2.toFixed(1)}</Text>
-            <Text style={styles.statUnit}>Kg CO₂</Text>
-            <Text style={styles.statLabel}>Monthly CO₂</Text>
+            <Text style={styles.statValue}>{totalScansDisplay}</Text>
+            <Text style={styles.statUnit}>Monthly Scans</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{products.length}</Text>
-            <Text style={styles.statLabel}>Products</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{openTickets}</Text>
-            <Text style={styles.statLabel}>Open Tickets</Text>
+            <Text style={styles.statUnit}>Products</Text>
           </View>
         </View>
 
         {/* Spacer to push actions down */}
         <View style={styles.spacer} />
 
-        {/* Quick Actions */}
-        <View style={styles.actionsSection}>
-          <View style={styles.actionsRow}>
-            <TouchableOpacity
-              style={styles.actionPrimary}
-              onPress={() => router.push('/(tabs)/scan')}
-              activeOpacity={0.8}
-            >
-              <MaterialIcons name="qr-code-scanner" size={26} color="#FFFFFF" />
-              <Text style={styles.actionPriLabel}>Scan Product</Text>
-              <Text style={styles.actionPriSub}>Scan QR or Barcode</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionSecondary}
-              onPress={() => router.push('/(tabs)/tickets')}
-              activeOpacity={0.8}
-            >
-              <MaterialIcons name="support-agent" size={26} color="#FFFFFF" />
-              <Text style={styles.actionSecLabel}>Get Support</Text>
-              <Text style={styles.actionSecSub}>Chat or create ticket</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={{ height: 10 }} />
+        {/* Action Tiles */}
+        <View style={styles.actionsRow}>
           <TouchableOpacity
-            style={styles.actionShareRow}
-            onPress={() => WebBrowser.openBrowserAsync('https://solai.se/dppx/')}
-            activeOpacity={0.8}
+            style={styles.actionTile}
+            onPress={handleHistoryPress}
+            activeOpacity={0.85}
           >
-            <View style={styles.shareIconCircle}>
-              <MaterialIcons name="share" size={22} color={Accent} />
+            <View style={styles.actionIconCircle}>
+              <MaterialIcons name="history" size={20} color={Accent} />
             </View>
-            <View style={styles.shareTextCol}>
-              <Text style={styles.shareLabel}>Share DPP</Text>
-              <Text style={styles.shareSub}>Share Digital Product Passport</Text>
+            <Text style={styles.actionLabel}>Products History</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionTile}
+            onPress={handleLifeCyclePress}
+            activeOpacity={0.85}
+          >
+            <View style={styles.actionIconCircle}>
+              <MaterialIcons name="recycling" size={20} color={Accent} />
             </View>
-            <MaterialIcons name="chevron-right" size={22} color={TextMuted} />
+            <Text style={styles.actionLabel}>Product Life Cycle</Text>
           </TouchableOpacity>
         </View>
+
+        <View style={{ height: 20 }} />
+
+        <TouchableOpacity
+          style={styles.solaiCard}
+          onPress={handleSolaiPress}
+          activeOpacity={0.85}
+        >
+          <View style={styles.cirtagIcon}>
+            <MaterialIcons name="eco" size={20} color="#FFFFFF" />
+          </View>
+          <View style={styles.solaiTextCol}>
+            <Text style={styles.solaiTitle}>CirTag</Text>
+            <Text style={styles.solaiSub}>Open Digital Product Passport</Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={20} color={TextMuted} />
+        </TouchableOpacity>
       </View>
     </GradientBackground>
   );
@@ -145,7 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 4,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   topLabel: {
     fontSize: 14,
@@ -177,21 +183,21 @@ const styles = StyleSheet.create({
   // Logo
   logoSection: {
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
   },
   logoMark: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: '#16a34a',
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    backgroundColor: '#1F7A3A',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
     shadowColor: '#00E676',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.45,
-    shadowRadius: 28,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 8,
   },
   logoTextRow: {
     flexDirection: 'row',
@@ -199,13 +205,13 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   logoName: {
-    fontSize: 48,
+    fontSize: 44,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -2,
   },
   logoNameAccent: {
-    fontSize: 48,
+    fontSize: 44,
     fontWeight: '800',
     color: Accent,
     letterSpacing: -2,
@@ -218,9 +224,9 @@ const styles = StyleSheet.create({
   },
   taglineSub: {
     fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.3)',
-    marginTop: 3,
+    fontWeight: '600',
+    color: Accent,
+    marginTop: 4,
     letterSpacing: 0.3,
   },
   // Welcome Card
@@ -228,11 +234,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: 18,
-    padding: 18,
+    padding: 16,
     marginTop: 6,
     marginBottom: 14,
   },
@@ -243,15 +249,20 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   welcomeName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  welcomeSub: {
+    fontSize: 11,
+    color: TextMuted,
+    marginTop: 4,
+  },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#16a34a',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#1F7A3A',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#00E676',
@@ -267,11 +278,12 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
     alignItems: 'center',
   },
   statValue: {
@@ -281,15 +293,9 @@ const styles = StyleSheet.create({
   },
   statUnit: {
     fontSize: 10,
-    color: Accent,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  statLabel: {
-    fontSize: 10,
     color: TextMuted,
-    marginTop: 4,
-    textAlign: 'center',
+    fontWeight: '600',
+    marginTop: 6,
   },
   // Spacer
   spacer: {
@@ -297,81 +303,64 @@ const styles = StyleSheet.create({
     minHeight: 16,
   },
   // Actions
-  actionsSection: {},
   actionsRow: {
     flexDirection: 'row',
     gap: 10,
   },
-  actionPrimary: {
+  actionTile: {
     flex: 1,
-    backgroundColor: '#16a34a',
-    borderRadius: 20,
-    padding: 18,
-    alignItems: 'center',
-    shadowColor: '#16a34a',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  actionPriLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginTop: 8,
-  },
-  actionPriSub: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: 3,
-  },
-  actionSecondary: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.09)',
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 18,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
     alignItems: 'center',
   },
-  actionSecLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginTop: 8,
+  actionIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(0,230,118,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,230,118,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  actionSecSub: {
-    fontSize: 10,
+  actionLabel: {
+    fontSize: 11,
     color: TextMuted,
-    marginTop: 3,
+    marginTop: 10,
+    textAlign: 'center',
+    fontWeight: '600',
   },
-  actionShareRow: {
+  solaiCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: 16,
     padding: 14,
     gap: 12,
   },
-  shareIconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: AccentDim,
-    justifyContent: 'center',
+  cirtagIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#2EA7FF',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  shareTextCol: {
+  solaiTextCol: {
     flex: 1,
   },
-  shareLabel: {
-    fontSize: 14,
+  solaiTitle: {
+    fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  shareSub: {
+  solaiSub: {
     fontSize: 11,
     color: TextMuted,
     marginTop: 2,

@@ -1,30 +1,30 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-
-// Tab bar colors matching the screenshot
-const TabBarBg = '#FFFFFF';
-const TabBarActive = '#16A34A';
-const TabBarInactive = '#9CA3AF';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TabBarBg, TabBarInactive } from '../../src/theme/colors';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
           backgroundColor: TabBarBg,
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          height: 65,
-          paddingBottom: 8,
-          paddingTop: 8,
+          borderTopWidth: 0,
+          height: 60 + insets.bottom,
+          paddingTop: 6,
+          paddingBottom: Math.max(insets.bottom, 8),
         },
-        tabBarActiveTintColor: TabBarActive,
+        tabBarActiveTintColor: '#FFFFFF',
         tabBarInactiveTintColor: TabBarInactive,
         tabBarLabelStyle: {
           fontWeight: '600',
           fontSize: 11,
+        },
+        tabBarItemStyle: {
+          paddingTop: 2,
         },
       }}
     >
@@ -33,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={26} color={color} />
+            <MaterialIcons name="home" size={size + 2} color={color} />
           ),
         }}
       />
@@ -42,16 +42,16 @@ export default function TabLayout() {
         options={{
           title: 'Scan',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="photo-camera" size={26} color={color} />
+            <MaterialIcons name="qr-code-scanner" size={size + 2} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="tickets"
         options={{
-          title: 'Tickets',
+          title: 'Help',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="confirmation-number" size={26} color={color} />
+            <MaterialIcons name="support-agent" size={size + 2} color={color} />
           ),
         }}
       />
@@ -60,7 +60,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person-outline" size={26} color={color} />
+            <MaterialIcons name="person" size={size + 2} color={color} />
           ),
         }}
       />

@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { UserProfile } from '../types/UserProfile';
 
 const DEFAULT_PROFILE: UserProfile = {
-  name: 'Alex Johnson',
-  company: 'CirTag Industries',
-  role: 'Sustainability Manager',
+  name: '',
+  company: 'CirTag Industry',
+  role: 'Sustainability',
   avatarUrl: '',
 };
 

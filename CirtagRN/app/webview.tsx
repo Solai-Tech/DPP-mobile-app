@@ -1,0 +1,244 @@
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Linking,
+  ActivityIndicator,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview';
+import * as FileSystem from 'expo-file-system/legacy';
+import { TextMuted, TextPrimary } from '../src/theme/colors';
+
+async function downloadAndOpenPdf(pdfUrl: string) {
+  try {
+    const filename = `datasheet-${Date.now()}.pdf`;
+    const dest = `${FileSystem.cacheDirectory}${filename}`;
+    const { uri } = await FileSystem.downloadAsync(pdfUrl, dest);
+    const contentUri = await FileSystem.getContentUriAsync(uri);
+    await Linking.openURL(contentUri);
+  } catch {
+    Alert.alert('Download failed', 'Unable to download the PDF.');
+  }
+}
+
+const PDF_INTERCEPT_JS = `
+(function() {
+  document.addEventListener('click', function(e) {
+    var el = e.target;
+    while (el && el.tagName !== 'A') el = el.parentElement;
+    if (!el || !el.href) return;
+    if (el.href.match(/\\.pdf(\\?|#|$)/i) || el.hasAttribute('download') ||
+        (el.textContent && el.textContent.toLowerCase().includes('download pdf'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pdf_download', url: el.href }));
+      return false;
+    }
+  }, true);
+  true;
+})();
+`;
+
+const AUTO_DOWNLOAD_JS = `
+(function() {
+  function findPdf() {
+    var links = document.querySelectorAll('a[href]');
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].href.match(/\\.pdf(\\?|#|$)/i)) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pdf_download', url: links[i].href }));
+        return;
+      }
+    }
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].hasAttribute('download') ||
+          (links[i].textContent && links[i].textContent.toLowerCase().includes('download pdf'))) {
+        links[i].click();
+        return;
+      }
+    }
+    var buttons = document.querySelectorAll('button, [role="button"], .btn');
+    for (var i = 0; i < buttons.length; i++) {
+      if (buttons[i].textContent && buttons[i].textContent.toLowerCase().includes('download')) {
+        buttons[i].click();
+        return;
+      }
+    }
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'no_pdf_found' }));
+  }
+  setTimeout(findPdf, 2500);
+  true;
+})();
+`;
+
+export default function WebViewScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { url, title, autoDownload } = useLocalSearchParams<{
+    url?: string;
+    title?: string;
+    autoDownload?: string;
+  }>();
+  const safeUrl = typeof url === 'string' ? url : '';
+  const safeTitle = typeof title === 'string' ? title : 'Web View';
+  const isAutoDownload = autoDownload === 'true';
+  const [pdfStatus, setPdfStatus] = useState(isAutoDownload ? 'loading' : '');
+
+  const handleMessage = (event: { nativeEvent: { data: string } }) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'pdf_download' && data.url) {
+        if (isAutoDownload) {
+          router.back();
+          downloadAndOpenPdf(data.url);
+        } else {
+          downloadAndOpenPdf(data.url);
+        }
+      }
+      if (data.type === 'no_pdf_found' && isAutoDownload) {
+        router.back();
+        Alert.alert('No PDF found', 'No downloadable PDF found for this product.');
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleShouldStartLoad = (request: { url: string }) => {
+    if (/\.pdf(\?|#|$)/i.test(request.url) && !request.url.includes('docs.google.com')) {
+      if (isAutoDownload) router.back();
+      downloadAndOpenPdf(request.url);
+      return false;
+    }
+    return true;
+  };
+
+  const injectedJS = isAutoDownload
+    ? PDF_INTERCEPT_JS + '\n' + AUTO_DOWNLOAD_JS
+    : PDF_INTERCEPT_JS;
+
+  return (
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <MaterialIcons name="arrow-back-ios-new" size={18} color={TextPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.title} numberOfLines={1}>{safeTitle}</Text>
+      </View>
+
+      {/* Auto-download: show loading overlay on top of hidden WebView */}
+      {isAutoDownload && pdfStatus ? (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#00E676" />
+          <Text style={styles.loadingText}>
+            {pdfStatus === 'downloading' ? 'Downloading PDF...' : 'Finding PDF...'}
+          </Text>
+          <TouchableOpacity onPress={() => router.back()} style={styles.cancelBtn}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
+      {safeUrl ? (
+        <WebView
+          source={{ uri: safeUrl }}
+          style={isAutoDownload ? styles.hiddenWeb : styles.web}
+          originWhitelist={['*']}
+          javaScriptEnabled
+          domStorageEnabled
+          setSupportMultipleWindows={false}
+          startInLoadingState={!isAutoDownload}
+          allowFileAccess
+          injectedJavaScript={injectedJS}
+          onMessage={handleMessage}
+          onShouldStartLoadWithRequest={handleShouldStartLoad}
+          onFileDownload={({ nativeEvent }) => {
+            if (nativeEvent.downloadUrl) {
+              if (isAutoDownload) router.back();
+              downloadAndOpenPdf(nativeEvent.downloadUrl);
+            }
+          }}
+        />
+      ) : (
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>Invalid URL</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
+  header: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    backgroundColor: '#0A1A14',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  backBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  title: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: TextPrimary,
+  },
+  web: {
+    flex: 1,
+  },
+  hiddenWeb: {
+    height: 0,
+    opacity: 0,
+  },
+  loadingOverlay: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A',
+  },
+  cancelBtn: {
+    marginTop: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
+  },
+  cancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B6B6B',
+  },
+  empty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    color: TextMuted,
+    fontSize: 12,
+  },
+});

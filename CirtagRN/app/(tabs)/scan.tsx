@@ -1,4 +1,3 @@
-// Updated: Extract product name from URL path (e.g., HP-laptop45 -> HP laptop45)
 import React, { useRef, useCallback, useState } from 'react';
 import {
   View,
@@ -6,9 +5,13 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Linking,
+  Alert,
 } from 'react-native';
 import { CameraView, BarcodeScanningResult } from 'expo-camera';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import ScanFrame from '../../src/components/ScanFrame';
@@ -36,9 +39,10 @@ export default function ScanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { hasPermission, requestPermission } = useCamera();
-  const { products, isLoading, scanAndSaveProduct } = useProducts();
+  const { products, isLoading, scanAndSaveProduct, deleteProduct } = useProducts();
   const canScan = useRef(true);
   const [scanType, setScanType] = useState<ScanType>('qr');
+  const [isScanning, setIsScanning] = useState(false);
 
   const handleBarCodeScanned = useCallback(
     (result: BarcodeScanningResult) => {
@@ -76,48 +80,66 @@ export default function ScanScreen() {
     [isLoading, scanAndSaveProduct, router]
   );
 
-  const renderProductCard = (item: ScannedProduct) => {
-    // Extract product name from URL path
-    let name = '';
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setIsScanning(false);
+      };
+    }, [])
+  );
 
-    // Always try to extract from URL first
-    const rawUrl = item.rawValue || '';
-    if (rawUrl.startsWith('http')) {
+  const getDisplayName = (item: ScannedProduct): string => {
+    if (item.productName) return item.productName;
+
+    const isUrl = item.rawValue.startsWith('http://') || item.rawValue.startsWith('https://');
+    const isNumeric = /^\d{6,}$/.test(item.displayValue || item.rawValue);
+
+    // Try to extract name from image URL filename
+    if (item.imageUrl) {
       try {
-        const url = new URL(rawUrl);
-        const pathParts = url.pathname.split('/').filter(Boolean);
-        // Get the last meaningful part of the path
-        for (let i = pathParts.length - 1; i >= 0; i--) {
-          const part = pathParts[i];
-          if (part !== 'dpp' && part !== 'dppx' && part !== 'product' && part !== 'products') {
-            name = decodeURIComponent(part).replace(/[-_]/g, ' ').trim();
-            break;
-          }
+        const imgParts = item.imageUrl.split('/');
+        const filename = imgParts[imgParts.length - 1];
+        const cleanName = filename
+          .replace(/\.\w+$/, '')
+          .replace(/[-_]/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase())
+          .trim();
+        if (cleanName.length > 2 && !/^\d+$/.test(cleanName)) {
+          return cleanName;
         }
       } catch {
-        // URL parsing failed
+        // ignore
       }
     }
 
-    // Use productName if we couldn't extract from URL
-    if (!name && item.productName) {
-      name = item.productName;
+    // Try description
+    if (item.productDescription) {
+      const desc = item.productDescription.trim();
+      if (desc.length > 0 && desc.length < 60) return desc;
+      if (desc.length >= 60) return desc.substring(0, 57) + '...';
     }
 
-    // Final fallback - don't show URL, show generic name
-    if (!name || name.startsWith('http')) {
-      name = 'Product';
-    }
+    // Supplier-based fallback (avoid showing IDs/URLs)
+    if (item.supplier) return `${item.supplier} Product`;
+    if (!isUrl && !isNumeric && item.displayValue) return item.displayValue;
 
-    console.log('Product name extracted:', name, 'from:', rawUrl);
-    const co2Match = item.co2Total?.match(/([\d.]+)/);
-    const co2Val = co2Match ? co2Match[1] : null;
+    return 'Scanned Product';
+  };
+
+  const handleProductPress = (item: ScannedProduct) => {
+    // Always open inside the app
+    router.push(`/product/${item.id}`);
+  };
+
+  const renderProductCard = (item: ScannedProduct) => {
+    const name = getDisplayName(item);
     const supplierInfo = [
       item.supplier,
       item.skuId ? `Batch #${item.skuId}` : null,
     ]
       .filter(Boolean)
       .join(' \u00B7 ');
+    const hasImage = !!item.imageUrl;
 
     const iconColors = ['#E8F5E9', '#E3F2FD', '#FFF3E0', '#F3E5F5', '#E0F7FA'];
     const colorIndex = item.id % iconColors.length;
@@ -127,39 +149,53 @@ export default function ScanScreen() {
       <TouchableOpacity
         key={item.id}
         style={styles.productCard}
-        onPress={() => router.push(`/product/${item.id}`)}
+        onPress={() => handleProductPress(item)}
         activeOpacity={0.7}
       >
-        <View style={[styles.productIcon, { backgroundColor: iconBg }]}>
-          <MaterialIcons name="recycling" size={22} color={GreenAccent} />
-        </View>
+        {hasImage ? (
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={styles.productImage}
+            contentFit="cover"
+          />
+        ) : (
+          <View style={[styles.productIcon, { backgroundColor: iconBg }]}>
+            <MaterialIcons name="recycling" size={22} color={GreenAccent} />
+          </View>
+        )}
         <View style={styles.productInfo}>
           <Text style={styles.productName} numberOfLines={1}>
             {name}
           </Text>
-          {item.productId ? (
-            <Text style={styles.productDppId} numberOfLines={1}>
-              {item.productId.startsWith('DPP-')
-                ? item.productId
-                : `DPP-${item.productId}`}
-            </Text>
-          ) : null}
           {supplierInfo ? (
             <Text style={styles.productMeta} numberOfLines={1}>
               {supplierInfo}
-              {co2Val ? (
-                <Text style={styles.productCo2Label}> {'\u00B7'} Low CO{'\u2082'}</Text>
-              ) : null}
             </Text>
           ) : null}
         </View>
-        {co2Val ? (
-          <View style={styles.co2Col}>
-            <Text style={styles.co2Value}>{co2Val}t</Text>
-            <Text style={styles.co2Label}>CO{'\u2082'}</Text>
-          </View>
-        ) : null}
-        <MaterialIcons name="chevron-right" size={20} color={TextMutedLight} />
+        <View style={styles.productActions}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() =>
+              Alert.alert(
+                'Delete product?',
+                'This will remove it from your history.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: () => deleteProduct(item.id),
+                  },
+                ]
+              )
+            }
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <MaterialIcons name="delete-outline" size={20} color={TextMutedLight} />
+          </TouchableOpacity>
+          <MaterialIcons name="chevron-right" size={20} color={TextMutedLight} />
+        </View>
       </TouchableOpacity>
     );
   };
@@ -256,33 +292,52 @@ export default function ScanScreen() {
         {/* Camera View — rendered directly, NOT inside FlatList */}
         {hasPermission ? (
           <View style={styles.cameraContainer}>
-            <CameraView
-              style={styles.camera}
-              facing="back"
-              barcodeScannerSettings={{
-                barcodeTypes: [
-                  'qr',
-                  'aztec',
-                  'codabar',
-                  'code39',
-                  'code93',
-                  'code128',
-                  'datamatrix',
-                  'ean8',
-                  'ean13',
-                  'itf14',
-                  'pdf417',
-                  'upc_a',
-                  'upc_e',
-                ],
-              }}
-              onBarcodeScanned={isLoading ? undefined : handleBarCodeScanned}
-            />
-            <View style={styles.frameOverlay} pointerEvents="none">
-              <ScanFrame />
-              <Text style={styles.alignText}>Align within frame to scan</Text>
-            </View>
-            {isLoading && <LoadingOverlay />}
+            {isScanning ? (
+              <>
+                <CameraView
+                  style={styles.camera}
+                  facing="back"
+                  barcodeScannerSettings={{
+                    barcodeTypes: [
+                      'qr',
+                      'aztec',
+                      'codabar',
+                      'code39',
+                      'code93',
+                      'code128',
+                      'datamatrix',
+                      'ean8',
+                      'ean13',
+                      'itf14',
+                      'pdf417',
+                      'upc_a',
+                      'upc_e',
+                    ],
+                  }}
+                  onBarcodeScanned={isLoading ? undefined : handleBarCodeScanned}
+                />
+                <View style={styles.frameOverlay} pointerEvents="none">
+                  <ScanFrame />
+                  <Text style={styles.alignText}>Align within frame to scan</Text>
+                </View>
+                {isLoading && <LoadingOverlay />}
+              </>
+            ) : (
+              <View style={styles.scanPlaceholder}>
+                <MaterialIcons name="qr-code-scanner" size={42} color={GreenAccent} />
+                <Text style={styles.scanPlaceholderTitle}>Ready to Scan</Text>
+                <Text style={styles.scanPlaceholderSub}>
+                  Tap below to start the camera and scan a product
+                </Text>
+                <TouchableOpacity
+                  style={styles.scanStartBtn}
+                  onPress={() => setIsScanning(true)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.scanStartText}>Start Scan</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         ) : (
           <View style={styles.permissionCard}>
@@ -302,7 +357,7 @@ export default function ScanScreen() {
 
         {/* Saved Products */}
         <View style={styles.savedHeader}>
-          <Text style={styles.savedTitle}>My Products</Text>
+          <Text style={styles.savedTitle}>Saved Products</Text>
           {products.length > 0 && (
             <TouchableOpacity>
               <Text style={styles.seeAll}>See all</Text>
@@ -420,6 +475,36 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontWeight: '500',
   },
+  scanPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  scanPlaceholderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: TextBlack,
+    marginTop: 12,
+  },
+  scanPlaceholderSub: {
+    fontSize: 12,
+    color: TextGray,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  scanStartBtn: {
+    marginTop: 14,
+    backgroundColor: GreenAccent,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  scanStartText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 12,
+  },
   permissionCard: {
     backgroundColor: White,
     borderRadius: 16,
@@ -514,10 +599,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+  productImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    marginRight: 12,
+    backgroundColor: '#F0F2F5',
+  },
   productIcon: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -530,33 +622,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: TextBlack,
   },
-  productDppId: {
-    fontSize: 12,
-    color: TextGray,
-    fontWeight: '500',
-    fontFamily: 'monospace',
-    marginTop: 2,
-  },
   productMeta: {
     fontSize: 12,
     color: TextMutedLight,
     marginTop: 2,
   },
-  productCo2Label: {
-    color: GreenAccent,
-    fontWeight: '600',
+  productActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  co2Col: {
-    alignItems: 'flex-end',
-    marginRight: 4,
-  },
-  co2Value: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: TextBlack,
-  },
-  co2Label: {
-    fontSize: 11,
-    color: TextGray,
+  deleteButton: {
+    padding: 4,
+    borderRadius: 8,
+    backgroundColor: '#F5F6F8',
   },
 });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import GradientBackground from '../../src/components/GradientBackground';
@@ -71,6 +72,7 @@ const menuStyles = StyleSheet.create({
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { profile } = useUserProfile();
   const { products } = useProducts();
 
@@ -94,9 +96,8 @@ export default function ProfileScreen() {
           <View style={styles.avatar}>
             <MaterialIcons name="person" size={36} color={Accent} />
           </View>
-          <Text style={styles.name}>{profile.name}</Text>
-          <Text style={styles.role}>{profile.role}</Text>
-          <Text style={styles.company}>{profile.company}</Text>
+          <Text style={styles.role}>Sustainability</Text>
+          <Text style={styles.company}>CirTag Industries</Text>
 
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
@@ -105,13 +106,8 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>
-                {products.reduce((sum, p) => {
-                  const m = p.co2Total?.match(/([\d.]+)/);
-                  return sum + (m ? parseFloat(m[1]) : 0);
-                }, 0).toFixed(1)}
-              </Text>
-              <Text style={styles.statLabel}>Kg CO₂</Text>
+              <Text style={styles.statValue}>{products.length}</Text>
+              <Text style={styles.statLabel}>Scans</Text>
             </View>
           </View>
         </View>
@@ -120,11 +116,20 @@ export default function ProfileScreen() {
 
         {/* Menu Items */}
         <View style={styles.menuSection}>
-          <MenuItem icon="settings" label="Settings" subtitle="App preferences" />
-          <MenuItem icon="notifications" label="Notifications" subtitle="Manage alerts" />
-          <MenuItem icon="security" label="Privacy & Security" subtitle="Data protection" />
-          <MenuItem icon="help-outline" label="Help & FAQ" subtitle="Get answers" />
-          <MenuItem icon="info-outline" label="About CirTag" subtitle="Version 1.0.0" />
+          <MenuItem icon="settings" label="Settings" subtitle="App preferences" onPress={() => router.push('/settings')} />
+          <MenuItem icon="notifications" label="Notifications" subtitle="Manage alerts" onPress={() => router.push('/notifications')} />
+          <MenuItem icon="security" label="Privacy & Security" subtitle="Data protection" onPress={() => router.push('/privacy')} />
+          <MenuItem icon="help-outline" label="Help & FAQ" subtitle="Get answers" onPress={() => router.push('/(tabs)/tickets')} />
+          <MenuItem
+            icon="info-outline"
+            label="About CirTag"
+            subtitle="Version 1.0.0"
+            onPress={() =>
+              router.push(
+                `/webview?url=${encodeURIComponent('https://solai.se/dppx/')}&title=${encodeURIComponent('About CirTag')}`
+              )
+            }
+          />
         </View>
 
         <View style={{ height: 24 }} />

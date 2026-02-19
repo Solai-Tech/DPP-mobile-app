@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   StyleSheet,
   Share,
   Linking,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as WebBrowser from 'expo-web-browser';
+import { WebView } from 'react-native-webview';
+import * as FileSystem from 'expo-file-system/legacy';
 import VerifiedBadge from '../../src/components/VerifiedBadge';
 import PassportStatCard from '../../src/components/PassportStatCard';
 import LifecycleTimeline from '../../src/components/LifecycleTimeline';
@@ -108,13 +111,104 @@ export default function ProductDetailScreen() {
   const co2Numeric = product.co2Total?.match(/([\d.]+)/)?.[1] || '0';
   const co2Status = parseFloat(co2Numeric) < 5 ? 'Low' : 'High';
 
-  const openUrl = (url: string) => {
-    if (url.toLowerCase().endsWith('.pdf')) {
-      Linking.openURL(url);
-    } else {
-      WebBrowser.openBrowserAsync(url);
-    }
+  const normalizeUrl = (url: string) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
   };
+
+  const openUrl = (url: string, title = 'Product Link') => {
+    const safeUrl = normalizeUrl(url);
+    if (!safeUrl) {
+      Alert.alert('Link unavailable', 'No valid link found for this item.');
+      return;
+    }
+    // For PDF URLs, wrap with Google Docs viewer so Android WebView can render them
+    let viewUrl = safeUrl;
+    if (/\.pdf(\?|$)/i.test(safeUrl)) {
+      viewUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(safeUrl)}`;
+    }
+    router.push(
+      `/webview?url=${encodeURIComponent(viewUrl)}&title=${encodeURIComponent(title)}`
+    );
+  };
+
+  const [downloading, setDownloading] = useState(false);
+  const [pdfWebViewUrl, setPdfWebViewUrl] = useState('');
+
+  const handleDownloadPdf = () => {
+    if (downloading) return;
+    const url = product.datasheetUrl || product.rawValue;
+    const safeUrl = normalizeUrl(url);
+    if (!safeUrl) {
+      Alert.alert('Unavailable', 'No document link available.');
+      return;
+    }
+    setDownloading(true);
+    setPdfWebViewUrl(safeUrl);
+  };
+
+  const onPdfMessage = (event: { nativeEvent: { data: string } }) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'pdf_download' && data.url) {
+        setPdfWebViewUrl('');
+        const pdfUrl = data.url;
+        const filename = `${(product.productName || 'datasheet').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+        const dest = `${FileSystem.cacheDirectory}${filename}`;
+        FileSystem.downloadAsync(pdfUrl, dest).then(({ uri }) => {
+          setDownloading(false);
+          FileSystem.getContentUriAsync(uri).then((contentUri) => {
+            Linking.openURL(contentUri);
+          });
+        }).catch(() => {
+          setDownloading(false);
+          Alert.alert('Download failed', 'Unable to download the PDF.');
+        });
+      }
+      if (data.type === 'no_pdf_found') {
+        setPdfWebViewUrl('');
+        setDownloading(false);
+        Alert.alert('No PDF found', 'No downloadable PDF found for this product.');
+      }
+    } catch {}
+  };
+
+  const pdfFinderJS = `
+  (function() {
+    document.addEventListener('click', function(e) {
+      var el = e.target;
+      while (el && el.tagName !== 'A') el = el.parentElement;
+      if (!el || !el.href) return;
+      if (el.href.match(/\\.pdf(\\?|#|$)/i) || el.hasAttribute('download') ||
+          (el.textContent && el.textContent.toLowerCase().includes('download pdf'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pdf_download', url: el.href }));
+        return false;
+      }
+    }, true);
+    function findPdf() {
+      var links = document.querySelectorAll('a[href]');
+      for (var i = 0; i < links.length; i++) {
+        if (links[i].href.match(/\\.pdf(\\?|#|$)/i)) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pdf_download', url: links[i].href }));
+          return;
+        }
+      }
+      for (var i = 0; i < links.length; i++) {
+        if (links[i].hasAttribute('download') ||
+            (links[i].textContent && links[i].textContent.toLowerCase().includes('download pdf'))) {
+          links[i].click();
+          return;
+        }
+      }
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'no_pdf_found' }));
+    }
+    setTimeout(findPdf, 2500);
+    true;
+  })();
+  `;
 
   const handleShare = () => {
     Share.share({
@@ -278,27 +372,32 @@ export default function ProductDetailScreen() {
           </>
         )}
 
-        {/* Datasheet */}
-        {product.datasheetUrl ? (
-          <>
-            <TouchableOpacity
-              style={styles.datasheetCard}
-              onPress={() => openUrl(product.datasheetUrl)}
-            >
-              <View style={styles.datasheetLeft}>
-                <View style={styles.datasheetIcon}>
-                  <MaterialIcons name="description" size={20} color={GreenAccent} />
-                </View>
-                <View>
-                  <Text style={styles.datasheetTitle}>Product Datasheet</Text>
-                  <Text style={styles.datasheetSub}>Download PDF</Text>
-                </View>
-              </View>
-              <MaterialIcons name="download" size={20} color={GreenAccent} />
-            </TouchableOpacity>
-            <View style={{ height: 16 }} />
-          </>
-        ) : null}
+        {/* Download PDF */}
+        <TouchableOpacity
+          style={[styles.datasheetCard, downloading && { opacity: 0.7 }]}
+          onPress={handleDownloadPdf}
+          disabled={downloading}
+        >
+          <View style={styles.datasheetLeft}>
+            <View style={styles.datasheetIcon}>
+              {downloading ? (
+                <ActivityIndicator size="small" color={GreenAccent} />
+              ) : (
+                <MaterialIcons name="description" size={20} color={GreenAccent} />
+              )}
+            </View>
+            <View>
+              <Text style={styles.datasheetTitle}>Product Datasheet</Text>
+              <Text style={styles.datasheetSub}>{downloading ? 'Downloading...' : 'Download PDF'}</Text>
+            </View>
+          </View>
+          {downloading ? (
+            <ActivityIndicator size="small" color={GreenAccent} />
+          ) : (
+            <MaterialIcons name="download" size={20} color={GreenAccent} />
+          )}
+        </TouchableOpacity>
+        <View style={{ height: 16 }} />
 
         {/* Action Buttons - 3 buttons */}
         <View style={styles.actionsRow}>
@@ -337,7 +436,13 @@ export default function ProductDetailScreen() {
         {/* View original product link */}
         <TouchableOpacity
           style={styles.linkCard}
-          onPress={() => openUrl(product.rawValue)}
+          onPress={() =>
+            router.push(
+              `/webview?url=${encodeURIComponent(product.rawValue)}&title=${encodeURIComponent(
+                'Original Product Page'
+              )}`
+            )
+          }
         >
           <View style={styles.linkLeft}>
             <MaterialIcons name="open-in-new" size={18} color={GreenAccent} />
@@ -356,6 +461,27 @@ export default function ProductDetailScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Hidden WebView for PDF download - no screen change */}
+      {pdfWebViewUrl ? (
+        <WebView
+          source={{ uri: pdfWebViewUrl }}
+          style={{ height: 0, width: 0, opacity: 0, position: 'absolute' }}
+          javaScriptEnabled
+          domStorageEnabled
+          injectedJavaScript={pdfFinderJS}
+          onMessage={onPdfMessage}
+          onShouldStartLoadWithRequest={(request) => {
+            if (/\.pdf(\?|#|$)/i.test(request.url)) {
+              onPdfMessage({
+                nativeEvent: { data: JSON.stringify({ type: 'pdf_download', url: request.url }) },
+              });
+              return false;
+            }
+            return true;
+          }}
+        />
+      ) : null}
     </View>
   );
 }
