@@ -1,0 +1,65 @@
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Accent, AccentDim, CardDark, TextPrimary } from '../theme/colors';
+
+interface Props {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  label: string;
+  variant?: 'primary' | 'secondary';
+  onPress: () => void;
+}
+
+export default function ActionButton({
+  icon,
+  label,
+  variant = 'secondary',
+  onPress,
+}: Props) {
+  const isPrimary = variant === 'primary';
+  return (
+    <TouchableOpacity
+      style={[styles.button, isPrimary ? styles.primaryBg : styles.secondaryBg]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <MaterialIcons
+        name={icon}
+        size={18}
+        color={isPrimary ? '#0A1A14' : Accent}
+      />
+      <Text style={[styles.label, isPrimary ? styles.primaryText : styles.secondaryText]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 8,
+    flex: 1,
+  },
+  primaryBg: {
+    backgroundColor: Accent,
+  },
+  secondaryBg: {
+    backgroundColor: AccentDim,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  primaryText: {
+    color: '#0A1A14',
+  },
+  secondaryText: {
+    color: Accent,
+  },
+});
