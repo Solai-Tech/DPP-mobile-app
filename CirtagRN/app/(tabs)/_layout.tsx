@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BackgroundDark, TabBarBg, TabBarInactive } from '../../src/theme/colors';
+import { s, vs, ms } from '../../src/utils/scale';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -22,10 +23,10 @@ export default function TabLayout() {
         tabBarInactiveTintColor: TabBarInactive,
         tabBarLabelStyle: {
           fontWeight: '600',
-          fontSize: 11,
+          fontSize: ms(11),
         },
         tabBarItemStyle: {
-          paddingTop: 2,
+          paddingTop: vs(2),
         },
       }}
     >
@@ -34,7 +35,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="home" size={size + 2} color={color} />
+            <MaterialIcons name="home" size={ms(size + 2)} color={color} />
           ),
         }}
       />
@@ -43,7 +44,7 @@ export default function TabLayout() {
         options={{
           title: 'Scan',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="qr-code-scanner" size={size + 2} color={color} />
+            <MaterialIcons name="qr-code-scanner" size={ms(size + 2)} color={color} />
           ),
         }}
       />
@@ -52,7 +53,7 @@ export default function TabLayout() {
         options={{
           title: 'Help',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="support-agent" size={size + 2} color={color} />
+            <MaterialIcons name="support-agent" size={ms(size + 2)} color={color} />
           ),
         }}
       />
@@ -61,7 +62,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="person" size={size + 2} color={color} />
+            <MaterialIcons name="person" size={ms(size + 2)} color={color} />
           ),
         }}
       />

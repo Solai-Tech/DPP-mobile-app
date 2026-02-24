@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { CardDark, Accent, AccentDim, TextPrimary, TextSecondary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   icon: keyof typeof MaterialIcons.glyphMap;
@@ -14,7 +15,7 @@ export default function StatCard({ icon, label, value, unit }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.iconCircle}>
-        <MaterialIcons name={icon} size={18} color={Accent} />
+        <MaterialIcons name={icon} size={ms(18)} color={Accent} />
       </View>
       <Text style={styles.value}>{value}</Text>
       {unit ? <Text style={styles.unit}>{unit}</Text> : null}
@@ -27,34 +28,34 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: CardDark,
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: s(16),
+    padding: s(14),
     alignItems: 'center',
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: s(36),
+    height: s(36),
+    borderRadius: s(18),
     backgroundColor: AccentDim,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: vs(8),
   },
   value: {
-    fontSize: 22,
+    fontSize: ms(22),
     fontWeight: '800',
     color: TextPrimary,
   },
   unit: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: Accent,
     fontWeight: '600',
-    marginTop: 1,
+    marginTop: vs(1),
   },
   label: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: TextSecondary,
-    marginTop: 4,
+    marginTop: vs(4),
     textAlign: 'center',
   },
 });

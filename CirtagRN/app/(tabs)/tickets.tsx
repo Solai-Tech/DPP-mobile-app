@@ -18,6 +18,7 @@ import { useTickets } from '../../src/hooks/useTickets';
 import {
   Accent,
 } from '../../src/theme/colors';
+import { s, vs, ms } from '../../src/utils/scale';
 
 type TabMode = 'chat' | 'tickets';
 
@@ -145,7 +146,7 @@ export default function TicketsScreen() {
               <View style={styles.agentHeader}>
                 <View style={styles.agentAvatarContainer}>
                   <View style={styles.agentAvatar}>
-                    <MaterialIcons name="support-agent" size={22} color={GreenAccent} />
+                    <MaterialIcons name="support-agent" size={ms(22)} color={GreenAccent} />
                   </View>
                   <View style={styles.onlineDot} />
                 </View>
@@ -167,7 +168,7 @@ export default function TicketsScreen() {
                 {chatMessages.length === 0 && (
                   <View style={styles.welcomeChat}>
                     <View style={styles.welcomeIcon}>
-                      <MaterialIcons name="support-agent" size={32} color={GreenAccent} />
+                      <MaterialIcons name="support-agent" size={ms(32)} color={GreenAccent} />
                     </View>
                     <Text style={styles.welcomeTitle}>CirTag Support</Text>
                     <Text style={styles.welcomeSubtext}>
@@ -181,7 +182,7 @@ export default function TicketsScreen() {
                     {msg.sender === 'bot' ? (
                       <View style={styles.botBubbleRow}>
                         <View style={styles.botAvatarSmall}>
-                          <MaterialIcons name="support-agent" size={14} color={GreenAccent} />
+                          <MaterialIcons name="support-agent" size={ms(14)} color={GreenAccent} />
                         </View>
                         <View style={styles.botBubble}>
                           <Text style={styles.botBubbleText}>{msg.message}</Text>
@@ -218,7 +219,7 @@ export default function TicketsScreen() {
               </ScrollView>
 
               {/* Chat Input */}
-              <View style={[styles.inputRow, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+              <View style={[styles.inputRow, { paddingBottom: Math.max(insets.bottom, vs(8)) }]}>
                 <TextInput
                   style={styles.textInput}
                   placeholder="Type your message..."
@@ -229,10 +230,10 @@ export default function TicketsScreen() {
                   returnKeyType="send"
                 />
                 <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-                  <MaterialIcons name="send" size={18} color="#FFFFFF" />
+                  <MaterialIcons name="send" size={ms(18)} color="#FFFFFF" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.newTicketBtn} onPress={handleCreateTicket}>
-                  <MaterialIcons name="add" size={16} color="#FFFFFF" />
+                  <MaterialIcons name="add" size={ms(16)} color="#FFFFFF" />
                   <Text style={styles.newTicketText}>New Ticket</Text>
                 </TouchableOpacity>
               </View>
@@ -246,14 +247,14 @@ export default function TicketsScreen() {
                 showsVerticalScrollIndicator={false}
               >
                 <TouchableOpacity style={styles.createTicketBtn} onPress={handleCreateTicket}>
-                  <MaterialIcons name="add" size={20} color="#FFFFFF" />
+                  <MaterialIcons name="add" size={ms(20)} color="#FFFFFF" />
                   <Text style={styles.createTicketText}>Create New Ticket</Text>
                 </TouchableOpacity>
-                <View style={{ height: 12 }} />
+                <View style={{ height: vs(12) }} />
                 {tickets.length === 0 ? (
                   <View style={styles.emptyTickets}>
                     <View style={styles.emptyIconCircle}>
-                      <MaterialIcons name="confirmation-number" size={32} color={TextMutedLight} />
+                      <MaterialIcons name="confirmation-number" size={ms(32)} color={TextMutedLight} />
                     </View>
                     <Text style={styles.emptyText}>No tickets yet</Text>
                     <Text style={styles.emptySubtext}>
@@ -289,25 +290,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerSection: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingHorizontal: s(20),
+    paddingTop: vs(12),
+    paddingBottom: vs(8),
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: ms(26),
     fontWeight: '800',
     color: TextBlack,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: TextGray,
-    marginTop: 4,
+    marginTop: vs(4),
   },
   tabRow: {
     flexDirection: 'row',
-    marginHorizontal: 20,
-    marginTop: 12,
-    marginBottom: 4,
+    marginHorizontal: s(20),
+    marginTop: vs(12),
+    marginBottom: vs(4),
     borderBottomWidth: 1,
     borderBottomColor: Border,
   },
@@ -316,8 +317,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    gap: 6,
+    paddingVertical: vs(12),
+    gap: s(6),
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
     borderBottomColor: GreenAccent,
   },
   tabLabel: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '600',
     color: TextMutedLight,
   },
@@ -334,15 +335,15 @@ const styles = StyleSheet.create({
   },
   badge: {
     backgroundColor: BrightGreen,
-    borderRadius: 8,
-    minWidth: 18,
-    height: 18,
+    borderRadius: s(8),
+    minWidth: s(18),
+    height: s(18),
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: s(4),
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: ms(10),
     fontWeight: '700',
     color: '#0A1A14',
   },
@@ -350,8 +351,8 @@ const styles = StyleSheet.create({
   agentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: s(20),
+    paddingVertical: vs(12),
     borderBottomWidth: 1,
     borderBottomColor: Border,
   },
@@ -359,9 +360,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   agentAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: s(40),
+    height: s(40),
+    borderRadius: s(20),
     backgroundColor: GreenTint,
     justifyContent: 'center',
     alignItems: 'center',
@@ -370,77 +371,77 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 1,
     right: 1,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: s(10),
+    height: s(10),
+    borderRadius: s(5),
     backgroundColor: BrightGreen,
     borderWidth: 2,
     borderColor: LightBg,
   },
   agentInfo: {
-    marginLeft: 12,
+    marginLeft: s(12),
   },
   agentName: {
-    fontSize: 15,
+    fontSize: ms(15),
     fontWeight: '700',
     color: TextBlack,
   },
   agentStatus: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextGray,
-    marginTop: 1,
+    marginTop: vs(1),
   },
   // Chat
   chatContent: {
-    paddingVertical: 12,
+    paddingVertical: vs(12),
   },
   welcomeChat: {
     alignItems: 'center',
-    padding: 32,
+    padding: s(32),
   },
   welcomeIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: s(64),
+    height: s(64),
+    borderRadius: s(32),
     backgroundColor: GreenTint,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: vs(16),
   },
   welcomeTitle: {
-    fontSize: 18,
+    fontSize: ms(18),
     fontWeight: '700',
     color: TextBlack,
   },
   welcomeSubtext: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: TextGray,
     textAlign: 'center',
-    lineHeight: 20,
-    marginTop: 8,
-    paddingHorizontal: 20,
+    lineHeight: ms(20),
+    marginTop: vs(8),
+    paddingHorizontal: s(20),
   },
   // Bot bubble (left, white bg)
   botBubbleRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginBottom: 10,
-    paddingHorizontal: 16,
+    marginBottom: vs(10),
+    paddingHorizontal: s(16),
   },
   botAvatarSmall: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: s(28),
+    height: s(28),
+    borderRadius: s(14),
     backgroundColor: GreenTint,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: s(8),
   },
   botBubble: {
     maxWidth: '75%',
-    borderRadius: 16,
-    borderBottomLeftRadius: 4,
-    padding: 12,
+    borderRadius: s(16),
+    borderBottomLeftRadius: s(4),
+    padding: s(12),
     backgroundColor: White,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -449,53 +450,53 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   botBubbleText: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: TextBlack,
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   // User bubble (right, light green bg)
   userBubbleRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: 10,
-    paddingHorizontal: 16,
+    marginBottom: vs(10),
+    paddingHorizontal: s(16),
   },
   userBubble: {
     maxWidth: '75%',
-    borderRadius: 16,
-    borderBottomRightRadius: 4,
-    padding: 12,
+    borderRadius: s(16),
+    borderBottomRightRadius: s(4),
+    padding: s(12),
     backgroundColor: GreenTint,
   },
   userBubbleText: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: GreenAccent,
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   // Quick Replies
   quickRepliesSection: {
-    paddingHorizontal: 20,
-    marginTop: 8,
+    paddingHorizontal: s(20),
+    marginTop: vs(8),
   },
   quickRepliesLabel: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextMutedLight,
-    marginBottom: 8,
+    marginBottom: vs(8),
   },
   quickRepliesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: s(8),
   },
   quickReplyBtn: {
     borderWidth: 1.5,
     borderColor: GreenAccent,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    borderRadius: s(20),
+    paddingHorizontal: s(14),
+    paddingVertical: vs(8),
   },
   quickReplyText: {
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: '600',
     color: GreenAccent,
   },
@@ -503,9 +504,9 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    gap: 8,
+    paddingHorizontal: s(12),
+    paddingTop: vs(8),
+    gap: s(8),
     backgroundColor: White,
     borderTopWidth: 1,
     borderTopColor: Border,
@@ -513,18 +514,18 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     backgroundColor: LightBg,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 14,
+    borderRadius: s(20),
+    paddingHorizontal: s(16),
+    paddingVertical: vs(10),
+    fontSize: ms(14),
     color: TextBlack,
     borderWidth: 1,
     borderColor: Border,
   },
   sendBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: s(36),
+    height: s(36),
+    borderRadius: s(18),
     backgroundColor: GreenAccent,
     justifyContent: 'center',
     alignItems: 'center',
@@ -533,60 +534,60 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: GreenAccent,
-    borderRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 4,
+    borderRadius: s(18),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(8),
+    gap: s(4),
   },
   newTicketText: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: '700',
     color: '#FFFFFF',
   },
   // Tickets tab
   ticketsContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: s(20),
+    paddingVertical: vs(12),
   },
   createTicketBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: GreenAccent,
-    borderRadius: 12,
-    paddingVertical: 12,
-    gap: 8,
+    borderRadius: s(12),
+    paddingVertical: vs(12),
+    gap: s(8),
   },
   createTicketText: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '700',
     color: '#FFFFFF',
   },
   ticketsList: {
-    gap: 10,
+    gap: s(10),
   },
   emptyTickets: {
     alignItems: 'center',
-    padding: 40,
+    padding: s(40),
   },
   emptyIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: s(64),
+    height: s(64),
+    borderRadius: s(32),
     backgroundColor: '#F0F2F5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: vs(12),
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '600',
     color: TextGray,
   },
   emptySubtext: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextMutedLight,
-    marginTop: 4,
+    marginTop: vs(4),
     textAlign: 'center',
   },
 });

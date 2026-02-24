@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Accent, TextPrimary, TextSecondary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   label: string;
@@ -34,29 +35,29 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: vs(10),
   },
   label: {
-    width: 90,
-    fontSize: 11,
+    width: s(90),
+    fontSize: ms(11),
     color: TextSecondary,
     fontWeight: '500',
   },
   barTrack: {
     flex: 1,
-    height: 8,
+    height: vs(8),
     backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 4,
-    marginHorizontal: 8,
+    borderRadius: s(4),
+    marginHorizontal: s(8),
     overflow: 'hidden',
   },
   barFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: s(4),
   },
   value: {
-    width: 35,
-    fontSize: 11,
+    width: s(35),
+    fontSize: ms(11),
     color: TextPrimary,
     fontWeight: '600',
     textAlign: 'right',

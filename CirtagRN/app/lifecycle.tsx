@@ -4,23 +4,24 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Accent, TextMuted } from '../src/theme/colors';
+import { s, vs, ms } from '../src/utils/scale';
 
 export default function LifeCycleScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.page, { paddingTop: insets.top + 6, paddingBottom: insets.bottom + 2 }]}>
+    <View style={[styles.page, { paddingTop: insets.top + vs(6), paddingBottom: insets.bottom + vs(2) }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back-ios-new" size={18} color="#1A1A1A" />
+          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color="#1A1A1A" />
         </TouchableOpacity>
         <View style={styles.headerText}>
           <Text style={styles.title}>Product Passport</Text>
           <Text style={styles.subtitle}>Scanned just now</Text>
         </View>
         <View style={styles.verifiedPill}>
-          <MaterialIcons name="verified" size={14} color="#2E7D32" />
+          <MaterialIcons name="verified" size={ms(14)} color="#2E7D32" />
           <Text style={styles.verifiedText}>Verified</Text>
         </View>
       </View>
@@ -29,7 +30,7 @@ export default function LifeCycleScreen() {
         {/* Product Card */}
         <View style={styles.productCard}>
           <View style={styles.productIcon}>
-            <MaterialIcons name="recycling" size={28} color="#1B7A3D" />
+            <MaterialIcons name="recycling" size={ms(28)} color="#1B7A3D" />
           </View>
           <View style={styles.productInfo}>
             <Text style={styles.productName}>Eco Packaging</Text>
@@ -89,7 +90,7 @@ export default function LifeCycleScreen() {
             activeOpacity={0.7}
             onPress={() => router.push('/(tabs)/tickets')}
           >
-            <MaterialIcons name="support-agent" size={18} color="#FFFFFF" />
+            <MaterialIcons name="support-agent" size={ms(18)} color="#FFFFFF" />
             <Text style={styles.actionTextPrimary}>Get Support</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -97,7 +98,7 @@ export default function LifeCycleScreen() {
             activeOpacity={0.7}
             onPress={() => router.push('/(tabs)/tickets')}
           >
-            <MaterialIcons name="campaign" size={18} color="#1A1A1A" />
+            <MaterialIcons name="campaign" size={ms(18)} color="#1A1A1A" />
             <Text style={styles.actionText}>Raise Ticket</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -105,7 +106,7 @@ export default function LifeCycleScreen() {
             activeOpacity={0.7}
             onPress={() => Share.share({ message: 'Check out this Digital Product Passport from CirTag!' })}
           >
-            <MaterialIcons name="share" size={18} color="#1A1A1A" />
+            <MaterialIcons name="share" size={ms(18)} color="#1A1A1A" />
             <Text style={styles.actionText}>Share DPP</Text>
           </TouchableOpacity>
         </View>
@@ -118,7 +119,7 @@ function LifeStep({ label, icon, active = false }: { label: string; icon: any; a
   return (
     <View style={styles.lifeStep}>
       <View style={[styles.lifeIcon, active && styles.lifeIconActive]}>
-        <MaterialIcons name={icon} size={14} color={active ? '#FFFFFF' : '#1B7A3D'} />
+        <MaterialIcons name={icon} size={ms(14)} color={active ? '#FFFFFF' : '#1B7A3D'} />
       </View>
       <Text style={[styles.lifeLabel, active && styles.lifeLabelActive]}>{label}</Text>
     </View>
@@ -143,18 +144,18 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: '#F5F7FA',
-    paddingHorizontal: 16,
+    paddingHorizontal: s(16),
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
+    gap: s(8),
+    marginBottom: vs(6),
   },
   backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: s(34),
+    height: s(34),
+    borderRadius: s(17),
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -167,26 +168,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: '700',
     color: '#1A1A1A',
   },
   subtitle: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: TextMuted,
-    marginTop: 2,
+    marginTop: vs(2),
   },
   verifiedPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    gap: s(4),
+    paddingHorizontal: s(8),
+    paddingVertical: vs(4),
+    borderRadius: s(12),
     backgroundColor: '#E8F5E9',
   },
   verifiedText: {
-    fontSize: 11,
+    fontSize: ms(11),
     fontWeight: '600',
     color: '#2E7D32',
   },
@@ -198,97 +199,97 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#DFF7E6',
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: s(16),
+    padding: s(14),
     borderWidth: 1,
     borderColor: '#C8EFD4',
-    marginTop: 6,
+    marginTop: vs(6),
   },
   productIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
+    width: s(52),
+    height: s(52),
+    borderRadius: s(12),
     backgroundColor: '#CFF1DA',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: s(12),
   },
   productInfo: {
     flex: 1,
   },
   productName: {
-    fontSize: 15,
+    fontSize: ms(15),
     fontWeight: '700',
     color: '#1A1A1A',
   },
   productMeta: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: '#5E6B66',
-    marginTop: 2,
+    marginTop: vs(2),
   },
   dppPill: {
     alignSelf: 'flex-start',
-    marginTop: 6,
+    marginTop: vs(6),
     backgroundColor: '#C9F0D5',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    paddingHorizontal: s(8),
+    paddingVertical: vs(3),
+    borderRadius: s(10),
   },
   dppText: {
-    fontSize: 10,
+    fontSize: ms(10),
     fontWeight: '600',
     color: '#2E7D32',
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 22,
+    gap: s(10),
+    marginTop: vs(22),
   },
   statBox: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 10,
+    borderRadius: s(14),
+    padding: s(10),
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#EEF1F3',
   },
   statTitle: {
-    fontSize: 10,
+    fontSize: ms(10),
     color: '#7A8A85',
   },
   statValue: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: '700',
     color: '#1A1A1A',
-    marginTop: 2,
+    marginTop: vs(2),
   },
   statUnit: {
-    fontSize: 10,
+    fontSize: ms(10),
     fontWeight: '600',
     color: '#4CAF50',
-    marginTop: 2,
+    marginTop: vs(2),
   },
   sectionCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: s(14),
+    padding: s(12),
     borderWidth: 1,
     borderColor: '#EEF1F3',
-    marginTop: 20,
+    marginTop: vs(20),
   },
   emissionCard: {
-    marginTop: 24,
+    marginTop: vs(24),
   },
   spacer: {
     flex: 1,
-    minHeight: 8,
+    minHeight: vs(8),
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 8,
+    marginBottom: vs(8),
   },
   lifeRow: {
     flexDirection: 'row',
@@ -300,19 +301,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   lifeIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: s(26),
+    height: s(26),
+    borderRadius: s(13),
     backgroundColor: '#E9F5EE',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    marginBottom: vs(4),
   },
   lifeIconActive: {
     backgroundColor: '#1B7A3D',
   },
   lifeLabel: {
-    fontSize: 9,
+    fontSize: ms(9),
     color: '#7A8A85',
   },
   lifeLabelActive: {
@@ -320,43 +321,43 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   emissionRow: {
-    marginTop: 6,
+    marginTop: vs(6),
   },
   emissionTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: vs(6),
   },
   emissionLabel: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: '#5E6B66',
   },
   emissionValue: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: '#1A1A1A',
     fontWeight: '600',
   },
   emissionBar: {
-    height: 6,
+    height: vs(6),
     backgroundColor: '#EEF1F3',
-    borderRadius: 6,
+    borderRadius: s(6),
     overflow: 'hidden',
   },
   emissionFill: {
-    height: 6,
+    height: vs(6),
     width: '60%',
-    borderRadius: 6,
+    borderRadius: s(6),
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 6,
+    gap: s(10),
+    marginTop: vs(6),
   },
   actionBtn: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    paddingVertical: 10,
+    borderRadius: s(14),
+    paddingVertical: vs(10),
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#EEF1F3',
@@ -367,14 +368,14 @@ const styles = StyleSheet.create({
   },
   actionTextPrimary: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: ms(10),
     fontWeight: '700',
-    marginTop: 4,
+    marginTop: vs(4),
   },
   actionText: {
     color: '#1A1A1A',
-    fontSize: 10,
+    fontSize: ms(10),
     fontWeight: '600',
-    marginTop: 4,
+    marginTop: vs(4),
   },
 });

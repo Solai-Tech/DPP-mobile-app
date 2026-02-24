@@ -7,6 +7,7 @@ import GradientBackground from '../../src/components/GradientBackground';
 import CirtagLogo from '../../src/components/CirtagLogo';
 import { useUserProfile } from '../../src/hooks/useUserProfile';
 import { useProducts } from '../../src/hooks/useProducts';
+import { s, vs, ms } from '../../src/utils/scale';
 import {
   Accent,
   AccentDim,
@@ -27,13 +28,13 @@ function MenuItem({ icon, label, subtitle, onPress }: MenuItemProps) {
   return (
     <TouchableOpacity style={menuStyles.item} onPress={onPress} activeOpacity={0.7}>
       <View style={menuStyles.iconCircle}>
-        <MaterialIcons name={icon} size={20} color={Accent} />
+        <MaterialIcons name={icon} size={ms(20)} color={Accent} />
       </View>
       <View style={menuStyles.textCol}>
         <Text style={menuStyles.label}>{label}</Text>
         {subtitle ? <Text style={menuStyles.subtitle}>{subtitle}</Text> : null}
       </View>
-      <MaterialIcons name="chevron-right" size={20} color={TextMuted} />
+      <MaterialIcons name="chevron-right" size={ms(20)} color={TextMuted} />
     </TouchableOpacity>
   );
 }
@@ -43,30 +44,30 @@ const menuStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: CardDark,
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: s(14),
+    padding: s(14),
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: s(40),
+    height: s(40),
+    borderRadius: s(20),
     backgroundColor: AccentDim,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: s(12),
   },
   textCol: {
     flex: 1,
   },
   label: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '600',
     color: TextPrimary,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextSecondary,
-    marginTop: 1,
+    marginTop: vs(1),
   },
 });
 
@@ -80,7 +81,7 @@ export default function ProfileScreen() {
     <GradientBackground>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingTop: insets.top + vs(12), paddingBottom: vs(32) }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -89,12 +90,12 @@ export default function ProfileScreen() {
           <Text style={styles.headerTitle}>Profile</Text>
         </View>
 
-        <View style={{ height: 24 }} />
+        <View style={{ height: vs(24) }} />
 
         {/* Avatar + Info */}
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
-            <MaterialIcons name="person" size={36} color={Accent} />
+            <MaterialIcons name="person" size={ms(36)} color={Accent} />
           </View>
           <Text style={styles.role}>Sustainability</Text>
           <Text style={styles.company}>CirTag Industries</Text>
@@ -112,7 +113,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={{ height: 20 }} />
+        <View style={{ height: vs(20) }} />
 
         {/* Menu Items */}
         <View style={styles.menuSection}>
@@ -132,11 +133,11 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <View style={{ height: 24 }} />
+        <View style={{ height: vs(24) }} />
 
         {/* Sign Out */}
         <TouchableOpacity style={styles.signOutBtn} activeOpacity={0.7}>
-          <MaterialIcons name="logout" size={18} color="#E53935" />
+          <MaterialIcons name="logout" size={ms(18)} color="#E53935" />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -151,86 +152,86 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    gap: 10,
+    paddingHorizontal: s(20),
+    gap: s(10),
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: ms(18),
     fontWeight: '700',
     color: TextPrimary,
   },
   profileCard: {
     backgroundColor: CardDark,
-    borderRadius: 20,
-    marginHorizontal: 20,
-    padding: 24,
+    borderRadius: s(20),
+    marginHorizontal: s(20),
+    padding: s(24),
     alignItems: 'center',
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: s(72),
+    height: s(72),
+    borderRadius: s(36),
     backgroundColor: AccentDim,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: vs(12),
   },
   name: {
-    fontSize: 20,
+    fontSize: ms(20),
     fontWeight: '700',
     color: TextPrimary,
   },
   role: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: Accent,
     fontWeight: '500',
-    marginTop: 2,
+    marginTop: vs(2),
   },
   company: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: TextSecondary,
-    marginTop: 2,
+    marginTop: vs(2),
   },
   statsRow: {
     flexDirection: 'row',
-    marginTop: 20,
+    marginTop: vs(20),
     alignItems: 'center',
   },
   statItem: {
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: s(24),
   },
   statValue: {
-    fontSize: 20,
+    fontSize: ms(20),
     fontWeight: '800',
     color: TextPrimary,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextSecondary,
-    marginTop: 2,
+    marginTop: vs(2),
   },
   statDivider: {
     width: 1,
-    height: 30,
+    height: vs(30),
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
   menuSection: {
-    paddingHorizontal: 20,
-    gap: 8,
+    paddingHorizontal: s(20),
+    gap: s(8),
   },
   signOutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(229,57,53,0.1)',
-    borderRadius: 14,
-    marginHorizontal: 20,
-    paddingVertical: 14,
-    gap: 8,
+    borderRadius: s(14),
+    marginHorizontal: s(20),
+    paddingVertical: vs(14),
+    gap: s(8),
   },
   signOutText: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '700',
     color: '#E53935',
   },

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { CardDark, Accent, AccentDim, TextPrimary, TextMuted } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 type ScanType = 'qr' | 'barcode';
 
@@ -20,7 +21,7 @@ export default function ScanTypeToggle({ activeType, onToggle }: Props) {
       >
         <MaterialIcons
           name="qr-code"
-          size={20}
+          size={ms(20)}
           color={activeType === 'qr' ? Accent : TextMuted}
         />
         <Text style={[styles.label, activeType === 'qr' && styles.activeLabel]}>
@@ -34,7 +35,7 @@ export default function ScanTypeToggle({ activeType, onToggle }: Props) {
       >
         <MaterialIcons
           name="view-week"
-          size={20}
+          size={ms(20)}
           color={activeType === 'barcode' ? Accent : TextMuted}
         />
         <Text
@@ -51,24 +52,24 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: CardDark,
-    borderRadius: 12,
-    padding: 4,
-    marginHorizontal: 20,
+    borderRadius: s(12),
+    padding: s(4),
+    marginHorizontal: s(20),
   },
   tab: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
+    paddingVertical: vs(10),
+    borderRadius: s(10),
+    gap: s(6),
   },
   activeTab: {
     backgroundColor: AccentDim,
   },
   label: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '600',
     color: TextMuted,
   },

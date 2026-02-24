@@ -24,6 +24,7 @@ import ActionButton from '../../src/components/ActionButton';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
 import { useProducts } from '../../src/hooks/useProducts';
 import { formatScanDate } from '../../src/utils/dateFormatter';
+import { s, vs, ms } from '../../src/utils/scale';
 import {
   Accent,
 } from '../../src/theme/colors';
@@ -223,7 +224,7 @@ export default function ProductDetailScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={22} color={TextBlack} />
+          <MaterialIcons name="arrow-back" size={ms(22)} color={TextBlack} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Product Passport</Text>
@@ -231,7 +232,7 @@ export default function ProductDetailScreen() {
         </View>
         {hasVerified && (
           <View style={styles.verifiedBadge}>
-            <MaterialIcons name="verified" size={14} color={BrightGreen} />
+            <MaterialIcons name="verified" size={ms(14)} color={BrightGreen} />
             <Text style={styles.verifiedText}>Verified</Text>
           </View>
         )}
@@ -240,7 +241,7 @@ export default function ProductDetailScreen() {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 + insets.bottom }}
+        contentContainerStyle={{ paddingBottom: vs(32) + insets.bottom }}
       >
         {/* Product Icon */}
         <View style={styles.productIconSection}>
@@ -253,7 +254,7 @@ export default function ProductDetailScreen() {
             />
           ) : (
             <View style={styles.productIconCircle}>
-              <MaterialIcons name="recycling" size={40} color={GreenAccent} />
+              <MaterialIcons name="recycling" size={ms(40)} color={GreenAccent} />
             </View>
           )}
         </View>
@@ -279,13 +280,13 @@ export default function ProductDetailScreen() {
           <Text style={styles.productDesc}>{product.productDescription}</Text>
         ) : null}
 
-        <View style={{ height: 20 }} />
+        <View style={{ height: vs(20) }} />
 
         {/* Stat Cards */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
             <View style={styles.statIconCircle}>
-              <MaterialIcons name="eco" size={18} color={GreenAccent} />
+              <MaterialIcons name="eco" size={ms(18)} color={GreenAccent} />
             </View>
             <Text style={styles.statLabel}>Total CO{'\u2082'}</Text>
             <Text style={styles.statValue}>{co2Numeric}</Text>
@@ -305,7 +306,7 @@ export default function ProductDetailScreen() {
 
           <View style={styles.statCard}>
             <View style={styles.statIconCircle}>
-              <MaterialIcons name="recycling" size={18} color={GreenAccent} />
+              <MaterialIcons name="recycling" size={ms(18)} color={GreenAccent} />
             </View>
             <Text style={styles.statLabel}>Recyclability</Text>
             <Text style={styles.statValue}>94%</Text>
@@ -316,7 +317,7 @@ export default function ProductDetailScreen() {
 
           <View style={styles.statCard}>
             <View style={styles.statIconCircle}>
-              <MaterialIcons name="inventory-2" size={18} color={GreenAccent} />
+              <MaterialIcons name="inventory-2" size={ms(18)} color={GreenAccent} />
             </View>
             <Text style={styles.statLabel}>Batch</Text>
             <Text style={styles.statValue}>
@@ -328,18 +329,18 @@ export default function ProductDetailScreen() {
           </View>
         </View>
 
-        <View style={{ height: 20 }} />
+        <View style={{ height: vs(20) }} />
 
         {/* Lifecycle Timeline */}
         <LifecycleTimeline />
 
-        <View style={{ height: 20 }} />
+        <View style={{ height: vs(20) }} />
 
         {/* Emission Breakdown */}
         {product.co2Details ? (
           <>
             <EmissionBreakdown co2Details={product.co2Details} />
-            <View style={{ height: 20 }} />
+            <View style={{ height: vs(20) }} />
           </>
         ) : null}
 
@@ -352,7 +353,7 @@ export default function ProductDetailScreen() {
           {product.skuId ? <SpecItem label="SKU ID" value={product.skuId} /> : null}
         </View>
 
-        <View style={{ height: 16 }} />
+        <View style={{ height: vs(16) }} />
 
         {/* Certifications */}
         {filteredCerts.length > 0 && (
@@ -361,12 +362,12 @@ export default function ProductDetailScreen() {
               <Text style={styles.cardTitle}>Certifications</Text>
               {filteredCerts.map((cert) => (
                 <View key={cert} style={styles.certRow}>
-                  <MaterialIcons name="check-circle" size={16} color={GreenAccent} />
+                  <MaterialIcons name="check-circle" size={ms(16)} color={GreenAccent} />
                   <Text style={styles.certText}>{cert}</Text>
                 </View>
               ))}
             </View>
-            <View style={{ height: 16 }} />
+            <View style={{ height: vs(16) }} />
           </>
         )}
 
@@ -381,7 +382,7 @@ export default function ProductDetailScreen() {
               {downloading ? (
                 <ActivityIndicator size="small" color={GreenAccent} />
               ) : (
-                <MaterialIcons name="description" size={20} color={GreenAccent} />
+                <MaterialIcons name="description" size={ms(20)} color={GreenAccent} />
               )}
             </View>
             <View>
@@ -392,10 +393,10 @@ export default function ProductDetailScreen() {
           {downloading ? (
             <ActivityIndicator size="small" color={GreenAccent} />
           ) : (
-            <MaterialIcons name="download" size={20} color={GreenAccent} />
+            <MaterialIcons name="download" size={ms(20)} color={GreenAccent} />
           )}
         </TouchableOpacity>
-        <View style={{ height: 16 }} />
+        <View style={{ height: vs(16) }} />
 
         {/* Action Buttons - 3 buttons */}
         <View style={styles.actionsRow}>
@@ -404,7 +405,7 @@ export default function ProductDetailScreen() {
             onPress={() => router.push('/(tabs)/tickets')}
             activeOpacity={0.7}
           >
-            <MaterialIcons name="support-agent" size={16} color={GreenAccent} />
+            <MaterialIcons name="support-agent" size={ms(16)} color={GreenAccent} />
             <Text style={styles.actionBtnOutlineText}>Get Support</Text>
           </TouchableOpacity>
 
@@ -413,7 +414,7 @@ export default function ProductDetailScreen() {
             onPress={() => router.push('/(tabs)/tickets')}
             activeOpacity={0.7}
           >
-            <MaterialIcons name="confirmation-number" size={16} color={GreenAccent} />
+            <MaterialIcons name="confirmation-number" size={ms(16)} color={GreenAccent} />
             <Text style={styles.actionBtnOutlineText}>Raise Ticket</Text>
           </TouchableOpacity>
 
@@ -422,12 +423,12 @@ export default function ProductDetailScreen() {
             onPress={handleShare}
             activeOpacity={0.7}
           >
-            <MaterialIcons name="share" size={16} color="#FFFFFF" />
+            <MaterialIcons name="share" size={ms(16)} color="#FFFFFF" />
             <Text style={styles.actionBtnFilledText}>Share DPP</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={{ height: 16 }} />
+        <View style={{ height: vs(16) }} />
 
         {/* View original product link */}
         <TouchableOpacity
@@ -441,17 +442,17 @@ export default function ProductDetailScreen() {
           }
         >
           <View style={styles.linkLeft}>
-            <MaterialIcons name="open-in-new" size={18} color={GreenAccent} />
+            <MaterialIcons name="open-in-new" size={ms(18)} color={GreenAccent} />
             <Text style={styles.linkText}>View Original Product Page</Text>
           </View>
-          <MaterialIcons name="chevron-right" size={18} color={TextMutedLight} />
+          <MaterialIcons name="chevron-right" size={ms(18)} color={TextMutedLight} />
         </TouchableOpacity>
 
-        <View style={{ height: 16 }} />
+        <View style={{ height: vs(16) }} />
 
         {/* Scan Info */}
         <View style={styles.scanInfo}>
-          <MaterialIcons name="check-circle" size={14} color={GreenAccent} />
+          <MaterialIcons name="check-circle" size={ms(14)} color={GreenAccent} />
           <Text style={styles.scanInfoText}>
             Scanned {formatScanDate(product.scannedAt)}
           </Text>
@@ -495,16 +496,16 @@ const specStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: vs(8),
     borderBottomWidth: 1,
     borderBottomColor: Border,
   },
   label: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: TextGray,
   },
   value: {
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: '600',
     color: TextBlack,
   },
@@ -518,22 +519,22 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingVertical: 10,
+    paddingHorizontal: s(4),
+    paddingVertical: vs(10),
   },
   backBtn: {
-    padding: 12,
+    padding: s(12),
   },
   headerCenter: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: ms(18),
     fontWeight: '700',
     color: TextBlack,
   },
   headerSubtitle: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: TextGray,
     fontWeight: '500',
   },
@@ -541,14 +542,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: GreenTint,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 12,
-    gap: 4,
+    borderRadius: s(20),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
+    marginRight: s(12),
+    gap: s(4),
   },
   verifiedText: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: '700',
     color: GreenAccent,
   },
@@ -557,59 +558,59 @@ const styles = StyleSheet.create({
   },
   productIconSection: {
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: vs(16),
   },
   productImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: s(100),
+    height: s(100),
+    borderRadius: s(50),
   },
   productIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: s(80),
+    height: s(80),
+    borderRadius: s(40),
     backgroundColor: GreenTint,
     justifyContent: 'center',
     alignItems: 'center',
   },
   productName: {
-    fontSize: 22,
+    fontSize: ms(22),
     fontWeight: '700',
     color: TextBlack,
     textAlign: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: s(20),
   },
   supplierText: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: TextGray,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: vs(4),
   },
   dppId: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: TextMutedLight,
     textAlign: 'center',
     fontFamily: 'monospace',
-    marginTop: 4,
+    marginTop: vs(4),
   },
   productDesc: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: TextGray,
     textAlign: 'center',
-    paddingHorizontal: 32,
-    marginTop: 6,
-    lineHeight: 18,
+    paddingHorizontal: s(32),
+    marginTop: vs(6),
+    lineHeight: ms(18),
   },
   statsRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 10,
+    paddingHorizontal: s(20),
+    gap: s(10),
   },
   statCard: {
     flex: 1,
     backgroundColor: White,
-    borderRadius: 16,
-    padding: 12,
+    borderRadius: s(16),
+    padding: s(12),
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -618,45 +619,45 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   statIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: s(32),
+    height: s(32),
+    borderRadius: s(16),
     backgroundColor: GreenTint,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: vs(6),
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: ms(10),
     color: TextGray,
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: vs(2),
   },
   statValue: {
-    fontSize: 18,
+    fontSize: ms(18),
     fontWeight: '800',
     color: TextBlack,
   },
   statUnit: {
-    fontSize: 10,
+    fontSize: ms(10),
     color: GreenAccent,
     fontWeight: '600',
   },
   statBadge: {
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    marginTop: 4,
+    borderRadius: s(8),
+    paddingHorizontal: s(8),
+    paddingVertical: vs(2),
+    marginTop: vs(4),
   },
   statBadgeText: {
-    fontSize: 10,
+    fontSize: ms(10),
     fontWeight: '700',
   },
   specsCard: {
     backgroundColor: White,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 20,
+    borderRadius: s(16),
+    padding: s(16),
+    marginHorizontal: s(20),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -664,16 +665,16 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardTitle: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '700',
     color: TextBlack,
-    marginBottom: 8,
+    marginBottom: vs(8),
   },
   certsCard: {
     backgroundColor: White,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 20,
+    borderRadius: s(16),
+    padding: s(16),
+    marginHorizontal: s(20),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -683,11 +684,11 @@ const styles = StyleSheet.create({
   certRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 6,
+    gap: s(8),
+    paddingVertical: vs(6),
   },
   certText: {
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: '600',
     color: TextBlack,
   },
@@ -696,9 +697,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: White,
-    borderRadius: 14,
-    padding: 14,
-    marginHorizontal: 20,
+    borderRadius: s(14),
+    padding: s(14),
+    marginHorizontal: s(20),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -708,45 +709,45 @@ const styles = StyleSheet.create({
   datasheetLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: s(12),
   },
   datasheetIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: s(40),
+    height: s(40),
+    borderRadius: s(10),
     backgroundColor: GreenTint,
     justifyContent: 'center',
     alignItems: 'center',
   },
   datasheetTitle: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '600',
     color: TextBlack,
   },
   datasheetSub: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextGray,
   },
   actionsRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 8,
+    paddingHorizontal: s(20),
+    gap: s(8),
   },
   actionBtnOutline: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    gap: 4,
+    borderRadius: s(12),
+    paddingVertical: vs(12),
+    paddingHorizontal: s(8),
+    gap: s(4),
     borderWidth: 1.5,
     borderColor: GreenAccent,
     backgroundColor: White,
   },
   actionBtnOutlineText: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: '700',
     color: GreenAccent,
   },
@@ -755,14 +756,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    gap: 4,
+    borderRadius: s(12),
+    paddingVertical: vs(12),
+    paddingHorizontal: s(8),
+    gap: s(4),
     backgroundColor: GreenAccent,
   },
   actionBtnFilledText: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -771,9 +772,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: White,
-    borderRadius: 14,
-    padding: 14,
-    marginHorizontal: 20,
+    borderRadius: s(14),
+    padding: s(14),
+    marginHorizontal: s(20),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -783,10 +784,10 @@ const styles = StyleSheet.create({
   linkLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: s(10),
   },
   linkText: {
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: '600',
     color: TextBlack,
   },
@@ -794,11 +795,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    padding: 12,
+    gap: s(6),
+    padding: s(12),
   },
   scanInfoText: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextGray,
     fontWeight: '500',
   },

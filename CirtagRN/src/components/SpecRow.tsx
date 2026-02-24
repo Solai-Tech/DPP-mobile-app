@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { TextPrimary, TextSecondary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   label: string;
@@ -20,15 +21,15 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
-    paddingVertical: 2,
+    paddingVertical: vs(2),
   },
   label: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: TextSecondary,
     fontWeight: '500',
   },
   value: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: TextPrimary,
   },
 });

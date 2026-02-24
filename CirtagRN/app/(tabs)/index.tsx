@@ -13,6 +13,7 @@ import {
   TextPrimary,
   TextMuted,
 } from '../../src/theme/colors';
+import { s, vs, ms } from '../../src/utils/scale';
 
 const GreenGlow = 'rgba(0,230,118,0.15)';
 const GreenBorder = 'rgba(0,230,118,0.25)';
@@ -44,7 +45,7 @@ export default function HomeScreen() {
 
   return (
     <GradientBackground>
-      <View style={[styles.container, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 84 }]}>
+      <View style={[styles.container, { paddingTop: insets.top + vs(10), paddingBottom: vs(10) }]}>
 
         {/* Top Row */}
         <View style={styles.topRow}>
@@ -58,7 +59,7 @@ export default function HomeScreen() {
         {/* Logo Section */}
         <View style={styles.logoSection}>
           <View style={styles.logoMark}>
-            <MaterialIcons name="recycling" size={32} color="#FFFFFF" />
+            <MaterialIcons name="recycling" size={ms(32)} color="#FFFFFF" />
           </View>
           <View style={styles.logoTextRow}>
             <Text style={styles.logoName}>CIRT</Text>
@@ -76,11 +77,11 @@ export default function HomeScreen() {
             <Text style={styles.welcomeSub}>Track your products sustainably</Text>
           </View>
           <View style={styles.avatar}>
-            <MaterialIcons name="recycling" size={22} color="#FFFFFF" />
+            <MaterialIcons name="recycling" size={ms(22)} color="#FFFFFF" />
           </View>
         </View>
 
-        {/* Stats Row */}
+        {/* Stats Row — compact */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{totalScansDisplay}</Text>
@@ -92,8 +93,8 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Spacer to push actions down */}
-        <View style={styles.spacer} />
+        {/* Gap */}
+        <View style={styles.sectionGap} />
 
         {/* Action Tiles */}
         <View style={styles.actionsRow}>
@@ -103,7 +104,7 @@ export default function HomeScreen() {
             activeOpacity={0.85}
           >
             <View style={styles.actionIconCircle}>
-              <MaterialIcons name="history" size={20} color={Accent} />
+              <MaterialIcons name="history" size={ms(20)} color={Accent} />
             </View>
             <Text style={styles.actionLabel}>Products History</Text>
           </TouchableOpacity>
@@ -113,13 +114,11 @@ export default function HomeScreen() {
             activeOpacity={0.85}
           >
             <View style={styles.actionIconCircle}>
-              <MaterialIcons name="recycling" size={20} color={Accent} />
+              <MaterialIcons name="recycling" size={ms(20)} color={Accent} />
             </View>
             <Text style={styles.actionLabel}>Product Life Cycle</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={{ height: 20 }} />
 
         <TouchableOpacity
           style={styles.solaiCard}
@@ -127,13 +126,13 @@ export default function HomeScreen() {
           activeOpacity={0.85}
         >
           <View style={styles.cirtagIcon}>
-            <MaterialIcons name="eco" size={20} color="#FFFFFF" />
+            <MaterialIcons name="eco" size={ms(20)} color="#FFFFFF" />
           </View>
           <View style={styles.solaiTextCol}>
             <Text style={styles.solaiTitle}>CirTag</Text>
             <Text style={styles.solaiSub}>Open Digital Product Passport</Text>
           </View>
-          <MaterialIcons name="chevron-right" size={20} color={TextMuted} />
+          <MaterialIcons name="chevron-right" size={ms(20)} color={TextMuted} />
         </TouchableOpacity>
       </View>
     </GradientBackground>
@@ -143,56 +142,57 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: s(20),
   },
   // Top Row
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    marginBottom: 8,
+    paddingHorizontal: s(4),
+    marginBottom: vs(8),
   },
   topLabel: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '700',
     color: TextMuted,
   },
   activePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: s(6),
     backgroundColor: GreenGlow,
     borderWidth: 1,
     borderColor: GreenBorder,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    borderRadius: s(20),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(5),
   },
   activeDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+    width: s(7),
+    height: s(7),
+    borderRadius: s(4),
     backgroundColor: Accent,
   },
   activeText: {
-    fontSize: 11,
+    fontSize: ms(11),
     fontWeight: '600',
     color: Accent,
   },
   // Logo
   logoSection: {
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingTop: vs(44),
+    paddingBottom: vs(14),
   },
   logoMark: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
+    width: s(60),
+    height: s(60),
+    borderRadius: s(16),
     backgroundColor: '#1F7A3A',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: vs(14),
     shadowColor: '#00E676',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
@@ -202,31 +202,31 @@ const styles = StyleSheet.create({
   logoTextRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 6,
+    marginBottom: vs(6),
   },
   logoName: {
-    fontSize: 44,
+    fontSize: ms(44),
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -2,
   },
   logoNameAccent: {
-    fontSize: 44,
+    fontSize: ms(44),
     fontWeight: '800',
     color: Accent,
     letterSpacing: -2,
   },
   tagline: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '600',
     color: TextMuted,
     letterSpacing: 0.5,
   },
   taglineSub: {
-    fontSize: 12,
+    fontSize: ms(12),
     fontWeight: '600',
     color: Accent,
-    marginTop: 4,
+    marginTop: vs(4),
     letterSpacing: 0.3,
   },
   // Welcome Card
@@ -237,31 +237,31 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 18,
-    padding: 16,
-    marginTop: 6,
-    marginBottom: 14,
+    borderRadius: s(18),
+    padding: s(16),
+    marginTop: vs(6),
+    marginBottom: vs(14),
   },
   welcomeLeft: {},
   welcomeHi: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextMuted,
-    marginBottom: 3,
+    marginBottom: vs(3),
   },
   welcomeName: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: '700',
     color: '#FFFFFF',
   },
   welcomeSub: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: TextMuted,
-    marginTop: 4,
+    marginTop: vs(4),
   },
   avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: s(42),
+    height: s(42),
+    borderRadius: s(21),
     backgroundColor: '#1F7A3A',
     justifyContent: 'center',
     alignItems: 'center',
@@ -271,56 +271,55 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  // Stats
+  // Stats — compact, same height as action tiles
   statsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: s(10),
   },
   statCard: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
+    borderRadius: s(16),
+    paddingVertical: vs(14),
+    paddingHorizontal: s(10),
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 22,
+    fontSize: ms(22),
     fontWeight: '800',
     color: '#FFFFFF',
   },
   statUnit: {
-    fontSize: 10,
+    fontSize: ms(10),
     color: TextMuted,
     fontWeight: '600',
-    marginTop: 6,
+    marginTop: vs(6),
   },
-  // Spacer
-  spacer: {
-    flex: 1,
-    minHeight: 16,
+  // Fixed gap between stats and actions
+  sectionGap: {
+    height: vs(10),
   },
   // Actions
   actionsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: s(10),
   },
   actionTile: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
+    borderRadius: s(18),
+    paddingVertical: vs(12),
+    paddingHorizontal: s(10),
     alignItems: 'center',
   },
   actionIconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: s(34),
+    height: s(34),
+    borderRadius: s(17),
     backgroundColor: 'rgba(0,230,118,0.12)',
     borderWidth: 1,
     borderColor: 'rgba(0,230,118,0.25)',
@@ -328,9 +327,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   actionLabel: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: TextMuted,
-    marginTop: 10,
+    marginTop: vs(10),
     textAlign: 'center',
     fontWeight: '600',
   },
@@ -340,14 +339,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 16,
-    padding: 14,
-    gap: 12,
+    borderRadius: s(16),
+    padding: s(14),
+    gap: s(12),
+    marginTop: vs(14),
   },
   cirtagIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: s(40),
+    height: s(40),
+    borderRadius: s(12),
     backgroundColor: '#2EA7FF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -356,13 +356,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   solaiTitle: {
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: '700',
     color: '#FFFFFF',
   },
   solaiSub: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: TextMuted,
-    marginTop: 2,
+    marginTop: vs(2),
   },
 });

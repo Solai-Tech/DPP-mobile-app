@@ -3,12 +3,13 @@ import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Accent, AccentDim, TextPrimary, TextSecondary } from '../theme/colors';
 import { typography } from '../theme/typography';
+import { s, vs, ms } from '../utils/scale';
 
 export default function EmptyState() {
   return (
     <View style={styles.container}>
       <View style={styles.iconCircle}>
-        <MaterialIcons name="qr-code-scanner" size={48} color={Accent} />
+        <MaterialIcons name="qr-code-scanner" size={ms(48)} color={Accent} />
       </View>
       <Text style={styles.title}>No Scans Yet</Text>
       <Text style={styles.subtitle}>
@@ -23,12 +24,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: s(40),
   },
   iconCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: s(100),
+    height: s(100),
+    borderRadius: s(50),
     backgroundColor: AccentDim,
     justifyContent: 'center',
     alignItems: 'center',
@@ -37,13 +38,13 @@ const styles = StyleSheet.create({
     ...typography.headlineSmall,
     fontWeight: '700',
     color: TextPrimary,
-    marginTop: 24,
+    marginTop: vs(24),
   },
   subtitle: {
     ...typography.bodyMedium,
     color: TextSecondary,
     textAlign: 'center',
-    lineHeight: 22,
-    marginTop: 8,
+    lineHeight: ms(22),
+    marginTop: vs(8),
   },
 });

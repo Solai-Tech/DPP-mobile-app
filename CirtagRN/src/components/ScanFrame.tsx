@@ -2,10 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { Primary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
-const FRAME_SIZE = 200;
-const CORNER_LEN = 40;
-const STROKE_W = 4;
+const FRAME_SIZE = s(200);
+const CORNER_LEN = s(40);
+const STROKE_W = s(4);
 
 export default function ScanFrame() {
   const scanY = useRef(new Animated.Value(0)).current;
@@ -58,10 +59,10 @@ const styles = StyleSheet.create({
   },
   scanLine: {
     position: 'absolute',
-    left: 10,
-    right: 10,
-    height: 3,
-    borderRadius: 1.5,
+    left: s(10),
+    right: s(10),
+    height: vs(3),
+    borderRadius: s(1.5),
     backgroundColor: Primary,
     opacity: 0.8,
   },

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { CardDark, Accent, AccentDim, TextPrimary, TextSecondary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   icon: keyof typeof MaterialIcons.glyphMap;
@@ -14,7 +15,7 @@ export default function PassportStatCard({ icon, label, value, unit }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.iconCircle}>
-        <MaterialIcons name={icon} size={16} color={Accent} />
+        <MaterialIcons name={icon} size={ms(16)} color={Accent} />
       </View>
       <Text style={styles.value}>{value}</Text>
       {unit ? <Text style={styles.unit}>{unit}</Text> : null}
@@ -27,33 +28,33 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: CardDark,
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: s(14),
+    padding: s(12),
     alignItems: 'center',
   },
   iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: s(32),
+    height: s(32),
+    borderRadius: s(16),
     backgroundColor: AccentDim,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: vs(6),
   },
   value: {
-    fontSize: 18,
+    fontSize: ms(18),
     fontWeight: '800',
     color: TextPrimary,
   },
   unit: {
-    fontSize: 10,
+    fontSize: ms(10),
     color: Accent,
     fontWeight: '600',
   },
   label: {
-    fontSize: 10,
+    fontSize: ms(10),
     color: TextSecondary,
-    marginTop: 3,
+    marginTop: vs(3),
     textAlign: 'center',
   },
 });

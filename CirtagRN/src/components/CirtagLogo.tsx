@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Accent, TextPrimary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   size?: 'small' | 'medium' | 'large';
@@ -14,12 +15,12 @@ const SIZES = {
 };
 
 export default function CirtagLogo({ size = 'medium' }: Props) {
-  const s = SIZES[size];
+  const sizeConfig = SIZES[size];
   return (
     <View style={styles.container}>
-      <MaterialIcons name="recycling" size={s.iconSize} color={Accent} />
-      <Text style={[styles.cirt, { fontSize: s.fontSize }]}>CIRT</Text>
-      <Text style={[styles.ag, { fontSize: s.fontSize }]}>AG</Text>
+      <MaterialIcons name="recycling" size={ms(sizeConfig.iconSize)} color={Accent} />
+      <Text style={[styles.cirt, { fontSize: ms(sizeConfig.fontSize) }]}>CIRT</Text>
+      <Text style={[styles.ag, { fontSize: ms(sizeConfig.fontSize) }]}>AG</Text>
     </View>
   );
 }
@@ -28,7 +29,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: s(4),
   },
   cirt: {
     fontWeight: '800',

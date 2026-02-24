@@ -7,6 +7,7 @@ import { ScannedProduct } from '../types/ScannedProduct';
 import { Accent, AccentDim, CardDark, TextPrimary, TextSecondary, TextMuted } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { formatHistoryDate } from '../utils/dateFormatter';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   product: ScannedProduct;
@@ -63,7 +64,7 @@ export default function ProductHistoryCard({ product, onPress, onDelete }: Props
           colors={[AccentDim, CardDark]}
           style={styles.placeholder}
         >
-          <MaterialIcons name="qr-code-scanner" size={28} color={Accent} />
+          <MaterialIcons name="qr-code-scanner" size={ms(28)} color={Accent} />
         </LinearGradient>
       )}
 
@@ -79,7 +80,7 @@ export default function ProductHistoryCard({ product, onPress, onDelete }: Props
         ) : null}
 
         <View style={styles.metaRow}>
-          <MaterialIcons name="history" size={12} color={TextMuted} />
+          <MaterialIcons name="history" size={ms(12)} color={TextMuted} />
           <Text style={styles.date}>{formatHistoryDate(product.scannedAt)}</Text>
           {product.price ? (
             <Text style={styles.price}>{product.price}</Text>
@@ -88,7 +89,7 @@ export default function ProductHistoryCard({ product, onPress, onDelete }: Props
       </View>
 
       <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.deleteBtn}>
-        <MaterialIcons name="delete-outline" size={20} color={TextMuted} />
+        <MaterialIcons name="delete-outline" size={ms(20)} color={TextMuted} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -99,27 +100,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: CardDark,
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: s(16),
+    padding: s(14),
   },
   image: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
+    width: s(56),
+    height: s(56),
+    borderRadius: s(12),
   },
   placeholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
+    width: s(56),
+    height: s(56),
+    borderRadius: s(12),
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
     flex: 1,
-    marginLeft: 14,
+    marginLeft: s(14),
   },
   name: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '700',
     color: TextPrimary,
   },
@@ -127,25 +128,25 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     color: Accent,
     fontWeight: '500',
-    marginTop: 3,
+    marginTop: vs(3),
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
-    gap: 4,
+    marginTop: vs(2),
+    gap: s(4),
   },
   date: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: TextMuted,
   },
   price: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: Accent,
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: s(8),
   },
   deleteBtn: {
-    padding: 8,
+    padding: s(8),
   },
 });

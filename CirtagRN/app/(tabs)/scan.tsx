@@ -20,6 +20,7 @@ import { useCamera } from '../../src/hooks/useCamera';
 import { useProducts } from '../../src/hooks/useProducts';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
 import { getBarcodeFormatName, inferBarcodeType } from '../../src/utils/barcodeHelpers';
+import { s, vs, ms } from '../../src/utils/scale';
 
 type ScanType = 'qr' | 'barcode';
 
@@ -160,7 +161,7 @@ export default function ScanScreen() {
           />
         ) : (
           <View style={[styles.productIcon, { backgroundColor: iconBg }]}>
-            <MaterialIcons name="recycling" size={22} color={GreenAccent} />
+            <MaterialIcons name="recycling" size={ms(22)} color={GreenAccent} />
           </View>
         )}
         <View style={styles.productInfo}>
@@ -190,11 +191,11 @@ export default function ScanScreen() {
                 ]
               )
             }
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            hitSlop={{ top: s(8), bottom: s(8), left: s(8), right: s(8) }}
           >
-            <MaterialIcons name="delete-outline" size={20} color={TextMutedLight} />
+            <MaterialIcons name="delete-outline" size={ms(20)} color={TextMutedLight} />
           </TouchableOpacity>
-          <MaterialIcons name="chevron-right" size={20} color={TextMutedLight} />
+          <MaterialIcons name="chevron-right" size={ms(20)} color={TextMutedLight} />
         </View>
       </TouchableOpacity>
     );
@@ -204,10 +205,10 @@ export default function ScanScreen() {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: vs(20) }}
       >
         {/* Page Header */}
-        <View style={[styles.pageHeader, { paddingTop: insets.top + 12 }]}>
+        <View style={[styles.pageHeader, { paddingTop: insets.top + vs(12) }]}>
           <Text style={styles.pageTitle}>Scan Product</Text>
           <Text style={styles.pageSubtitle}>
             Choose scan type or tap a saved product
@@ -234,7 +235,7 @@ export default function ScanScreen() {
             >
               <MaterialIcons
                 name="photo-camera"
-                size={28}
+                size={ms(28)}
                 color={scanType === 'qr' ? '#FFFFFF' : TextMutedLight}
               />
             </View>
@@ -271,7 +272,7 @@ export default function ScanScreen() {
             >
               <MaterialIcons
                 name="view-week"
-                size={28}
+                size={ms(28)}
                 color={scanType === 'barcode' ? '#FFFFFF' : TextMutedLight}
               />
             </View>
@@ -324,7 +325,7 @@ export default function ScanScreen() {
               </>
             ) : (
               <View style={styles.scanPlaceholder}>
-                <MaterialIcons name="qr-code-scanner" size={42} color={GreenAccent} />
+                <MaterialIcons name="qr-code-scanner" size={ms(42)} color={GreenAccent} />
                 <Text style={styles.scanPlaceholderTitle}>Ready to Scan</Text>
                 <Text style={styles.scanPlaceholderSub}>
                   Tap below to start the camera and scan a product
@@ -341,7 +342,7 @@ export default function ScanScreen() {
           </View>
         ) : (
           <View style={styles.permissionCard}>
-            <MaterialIcons name="camera-alt" size={48} color={GreenAccent} />
+            <MaterialIcons name="camera-alt" size={ms(48)} color={GreenAccent} />
             <Text style={styles.permTitle}>Camera Access Required</Text>
             <Text style={styles.permSubtitle}>
               CirTag needs camera access to scan QR codes
@@ -367,7 +368,7 @@ export default function ScanScreen() {
 
         {products.length === 0 ? (
           <View style={styles.emptyCard}>
-            <MaterialIcons name="inventory-2" size={36} color={TextMutedLight} />
+            <MaterialIcons name="inventory-2" size={ms(36)} color={TextMutedLight} />
             <Text style={styles.emptyText}>No Scans Yet</Text>
             <Text style={styles.emptySubtext}>
               Scan a QR code to see your product history here
@@ -389,29 +390,29 @@ const styles = StyleSheet.create({
     backgroundColor: LightBg,
   },
   pageHeader: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingHorizontal: s(20),
+    marginBottom: vs(16),
   },
   pageTitle: {
-    fontSize: 26,
+    fontSize: ms(26),
     fontWeight: '800',
     color: TextBlack,
   },
   pageSubtitle: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: TextGray,
-    marginTop: 4,
+    marginTop: vs(4),
   },
   scanCardsRow: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 12,
-    marginBottom: 16,
+    paddingHorizontal: s(20),
+    gap: s(12),
+    marginBottom: vs(16),
   },
   scanCard: {
     flex: 1,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: s(16),
+    padding: s(16),
     alignItems: 'center',
     borderWidth: 1.5,
   },
@@ -424,12 +425,12 @@ const styles = StyleSheet.create({
     borderColor: Border,
   },
   scanCardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: s(48),
+    height: s(48),
+    borderRadius: s(24),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: vs(8),
   },
   scanCardIconActive: {
     backgroundColor: GreenAccent,
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F2F5',
   },
   scanCardTitle: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '700',
   },
   scanCardTitleActive: {
@@ -448,15 +449,15 @@ const styles = StyleSheet.create({
     color: TextGray,
   },
   scanCardSub: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: TextMutedLight,
-    marginTop: 2,
+    marginTop: vs(2),
   },
   cameraContainer: {
-    marginHorizontal: 20,
-    borderRadius: 16,
+    marginHorizontal: s(20),
+    borderRadius: s(16),
     overflow: 'hidden',
-    height: 280,
+    height: vs(280),
     backgroundColor: CameraBg,
     borderWidth: 2,
     borderColor: BrightGreen,
@@ -470,46 +471,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   alignText: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: 'rgba(255,255,255,0.5)',
-    marginTop: 12,
+    marginTop: vs(12),
     fontWeight: '500',
   },
   scanPlaceholder: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: s(20),
   },
   scanPlaceholderTitle: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: '700',
     color: TextBlack,
-    marginTop: 12,
+    marginTop: vs(12),
   },
   scanPlaceholderSub: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextGray,
-    marginTop: 6,
+    marginTop: vs(6),
     textAlign: 'center',
   },
   scanStartBtn: {
-    marginTop: 14,
+    marginTop: vs(14),
     backgroundColor: GreenAccent,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingHorizontal: s(18),
+    paddingVertical: vs(10),
+    borderRadius: s(12),
   },
   scanStartText: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 12,
+    fontSize: ms(12),
   },
   permissionCard: {
     backgroundColor: White,
-    borderRadius: 16,
-    marginHorizontal: 20,
-    padding: 32,
+    borderRadius: s(16),
+    marginHorizontal: s(20),
+    padding: s(32),
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -518,52 +519,52 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   permTitle: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: '700',
     color: TextBlack,
-    marginTop: 16,
+    marginTop: vs(16),
   },
   permSubtitle: {
-    fontSize: 13,
+    fontSize: ms(13),
     color: TextGray,
     textAlign: 'center',
-    marginTop: 6,
+    marginTop: vs(6),
   },
   permButton: {
     backgroundColor: GreenAccent,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    marginTop: 20,
+    borderRadius: s(12),
+    paddingVertical: vs(12),
+    paddingHorizontal: s(32),
+    marginTop: vs(20),
   },
   permButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: ms(14),
   },
   savedHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginTop: 24,
-    marginBottom: 12,
+    paddingHorizontal: s(20),
+    marginTop: vs(24),
+    marginBottom: vs(12),
   },
   savedTitle: {
-    fontSize: 20,
+    fontSize: ms(20),
     fontWeight: '800',
     color: TextBlack,
   },
   seeAll: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '700',
     color: GreenAccent,
   },
   emptyCard: {
     backgroundColor: White,
-    borderRadius: 16,
-    padding: 32,
-    marginHorizontal: 20,
+    borderRadius: s(16),
+    padding: s(32),
+    marginHorizontal: s(20),
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -572,27 +573,27 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   emptyText: {
-    fontSize: 15,
+    fontSize: ms(15),
     fontWeight: '700',
     color: TextGray,
-    marginTop: 10,
+    marginTop: vs(10),
   },
   emptySubtext: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextMutedLight,
-    marginTop: 4,
+    marginTop: vs(4),
     textAlign: 'center',
   },
   productsList: {
-    paddingHorizontal: 20,
-    gap: 10,
+    paddingHorizontal: s(20),
+    gap: s(10),
   },
   productCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: White,
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: s(16),
+    padding: s(14),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -600,41 +601,41 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   productImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    marginRight: 12,
+    width: s(48),
+    height: s(48),
+    borderRadius: s(12),
+    marginRight: s(12),
     backgroundColor: '#F0F2F5',
   },
   productIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: s(48),
+    height: s(48),
+    borderRadius: s(12),
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: s(12),
   },
   productInfo: {
     flex: 1,
   },
   productName: {
-    fontSize: 15,
+    fontSize: ms(15),
     fontWeight: '700',
     color: TextBlack,
   },
   productMeta: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextMutedLight,
-    marginTop: 2,
+    marginTop: vs(2),
   },
   productActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: s(8),
   },
   deleteButton: {
-    padding: 4,
-    borderRadius: 8,
+    padding: s(4),
+    borderRadius: s(8),
     backgroundColor: '#F5F6F8',
   },
 });

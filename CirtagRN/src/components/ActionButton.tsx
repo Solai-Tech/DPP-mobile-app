@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Accent, AccentDim, CardDark, TextPrimary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   icon: keyof typeof MaterialIcons.glyphMap;
@@ -25,7 +26,7 @@ export default function ActionButton({
     >
       <MaterialIcons
         name={icon}
-        size={18}
+        size={ms(18)}
         color={isPrimary ? '#0A1A14' : Accent}
       />
       <Text style={[styles.label, isPrimary ? styles.primaryText : styles.secondaryText]}>
@@ -40,10 +41,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 8,
+    borderRadius: s(12),
+    paddingVertical: vs(12),
+    paddingHorizontal: s(16),
+    gap: s(8),
     flex: 1,
   },
   primaryBg: {
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     backgroundColor: AccentDim,
   },
   label: {
-    fontSize: 13,
+    fontSize: ms(13),
     fontWeight: '700',
   },
   primaryText: {

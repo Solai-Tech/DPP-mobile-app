@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CardDark, Accent, TextPrimary, TextSecondary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   label: string;
@@ -24,22 +25,22 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: CardDark,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: s(12),
+    padding: s(16),
   },
   label: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextSecondary,
     fontWeight: '500',
   },
   value: {
-    fontSize: 24,
+    fontSize: ms(24),
     fontWeight: '700',
     color: TextPrimary,
-    marginTop: 8,
+    marginTop: vs(8),
   },
   unit: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: Accent,
   },
 });

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Ticket } from '../types/Ticket';
 import { CardDark, Accent, AccentDim, TextPrimary, TextSecondary, TextMuted, Warning, Error as ErrorColor } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   ticket: Ticket;
@@ -25,7 +26,7 @@ export default function TicketCard({ ticket, onPress }: Props) {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.iconCol}>
         <View style={styles.iconCircle}>
-          <MaterialIcons name="confirmation-number" size={18} color={Accent} />
+          <MaterialIcons name="confirmation-number" size={ms(18)} color={Accent} />
         </View>
       </View>
       <View style={styles.content}>
@@ -48,16 +49,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: CardDark,
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: s(14),
+    padding: s(14),
   },
   iconCol: {
-    marginRight: 12,
+    marginRight: s(12),
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: s(36),
+    height: s(36),
+    borderRadius: s(18),
     backgroundColor: AccentDim,
     justifyContent: 'center',
     alignItems: 'center',
@@ -66,22 +67,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '600',
     color: TextPrimary,
   },
   date: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: TextSecondary,
-    marginTop: 2,
+    marginTop: vs(2),
   },
   statusBadge: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderRadius: s(8),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(4),
   },
   statusText: {
-    fontSize: 11,
+    fontSize: ms(11),
     fontWeight: '600',
     textTransform: 'capitalize',
   },

@@ -14,6 +14,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system/legacy';
 import { TextMuted, TextPrimary } from '../src/theme/colors';
+import { s, vs, ms } from '../src/utils/scale';
 
 async function downloadPdf(pdfUrl: string) {
   try {
@@ -125,7 +126,7 @@ export default function WebViewScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back-ios-new" size={18} color={TextPrimary} />
+          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color={TextPrimary} />
         </TouchableOpacity>
         <Text style={styles.title} numberOfLines={1}>{safeTitle}</Text>
       </View>
@@ -178,25 +179,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA',
   },
   header: {
-    height: 48,
+    height: vs(48),
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: s(12),
     backgroundColor: '#0A1A14',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   backBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: s(34),
+    height: s(34),
+    borderRadius: s(17),
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    marginRight: s(8),
   },
   title: {
     flex: 1,
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '600',
     color: TextPrimary,
   },
@@ -211,23 +212,23 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: s(16),
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: ms(16),
     fontWeight: '600',
     color: '#1A1A1A',
   },
   cancelBtn: {
-    marginTop: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 10,
+    marginTop: vs(12),
+    paddingHorizontal: s(24),
+    paddingVertical: vs(10),
+    borderRadius: s(10),
     borderWidth: 1.5,
     borderColor: '#E0E0E0',
   },
   cancelText: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '600',
     color: '#6B6B6B',
   },
@@ -238,6 +239,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: TextMuted,
-    fontSize: 12,
+    fontSize: ms(12),
   },
 });

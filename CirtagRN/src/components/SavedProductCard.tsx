@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ScannedProduct } from '../types/ScannedProduct';
 import { CardDark, Accent, AccentDim, TextPrimary, TextSecondary, TextMuted } from '../theme/colors';
 import { formatHistoryDate } from '../utils/dateFormatter';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   product: ScannedProduct;
@@ -56,7 +57,7 @@ export default function SavedProductCard({ product, onPress, onDelete }: Props) 
           colors={[AccentDim, CardDark]}
           style={styles.placeholder}
         >
-          <MaterialIcons name="qr-code-scanner" size={24} color={Accent} />
+          <MaterialIcons name="qr-code-scanner" size={ms(24)} color={Accent} />
         </LinearGradient>
       )}
 
@@ -70,7 +71,7 @@ export default function SavedProductCard({ product, onPress, onDelete }: Props) 
           </Text>
         ) : null}
         <View style={styles.metaRow}>
-          <MaterialIcons name="access-time" size={11} color={TextMuted} />
+          <MaterialIcons name="access-time" size={ms(11)} color={TextMuted} />
           <Text style={styles.date}>{formatHistoryDate(product.scannedAt)}</Text>
           {product.co2Total ? (
             <View style={styles.co2Badge}>
@@ -81,7 +82,7 @@ export default function SavedProductCard({ product, onPress, onDelete }: Props) 
       </View>
 
       <TouchableOpacity onPress={onDelete} hitSlop={8} style={styles.deleteBtn}>
-        <MaterialIcons name="delete-outline" size={18} color={TextMuted} />
+        <MaterialIcons name="delete-outline" size={ms(18)} color={TextMuted} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -92,59 +93,59 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: CardDark,
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: s(14),
+    padding: s(12),
   },
   image: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
+    width: s(50),
+    height: s(50),
+    borderRadius: s(10),
   },
   placeholder: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
+    width: s(50),
+    height: s(50),
+    borderRadius: s(10),
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: s(12),
   },
   name: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '700',
     color: TextPrimary,
   },
   productId: {
-    fontSize: 12,
+    fontSize: ms(12),
     color: Accent,
     fontWeight: '500',
-    marginTop: 2,
+    marginTop: vs(2),
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
-    gap: 4,
+    marginTop: vs(4),
+    gap: s(4),
   },
   date: {
-    fontSize: 11,
+    fontSize: ms(11),
     color: TextMuted,
   },
   co2Badge: {
     backgroundColor: AccentDim,
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginLeft: 6,
+    borderRadius: s(8),
+    paddingHorizontal: s(6),
+    paddingVertical: vs(2),
+    marginLeft: s(6),
   },
   co2Text: {
-    fontSize: 10,
+    fontSize: ms(10),
     color: Accent,
     fontWeight: '600',
   },
   deleteBtn: {
-    padding: 8,
+    padding: s(8),
   },
 });

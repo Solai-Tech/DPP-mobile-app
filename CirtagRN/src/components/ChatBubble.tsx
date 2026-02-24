@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Accent, AccentDim, CardDark, CardLight, TextPrimary, TextSecondary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   message: string;
@@ -16,7 +17,7 @@ export default function ChatBubble({ message, sender, timestamp }: Props) {
     <View style={[styles.row, isUser && styles.rowRight]}>
       {!isUser && (
         <View style={styles.avatar}>
-          <MaterialIcons name="support-agent" size={18} color={Accent} />
+          <MaterialIcons name="support-agent" size={ms(18)} color={Accent} />
         </View>
       )}
       <View style={[styles.bubble, isUser ? styles.userBubble : styles.botBubble]}>
@@ -30,38 +31,38 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginBottom: 10,
-    paddingHorizontal: 16,
+    marginBottom: vs(10),
+    paddingHorizontal: s(16),
   },
   rowRight: {
     justifyContent: 'flex-end',
   },
   avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: s(32),
+    height: s(32),
+    borderRadius: s(16),
     backgroundColor: AccentDim,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: s(8),
   },
   bubble: {
     maxWidth: '75%',
-    borderRadius: 16,
-    padding: 12,
+    borderRadius: s(16),
+    padding: s(12),
   },
   botBubble: {
     backgroundColor: CardDark,
-    borderBottomLeftRadius: 4,
+    borderBottomLeftRadius: s(4),
   },
   userBubble: {
     backgroundColor: Accent,
-    borderBottomRightRadius: 4,
+    borderBottomRightRadius: s(4),
   },
   text: {
-    fontSize: 14,
+    fontSize: ms(14),
     color: TextPrimary,
-    lineHeight: 20,
+    lineHeight: ms(20),
   },
   userText: {
     color: '#0A1A14',

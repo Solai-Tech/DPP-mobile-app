@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import EmissionBar from './EmissionBar';
 import { CardDark, Accent, AccentDim, TextPrimary, TextSecondary } from '../theme/colors';
+import { s, vs, ms } from '../utils/scale';
 
 interface Props {
   co2Details: string; // "Raw Material:3.15 Kg CO₂,Shipping & Transport:3.18 Kg CO₂"
@@ -28,7 +29,7 @@ export default function EmissionBreakdown({ co2Details }: Props) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.iconCircle}>
-          <MaterialIcons name="bar-chart" size={16} color={Accent} />
+          <MaterialIcons name="bar-chart" size={ms(16)} color={Accent} />
         </View>
         <Text style={styles.title}>Emission Breakdown</Text>
       </View>
@@ -51,36 +52,36 @@ export default function EmissionBreakdown({ co2Details }: Props) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: CardDark,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 20,
+    borderRadius: s(16),
+    padding: s(16),
+    marginHorizontal: s(20),
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
-    gap: 8,
+    marginBottom: vs(14),
+    gap: s(8),
   },
   iconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: s(28),
+    height: s(28),
+    borderRadius: s(14),
     backgroundColor: AccentDim,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    fontSize: 14,
+    fontSize: ms(14),
     fontWeight: '700',
     color: TextPrimary,
   },
   bars: {
-    marginTop: 4,
+    marginTop: vs(4),
   },
   unit: {
-    fontSize: 10,
+    fontSize: ms(10),
     color: TextSecondary,
     textAlign: 'right',
-    marginTop: 4,
+    marginTop: vs(4),
   },
 });
