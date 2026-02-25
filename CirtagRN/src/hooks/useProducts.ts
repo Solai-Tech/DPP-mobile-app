@@ -95,20 +95,22 @@ export function useProducts() {
     ) => {
       setIsLoading(true);
       try {
-        // Check if this product was already scanned
-        const existing = await dao.getProductByRawValue(product.rawValue);
+        const isUrl =
+          product.rawValue.startsWith('http://') ||
+          product.rawValue.startsWith('https://');
+
+        // Fix localhost URLs so phone can reach the dev machine
+        const fetchUrl = isUrl ? fixLocalhostUrl(product.rawValue) : product.rawValue;
+
+        // Check if this product was already scanned (check both original and fixed URL)
+        const existing = await dao.getProductByRawValue(product.rawValue)
+          || (fetchUrl !== product.rawValue ? await dao.getProductByRawValue(fetchUrl) : null);
         if (existing) {
           onComplete(existing.id);
           return;
         }
 
-        const isUrl =
-          product.rawValue.startsWith('http://') ||
-          product.rawValue.startsWith('https://');
-
         if (isUrl) {
-          // Fix localhost URLs so phone can reach the dev machine
-          const fetchUrl = fixLocalhostUrl(product.rawValue);
           const data = await fetchProductData(fetchUrl);
           let productName = cleanProductName(data.name);
 

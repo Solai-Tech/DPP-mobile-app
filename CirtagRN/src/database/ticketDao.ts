@@ -63,6 +63,11 @@ export async function getChatMessages(
   );
 }
 
+export async function getTicketByProductId(productId: number): Promise<Ticket | null> {
+  const db = getDatabaseSync();
+  return db.getFirstSync<Ticket>('SELECT * FROM tickets WHERE productId = ?', [productId]);
+}
+
 export async function clearGeneralChat(): Promise<void> {
   const db = getDatabaseSync();
   db.runSync('DELETE FROM chat_messages WHERE ticketId IS NULL');

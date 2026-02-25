@@ -411,7 +411,7 @@ export default function ProductDetailScreen() {
 
           <TouchableOpacity
             style={styles.actionBtnOutline}
-            onPress={() => router.push('/(tabs)/tickets?tab=tickets&action=raise')}
+            onPress={() => router.push(`/raise-ticket?productId=${product.id}`)}
             activeOpacity={0.7}
           >
             <MaterialIcons name="confirmation-number" size={ms(16)} color={GreenAccent} />
