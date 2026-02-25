@@ -63,6 +63,11 @@ export async function getChatMessages(
   );
 }
 
+export async function clearGeneralChat(): Promise<void> {
+  const db = getDatabaseSync();
+  db.runSync('DELETE FROM chat_messages WHERE ticketId IS NULL');
+}
+
 export async function insertChatMessage(
   msg: Omit<ChatMessage, 'id'>
 ): Promise<number> {

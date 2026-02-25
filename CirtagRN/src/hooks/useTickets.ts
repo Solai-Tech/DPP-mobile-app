@@ -1,22 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Ticket, ChatMessage } from '../types/Ticket';
 import * as ticketDao from '../database/ticketDao';
-
-const BOT_REPLIES: Record<string, string> = {
-  hello: "Hello! Welcome to CirTag Support. How can I help you today?",
-  help: "I can help you with product verification, CO2 tracking, and raising support tickets. What do you need?",
-  ticket: "I'll help you create a ticket. Please describe your issue and I'll log it for you.",
-  co2: "For CO2 data questions, please scan the product's QR code first. I can then explain the emission breakdown.",
-  default: "Thanks for reaching out! A support agent will review your message shortly. Is there anything else I can help with?",
-};
-
-function getBotReply(userMessage: string): string {
-  const lower = userMessage.toLowerCase();
-  for (const [keyword, reply] of Object.entries(BOT_REPLIES)) {
-    if (keyword !== 'default' && lower.includes(keyword)) return reply;
-  }
-  return BOT_REPLIES.default;
-}
+import * as dao from '../database/scannedProductDao';
+import { getChatbotReply } from '../utils/chatbotApi';
 
 export function useTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -33,9 +19,13 @@ export function useTickets() {
     setChatMessages(msgs);
   }, []);
 
+  // Start with a fresh chat every time the hook mounts (screen opens)
   useEffect(() => {
-    refreshTickets();
-    loadChatMessages(null);
+    (async () => {
+      await ticketDao.clearGeneralChat();
+      await refreshTickets();
+      await loadChatMessages(null);
+    })();
   }, [refreshTickets, loadChatMessages]);
 
   const sendMessage = useCallback(
@@ -47,14 +37,17 @@ export function useTickets() {
         sender: 'user',
         createdAt: now,
       });
+      await loadChatMessages(ticketId);
 
-      // Simulate bot reply
-      const reply = getBotReply(message);
+      // Fetch all scanned products for context
+      const products = await dao.getAllProducts();
+      const reply = await getChatbotReply(message, products);
+
       await ticketDao.insertChatMessage({
         ticketId,
         message: reply,
         sender: 'bot',
-        createdAt: now + 1000,
+        createdAt: Date.now(),
       });
 
       await loadChatMessages(ticketId);
@@ -93,6 +86,11 @@ export function useTickets() {
     [refreshTickets]
   );
 
+  const clearChat = useCallback(async () => {
+    await ticketDao.clearGeneralChat();
+    setChatMessages([]);
+  }, []);
+
   return {
     tickets,
     chatMessages,
@@ -102,5 +100,6 @@ export function useTickets() {
     deleteTicket,
     refreshTickets,
     loadChatMessages,
+    clearChat,
   };
 }

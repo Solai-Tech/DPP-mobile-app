@@ -1,8 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Constants from 'expo-constants';
 import { ScannedProduct } from '../types/ScannedProduct';
 import * as dao from '../database/scannedProductDao';
 import { fetchProductData } from '../utils/productDataFetcher';
 import { fetchTitle } from '../utils/webTitleFetcher';
+
+/** Replace localhost with the dev machine's real IP so the phone can reach it */
+function fixLocalhostUrl(url: string): string {
+  if (!url.includes('localhost') && !url.includes('127.0.0.1')) return url;
+  const hostUri = Constants.expoConfig?.hostUri ?? Constants.manifest2?.extra?.expoGo?.debuggerHost ?? '';
+  const machineIp = hostUri.split(':')[0];
+  if (!machineIp) return url;
+  return url.replace(/localhost|127\.0\.0\.1/g, machineIp);
+}
 
 export function useProducts() {
   const [products, setProducts] = useState<ScannedProduct[]>([]);
@@ -50,7 +60,8 @@ export function useProducts() {
       for (const product of needsFix) {
         try {
           // Try full parser first
-          const data = await fetchProductData(product.rawValue);
+          const fetchUrl = fixLocalhostUrl(product.rawValue);
+          const data = await fetchProductData(fetchUrl);
           const cleaned = cleanProductName(data.name);
           if (cleaned) {
             await dao.updateProductName(product.id, cleaned);
@@ -58,7 +69,7 @@ export function useProducts() {
             continue;
           }
           // Fallback: fetch page title
-          const title = await fetchTitle(product.rawValue);
+          const title = await fetchTitle(fetchUrl);
           if (title) {
             const cleanTitle = cleanProductName(title);
             if (cleanTitle.length > 0) {
@@ -84,17 +95,26 @@ export function useProducts() {
     ) => {
       setIsLoading(true);
       try {
+        // Check if this product was already scanned
+        const existing = await dao.getProductByRawValue(product.rawValue);
+        if (existing) {
+          onComplete(existing.id);
+          return;
+        }
+
         const isUrl =
           product.rawValue.startsWith('http://') ||
           product.rawValue.startsWith('https://');
 
         if (isUrl) {
-          const data = await fetchProductData(product.rawValue);
+          // Fix localhost URLs so phone can reach the dev machine
+          const fetchUrl = fixLocalhostUrl(product.rawValue);
+          const data = await fetchProductData(fetchUrl);
           let productName = cleanProductName(data.name);
 
           // If parser couldn't find name, try page title
           if (!productName) {
-            const title = await fetchTitle(product.rawValue);
+            const title = await fetchTitle(fetchUrl);
             if (title) {
               productName = cleanProductName(title);
             }
@@ -102,6 +122,7 @@ export function useProducts() {
 
           const enriched = {
             ...product,
+            rawValue: fetchUrl,
             productName,
             productDescription: data.description,
             imageUrl: data.imageUrl,

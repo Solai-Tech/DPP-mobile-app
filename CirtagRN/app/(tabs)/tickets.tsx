@@ -93,8 +93,8 @@ export default function TicketsScreen() {
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={60}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
       >
         <View style={styles.flex}>
           {/* Header */}

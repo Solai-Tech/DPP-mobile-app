@@ -13,6 +13,11 @@ export async function getProductById(id: number): Promise<ScannedProduct | null>
   return db.getFirstSync<ScannedProduct>('SELECT * FROM scanned_products WHERE id = ?', [id]);
 }
 
+export async function getProductByRawValue(rawValue: string): Promise<ScannedProduct | null> {
+  const db = getDatabaseSync();
+  return db.getFirstSync<ScannedProduct>('SELECT * FROM scanned_products WHERE rawValue = ?', [rawValue]);
+}
+
 export async function insertProduct(product: Omit<ScannedProduct, 'id'>): Promise<number> {
   const db = getDatabaseSync();
   const result = db.runSync(

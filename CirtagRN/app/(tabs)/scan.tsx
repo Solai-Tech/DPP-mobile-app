@@ -19,21 +19,18 @@ import LoadingOverlay from '../../src/components/LoadingOverlay';
 import { useCamera } from '../../src/hooks/useCamera';
 import { useProducts } from '../../src/hooks/useProducts';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
+import { clearGeneralChat } from '../../src/database/ticketDao';
 import { getBarcodeFormatName, inferBarcodeType } from '../../src/utils/barcodeHelpers';
 import { s, vs, ms } from '../../src/utils/scale';
-
-type ScanType = 'qr' | 'barcode';
 
 // Light theme colors
 const LightBg = '#F5F7FA';
 const White = '#FFFFFF';
 const GreenAccent = '#1B7A3D';
 const BrightGreen = '#00E676';
-const GreenTint = 'rgba(0,230,118,0.08)';
 const TextBlack = '#1A1A1A';
 const TextGray = '#6B6B6B';
 const TextMutedLight = '#999999';
-const Border = '#E8ECF0';
 const CameraBg = '#0D2818';
 
 export default function ScanScreen() {
@@ -42,7 +39,6 @@ export default function ScanScreen() {
   const { hasPermission, requestPermission } = useCamera();
   const { products, isLoading, scanAndSaveProduct, deleteProduct } = useProducts();
   const canScan = useRef(true);
-  const [scanType, setScanType] = useState<ScanType>('qr');
   const [isScanning, setIsScanning] = useState(false);
 
   const handleBarCodeScanned = useCallback(
@@ -70,6 +66,9 @@ export default function ScanScreen() {
         datasheetUrl: '',
         scannedAt: Date.now(),
       };
+
+      // Clear old chat on new scan so chatbot starts fresh
+      clearGeneralChat();
 
       scanAndSaveProduct(product, (savedId) => {
         router.push(`/product/${savedId}`);
@@ -211,86 +210,11 @@ export default function ScanScreen() {
         <View style={[styles.pageHeader, { paddingTop: insets.top + vs(12) }]}>
           <Text style={styles.pageTitle}>Scan Product</Text>
           <Text style={styles.pageSubtitle}>
-            Choose scan type or tap a saved product
+            Scan a product or tap a saved one
           </Text>
         </View>
 
-        {/* Scan Type Cards */}
-        <View style={styles.scanCardsRow}>
-          <TouchableOpacity
-            style={[
-              styles.scanCard,
-              scanType === 'qr' ? styles.scanCardActive : styles.scanCardInactive,
-            ]}
-            onPress={() => setScanType('qr')}
-            activeOpacity={0.8}
-          >
-            <View
-              style={[
-                styles.scanCardIcon,
-                scanType === 'qr'
-                  ? styles.scanCardIconActive
-                  : styles.scanCardIconInactive,
-              ]}
-            >
-              <MaterialIcons
-                name="photo-camera"
-                size={ms(28)}
-                color={scanType === 'qr' ? '#FFFFFF' : TextMutedLight}
-              />
-            </View>
-            <Text
-              style={[
-                styles.scanCardTitle,
-                scanType === 'qr'
-                  ? styles.scanCardTitleActive
-                  : styles.scanCardTitleInactive,
-              ]}
-            >
-              Scan QR Code
-            </Text>
-            <Text style={styles.scanCardSub}>Point at QR label</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.scanCard,
-              scanType === 'barcode'
-                ? styles.scanCardActive
-                : styles.scanCardInactive,
-            ]}
-            onPress={() => setScanType('barcode')}
-            activeOpacity={0.8}
-          >
-            <View
-              style={[
-                styles.scanCardIcon,
-                scanType === 'barcode'
-                  ? styles.scanCardIconActive
-                  : styles.scanCardIconInactive,
-              ]}
-            >
-              <MaterialIcons
-                name="view-week"
-                size={ms(28)}
-                color={scanType === 'barcode' ? '#FFFFFF' : TextMutedLight}
-              />
-            </View>
-            <Text
-              style={[
-                styles.scanCardTitle,
-                scanType === 'barcode'
-                  ? styles.scanCardTitleActive
-                  : styles.scanCardTitleInactive,
-              ]}
-            >
-              Scan Barcode
-            </Text>
-            <Text style={styles.scanCardSub}>Point at barcode</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Camera View — rendered directly, NOT inside FlatList */}
+        {/* Camera View */}
         {hasPermission ? (
           <View style={styles.cameraContainer}>
             {isScanning ? (
@@ -402,56 +326,6 @@ const styles = StyleSheet.create({
     fontSize: ms(14),
     color: TextGray,
     marginTop: vs(4),
-  },
-  scanCardsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: s(20),
-    gap: s(12),
-    marginBottom: vs(16),
-  },
-  scanCard: {
-    flex: 1,
-    borderRadius: s(16),
-    padding: s(16),
-    alignItems: 'center',
-    borderWidth: 1.5,
-  },
-  scanCardActive: {
-    backgroundColor: GreenTint,
-    borderColor: BrightGreen,
-  },
-  scanCardInactive: {
-    backgroundColor: White,
-    borderColor: Border,
-  },
-  scanCardIcon: {
-    width: s(48),
-    height: s(48),
-    borderRadius: s(24),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: vs(8),
-  },
-  scanCardIconActive: {
-    backgroundColor: GreenAccent,
-  },
-  scanCardIconInactive: {
-    backgroundColor: '#F0F2F5',
-  },
-  scanCardTitle: {
-    fontSize: ms(14),
-    fontWeight: '700',
-  },
-  scanCardTitleActive: {
-    color: GreenAccent,
-  },
-  scanCardTitleInactive: {
-    color: TextGray,
-  },
-  scanCardSub: {
-    fontSize: ms(11),
-    color: TextMutedLight,
-    marginTop: vs(2),
   },
   cameraContainer: {
     marginHorizontal: s(20),

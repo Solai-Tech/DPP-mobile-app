@@ -402,7 +402,7 @@ export default function ProductDetailScreen() {
         <View style={styles.actionsRow}>
           <TouchableOpacity
             style={styles.actionBtnOutline}
-            onPress={() => router.push('/(tabs)/tickets')}
+            onPress={() => router.push('/support-chat')}
             activeOpacity={0.7}
           >
             <MaterialIcons name="support-agent" size={ms(16)} color={GreenAccent} />
@@ -411,7 +411,7 @@ export default function ProductDetailScreen() {
 
           <TouchableOpacity
             style={styles.actionBtnOutline}
-            onPress={() => router.push('/(tabs)/tickets')}
+            onPress={() => router.push('/(tabs)/tickets?tab=tickets&action=raise')}
             activeOpacity={0.7}
           >
             <MaterialIcons name="confirmation-number" size={ms(16)} color={GreenAccent} />
@@ -433,13 +433,25 @@ export default function ProductDetailScreen() {
         {/* View original product link */}
         <TouchableOpacity
           style={styles.linkCard}
-          onPress={() =>
+          onPress={() => {
+            const pData = JSON.stringify({
+              name: displayName,
+              supplier: product.supplier || '',
+              price: product.price || '',
+              weight: product.weight || '',
+              co2Total: product.co2Total || '',
+              co2Details: product.co2Details || '',
+              certifications: product.certifications || '',
+              description: product.productDescription || '',
+              productId: product.productId || '',
+              skuId: product.skuId || '',
+            });
             router.push(
               `/webview?url=${encodeURIComponent(product.rawValue)}&title=${encodeURIComponent(
                 'Original Product Page'
-              )}`
-            )
-          }
+              )}&productData=${encodeURIComponent(pData)}`
+            );
+          }}
         >
           <View style={styles.linkLeft}>
             <MaterialIcons name="open-in-new" size={ms(18)} color={GreenAccent} />

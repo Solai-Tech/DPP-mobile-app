@@ -11,10 +11,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { WebView } from 'react-native-webview';
+import WebView from 'react-native-webview';
 import * as FileSystem from 'expo-file-system/legacy';
 import { TextMuted, TextPrimary } from '../src/theme/colors';
 import { s, vs, ms } from '../src/utils/scale';
+import { getChatbotReply } from '../src/utils/chatbotApi';
+import { ScannedProduct } from '../src/types/ScannedProduct';
 
 async function downloadPdf(pdfUrl: string) {
   try {
@@ -79,19 +81,150 @@ const AUTO_DOWNLOAD_JS = `
 export default function WebViewScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { url, title, autoDownload } = useLocalSearchParams<{
+  const { url, title, autoDownload, productData } = useLocalSearchParams<{
     url?: string;
     title?: string;
     autoDownload?: string;
+    productData?: string;
   }>();
   const safeUrl = typeof url === 'string' ? url : '';
   const safeTitle = typeof title === 'string' ? title : 'Web View';
   const isAutoDownload = autoDownload === 'true';
   const [pdfStatus, setPdfStatus] = useState(isAutoDownload ? 'loading' : '');
 
-  const handleMessage = (event: { nativeEvent: { data: string } }) => {
+  // Build JS to intercept Flowise chatbot API calls and route through our OpenAI chatbot
+  const webViewRef = useRef<WebView>(null);
+  let chatbotInterceptJS = '';
+  if (productData) {
+    chatbotInterceptJS = `
+(function() {
+  var pending = {};
+  var counter = 0;
+
+  // RN will call this to deliver the OpenAI response
+  window.__chatReply = function(id, text) {
+    if (pending[id]) {
+      pending[id](text);
+      delete pending[id];
+    }
+  };
+
+  var _fetch = window.fetch;
+  window.fetch = function(url, opts) {
+    // Intercept Flowise prediction API calls
+    if (typeof url === 'string' && url.indexOf('/api/v1/prediction/') !== -1) {
+      try {
+        if (opts && opts.method && opts.method.toUpperCase() === 'POST' && opts.body) {
+          var body = JSON.parse(typeof opts.body === 'string' ? opts.body : '{}');
+          if (body.question) {
+            var id = ++counter;
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'chatbot_question',
+              id: id,
+              question: body.question
+            }));
+
+            return new Promise(function(resolve) {
+              pending[id] = function(text) {
+                // Build Flowise-format SSE response
+                var chatId = 'local-' + Date.now();
+                var msgId = 'msg-' + Date.now();
+                var sse = '';
+
+                // Start event
+                sse += 'data:' + JSON.stringify({event:'start',data:''}) + '\\n\\n';
+
+                // Send full response as one token
+                sse += 'data:' + JSON.stringify({event:'token',data:text}) + '\\n\\n';
+
+                // Metadata event
+                sse += 'data:' + JSON.stringify({event:'metadata',data:{chatId:chatId,chatMessageId:msgId,question:body.question,sessionId:chatId,memoryType:'Buffer Window Memory'}}) + '\\n\\n';
+
+                // End event
+                sse += 'data:' + JSON.stringify({event:'end',data:'[DONE]'}) + '\\n\\n';
+
+                var encoder = new TextEncoder();
+                var stream = new ReadableStream({
+                  start: function(c) {
+                    c.enqueue(encoder.encode(sse));
+                    c.close();
+                  }
+                });
+                resolve(new Response(stream, {
+                  status: 200,
+                  headers: {
+                    'Content-Type': 'text/event-stream',
+                    'Cache-Control': 'no-cache'
+                  }
+                }));
+              };
+
+              setTimeout(function() {
+                if (pending[id]) {
+                  pending[id]('Sorry, the request timed out. Please try again.');
+                }
+              }, 30000);
+            });
+          }
+        }
+      } catch(e) {}
+    }
+    return _fetch.apply(this, arguments);
+  };
+  true;
+})();
+`;
+  }
+
+  const handleMessage = async (event: { nativeEvent: { data: string } }) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
+
+      // Debug logging
+      if (data.type === 'debug') {
+        console.log('[WebView DBG]', data.msg);
+        return;
+      }
+
+      // Handle chatbot question - route through our OpenAI chatbot
+      if (data.type === 'chatbot_question' && data.question && productData) {
+        console.log('[WebView] chatbot_question received:', data.question);
+        try {
+          const pd = JSON.parse(productData);
+          const product: Partial<ScannedProduct> = {
+            id: 0,
+            rawValue: safeUrl,
+            displayValue: pd.name || '',
+            format: '',
+            type: '',
+            productName: pd.name || '',
+            supplier: pd.supplier || '',
+            price: pd.price || '',
+            weight: pd.weight || '',
+            co2Total: pd.co2Total || '',
+            co2Details: pd.co2Details || '',
+            certifications: pd.certifications || '',
+            productDescription: pd.description || '',
+            productId: pd.productId || '',
+            skuId: pd.skuId || '',
+            datasheetUrl: '',
+            imageUrl: '',
+            scannedAt: Date.now(),
+          };
+          const reply = await getChatbotReply(data.question, [product as ScannedProduct]);
+          const escaped = JSON.stringify(reply);
+          webViewRef.current?.injectJavaScript(
+            `if(window.__chatReply) window.__chatReply(${data.id}, ${escaped}); true;`
+          );
+        } catch (err) {
+          const fallback = JSON.stringify('Sorry, something went wrong. Please try again.');
+          webViewRef.current?.injectJavaScript(
+            `if(window.__chatReply) window.__chatReply(${data.id}, ${fallback}); true;`
+          );
+        }
+        return;
+      }
+
       if (data.type === 'pdf_download' && data.url) {
         if (isAutoDownload) {
           router.back();
@@ -118,9 +251,9 @@ export default function WebViewScreen() {
     return true;
   };
 
-  const injectedJS = isAutoDownload
+  const injectedJS = (isAutoDownload
     ? PDF_INTERCEPT_JS + '\n' + AUTO_DOWNLOAD_JS
-    : PDF_INTERCEPT_JS;
+    : PDF_INTERCEPT_JS) + '\n' + chatbotInterceptJS;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -146,6 +279,7 @@ export default function WebViewScreen() {
 
       {safeUrl ? (
         <WebView
+          ref={webViewRef}
           source={{ uri: safeUrl }}
           style={isAutoDownload ? styles.hiddenWeb : styles.web}
           originWhitelist={['*']}
@@ -154,6 +288,7 @@ export default function WebViewScreen() {
           setSupportMultipleWindows={false}
           startInLoadingState={!isAutoDownload}
           allowFileAccess
+          injectedJavaScriptBeforeContentLoaded={chatbotInterceptJS}
           injectedJavaScript={injectedJS}
           onMessage={handleMessage}
           onShouldStartLoadWithRequest={handleShouldStartLoad}
