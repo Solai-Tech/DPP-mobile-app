@@ -304,6 +304,7 @@ export default function ScanScreen() {
           </View>
         )}
       </ScrollView>
+
     </View>
   );
 }

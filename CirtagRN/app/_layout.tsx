@@ -26,6 +26,10 @@ export default function RootLayout() {
           name="product/[id]"
           options={{ animation: 'slide_from_right' }}
         />
+        <Stack.Screen
+          name="ticket-detail"
+          options={{ animation: 'slide_from_right' }}
+        />
       </Stack>
     </View>
   );

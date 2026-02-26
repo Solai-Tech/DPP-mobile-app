@@ -23,7 +23,7 @@ export default function TicketCard({ ticket, onPress }: Props) {
   const dateStr = `${date.getDate()} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][date.getMonth()]}`;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <View style={styles.card}>
       <View style={styles.iconCol}>
         <View style={styles.iconCircle}>
           <MaterialIcons name="confirmation-number" size={ms(18)} color={Accent} />
@@ -35,12 +35,16 @@ export default function TicketCard({ ticket, onPress }: Props) {
         </Text>
         <Text style={styles.date}>{dateStr}</Text>
       </View>
-      <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+      <TouchableOpacity
+        style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
         <Text style={[styles.statusText, { color: statusStyle.text }]}>
-          {ticket.status.replace('_', ' ')}
+          {ticket.status === 'open' ? 'Open' : ticket.status.replace('_', ' ')}
         </Text>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -78,8 +82,10 @@ const styles = StyleSheet.create({
   },
   statusBadge: {
     borderRadius: s(8),
-    paddingHorizontal: s(10),
-    paddingVertical: vs(4),
+    paddingHorizontal: s(14),
+    paddingVertical: vs(6),
+    minWidth: s(60),
+    alignItems: 'center' as const,
   },
   statusText: {
     fontSize: ms(11),

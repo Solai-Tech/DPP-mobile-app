@@ -49,6 +49,11 @@ export async function insertProduct(product: Omit<ScannedProduct, 'id'>): Promis
   return result.lastInsertRowId;
 }
 
+export async function updateProductCO2(id: number, co2Total: string, co2Details: string): Promise<void> {
+  const db = getDatabaseSync();
+  db.runSync('UPDATE scanned_products SET co2Total = ?, co2Details = ? WHERE id = ?', [co2Total, co2Details, id]);
+}
+
 export async function deleteProduct(id: number): Promise<void> {
   const db = getDatabaseSync();
   db.runSync('DELETE FROM scanned_products WHERE id = ?', [id]);

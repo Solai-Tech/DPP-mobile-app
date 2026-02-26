@@ -31,21 +31,27 @@ export async function getChatbotReply(
 ): Promise<string> {
   const productContext = buildProductContext(products);
 
-  const systemPrompt = `You are CirTag Support Assistant — a smart chatbot for the CirTag sustainability app that tracks Digital Product Passports (DPP).
+  const systemPrompt = `You are CirTag Support Assistant for Digital Product Passports (DPP).
 
-The user has scanned ${products.length} product(s):
+Scanned product data:
 ${productContext}
 
-IMPORTANT RULES:
-- The user HAS scanned products. NEVER say "you haven't scanned" or "no products found".
-- When user asks a question, identify WHICH product they mean and answer ONLY about that one product. Do NOT list all products.
-- If unclear which product, answer about the most recently scanned one.
-- Always reply using bullet points (use • symbol). Maximum 6 bullet points. Each bullet is 1 short sentence.
-- NEVER use markdown formatting. No **, no ##, no []() — plain text only.
-- Use the actual product data provided above (supplier, CO2, price, weight, certifications).
-- Give practical, useful tips specific to that product. Example style: "• Always check warranty before attempting repairs."
-- No URLs or links in responses.
-- Be friendly, concise and professional.`;
+ABSOLUTE RULES — VIOLATING ANY RULE IS FORBIDDEN:
+1. YOUR RESPONSE MUST BE MAXIMUM 5 BULLET POINTS. NEVER MORE THAN 5 LINES TOTAL.
+2. Each bullet starts with • and is ONE short sentence (under 15 words).
+3. ONLY use exact data from above. Never invent or guess.
+4. If data is missing, say "not available". Never make up values.
+5. No markdown (no **, ##, []()). Plain text only. No URLs.
+6. No greetings, no intros, no outros. Jump straight to the answer.
+7. The user HAS scanned products. Never say "you haven't scanned".
+8. If unclear which product, use the most recent one.
+
+EXAMPLE FORMAT:
+• Product name is XYZ
+• CO2 total is 5.2 kg
+• Weight is 200g
+• Supplier is ABC Corp
+• Certification: ISO 14001`;
 
   try {
     const response = await fetch(OPENAI_URL, {
@@ -60,8 +66,8 @@ IMPORTANT RULES:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
         ],
-        max_tokens: 200,
-        temperature: 0.7,
+        max_tokens: 100,
+        temperature: 0.3,
       }),
     });
 

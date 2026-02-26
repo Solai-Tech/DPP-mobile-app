@@ -154,59 +154,91 @@ function parseHtml(html: string, baseUrl: string, fullUrl: string): ProductData 
 
   // Product ID
   const idMatch =
-    html.match(/Product ID[:\s]*<\/?\w*>?\s*(\d+)/i) ||
+    html.match(/PRODUCT\s+ID[:\s]*(\d+)/i) ||
+    html.match(/Product ID[:\s]*(?:<[^>]*>)*\s*(\d+)/i) ||
     html.match(/product_id['"]\s*:\s*['"]?(\d+)/i);
   if (idMatch) productId = idMatch[1].trim();
 
   // Description
   const descMatch = html.match(
-    /Product Description.*?<(?:p|div|textarea)[^>]*>(.*?)<\/(?:p|div|textarea)>/is
+    /Product Description[\s\S]*?<(?:p|div|textarea)[^>]*>([\s\S]*?)<\/(?:p|div|textarea)>/i
   );
   if (descMatch) {
     description = descMatch[1].replace(/<[^>]+>/g, '').trim();
   }
 
-  // Price
-  const priceMatch = html.match(
-    /Price[:\s]*<\/?\w*>?\s*([\d.,]+\s*\w{2,5})/i
-  );
-  if (priceMatch) price = priceMatch[1].trim();
+  // Price - handle tags between label and value
+  const priceMatch =
+    html.match(/Price[:\s]*(?:<[^>]*>)*\s*([\d.,]+\s*\w{2,5})/i) ||
+    html.match(/<h4[^>]*>Price<\/h4>\s*<p[^>]*>([\s\S]*?)<\/p>/i);
+  if (priceMatch) {
+    const val = priceMatch[1].replace(/<[^>]+>/g, '').trim();
+    if (val && val !== 'Not specified') price = val;
+  }
 
-  // Supplier
-  const supplierMatch = html.match(
-    /Supplier Name[:\s]*<\/?\w*>?\s*([A-Za-z0-9\s&.,'-]+?)(?:<|$)/i
-  );
-  if (supplierMatch) supplier = supplierMatch[1].trim();
+  // Supplier - handle both "Supplier Name" and just "Supplier", cross tags
+  const supplierMatch =
+    html.match(/Supplier Name[:\s]*(?:<[^>]*>)*\s*([A-Za-z0-9\s&.,'-]+?)(?:<|$)/i) ||
+    html.match(/<h4[^>]*>Supplier<\/h4>\s*<p[^>]*>([\s\S]*?)<\/p>/i);
+  if (supplierMatch) {
+    const val = supplierMatch[1].replace(/<[^>]+>/g, '').trim();
+    if (val && val !== 'Not specified' && val !== '--') supplier = val;
+  }
 
-  // SKU
-  const skuMatch = html.match(
-    /SKU ID[:\s]*<\/?\w*>?\s*([A-Za-z0-9\-]+)/i
-  );
-  if (skuMatch) skuId = skuMatch[1].trim();
+  // SKU - handle tags
+  const skuMatch =
+    html.match(/SKU\s*ID[:\s]*(?:<[^>]*>)*\s*([A-Za-z0-9\-]+)/i) ||
+    html.match(/<h4[^>]*>SKU<\/h4>\s*<p[^>]*>([\s\S]*?)<\/p>/i);
+  if (skuMatch) {
+    const val = skuMatch[1].replace(/<[^>]+>/g, '').trim();
+    if (val && val !== 'Not specified') skuId = val;
+  }
 
-  // Weight
-  const weightMatch = html.match(
-    /Weight[:\s]*<\/?\w*>?\s*([\d.,]+\s*\w{1,5})/i
-  );
-  if (weightMatch) weight = weightMatch[1].trim();
+  // Weight - handle multi-tag HTML (e.g. <h4>Weight</h4><p>85 kg</p>)
+  const weightMatch =
+    html.match(/<h4[^>]*>Weight<\/h4>\s*<p[^>]*>([\s\S]*?)<\/p>/i) ||
+    html.match(/Weight[:\s]*(?:<[^>]*>)*\s*([\d.,]+\s*(?:kg|g|lbs?)\b)/i);
+  if (weightMatch) {
+    let val = weightMatch[1].replace(/<[^>]+>/g, '').trim();
+    // Clean up double units like "85 kg Kg"
+    val = val.replace(/(\d+\.?\d*\s*kg)\s*kg/i, '$1');
+    if (val && val !== 'Not specified' && /\d/.test(val)) weight = val;
+  }
 
-  // Total CO2
-  const co2TotalMatch = html.match(/([\d.,]+)\s*(?:Kg|kg)\s*CO/i);
+  // Total CO2 - prefer co2-total class, then general pattern
+  const co2TotalMatch =
+    html.match(/co2-total[^>]*>([\d.,]+)\s*(?:Kg|kg)\s*CO/i) ||
+    html.match(/([\d.,]+)\s*(?:Kg|kg)\s*CO/i);
   if (co2TotalMatch) co2Total = `${co2TotalMatch[1]} Kg CO\u2082 Eqv`;
 
-  // CO2 breakdown items
-  const co2Patterns: [string, RegExp][] = [
-    ['Raw Material', /Raw Material[^<]*?(\d+\.?\d*)\s*(?:Kg|kg)\s*CO/i],
-    ['Shipping & Transport', /Shipping[^<]*?(\d+\.?\d*)\s*(?:Kg|kg)\s*CO/i],
-    ['Transportation', /Transportation[^<]*?(\d+\.?\d*)\s*(?:Kg|kg)\s*CO/i],
-    ['Manufacturing', /Manufacturing[^<]*?(\d+\.?\d*)\s*(?:Kg|kg)\s*CO/i],
-    ['Usage (5 years)', /Usage[^<]*?(\d+\.?\d*)\s*(?:Kg|kg)\s*CO/i],
-    ['End of Life', /End of Life[^<]*?(\d+\.?\d*)\s*(?:Kg|kg)\s*CO/i],
-  ];
-  for (const [label, pattern] of co2Patterns) {
-    const match = html.match(pattern);
-    if (match) {
-      co2Items.push(`${label}:${match[1]} Kg CO\u2082`);
+  // CO2 breakdown - PRIMARY: parse chart.js data (most reliable)
+  const chartMatch = html.match(
+    /labels:\s*\[([^\]]+)\][\s\S]*?label:\s*'CO[\s\S]*?data:\s*\[([^\]]+)\]/
+  );
+  if (chartMatch) {
+    const labels = chartMatch[1].match(/'([^']+)'/g)?.map(s => s.replace(/'/g, ''));
+    const values = chartMatch[2].split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+    if (labels && labels.length === values.length) {
+      for (let i = 0; i < labels.length; i++) {
+        co2Items.push(`${labels[i]}:${values[i].toFixed(2)} Kg CO\u2082`);
+      }
+    }
+  }
+
+  // CO2 breakdown - FALLBACK: regex patterns that cross HTML tags
+  if (co2Items.length === 0) {
+    const co2Patterns: [string, RegExp][] = [
+      ['Manufacturing', /Manufacturing[\s\S]{0,500}?(\d+\.?\d*)\s*(?:<[^>]*>\s*)?(?:Kg|kg)\s*CO/i],
+      ['Usage', /Usage[\s\S]{0,500}?(\d+\.?\d*)\s*(?:<[^>]*>\s*)?(?:Kg|kg)\s*CO/i],
+      ['Transportation', /(?:Transportation|Shipping)[^a-zA-Z][\s\S]{0,500}?(\d+\.?\d*)\s*(?:<[^>]*>\s*)?(?:Kg|kg)\s*CO/i],
+      ['End of Life', /End of Life[\s\S]{0,500}?(\d+\.?\d*)\s*(?:<[^>]*>\s*)?(?:Kg|kg)\s*CO/i],
+      ['Raw Material', /Raw Material[\s\S]{0,500}?(\d+\.?\d*)\s*(?:<[^>]*>\s*)?(?:Kg|kg)\s*CO/i],
+    ];
+    for (const [label, pattern] of co2Patterns) {
+      const match = html.match(pattern);
+      if (match) {
+        co2Items.push(`${label}:${match[1]} Kg CO\u2082`);
+      }
     }
   }
 
@@ -229,8 +261,10 @@ function parseHtml(html: string, baseUrl: string, fullUrl: string): ProductData 
     certs.unshift('Verified Product');
   }
 
-  // Datasheet PDF URL
-  const pdfMatch = html.match(/href=["']([^"']*\.pdf[^"']*)["']/i);
+  // Datasheet PDF URL - check .pdf links and /datasheet/ paths
+  const pdfMatch =
+    html.match(/href=["']([^"']*\.pdf[^"']*)["']/i) ||
+    html.match(/href=["']([^"']*\/datasheet\/[^"']*)["']/i);
   if (pdfMatch) {
     const pdf = pdfMatch[1];
     datasheetUrl = pdf.startsWith('http') ? pdf : `${baseUrl}${pdf}`;

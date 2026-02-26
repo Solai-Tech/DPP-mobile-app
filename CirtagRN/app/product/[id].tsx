@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -17,9 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system/legacy';
 import VerifiedBadge from '../../src/components/VerifiedBadge';
-import PassportStatCard from '../../src/components/PassportStatCard';
 import LifecycleTimeline from '../../src/components/LifecycleTimeline';
-import EmissionBreakdown from '../../src/components/EmissionBreakdown';
 import ActionButton from '../../src/components/ActionButton';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
 import { useProducts } from '../../src/hooks/useProducts';
@@ -48,7 +46,6 @@ export default function ProductDetailScreen() {
   const [product, setProduct] = useState<ScannedProduct | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [pdfWebViewUrl, setPdfWebViewUrl] = useState('');
-
   useEffect(() => {
     if (id) {
       getProductById(Number(id)).then((p) => setProduct(p));
@@ -91,28 +88,13 @@ export default function ProductDetailScreen() {
     displayName = product.displayValue || product.rawValue || 'Unknown Product';
   }
 
+  // Clean product name: remove "R_" prefix and replace underscores
+  displayName = displayName.replace(/^R_/, '').replace(/_/g, ' ').trim();
+
   const certs = product.certifications
     ? product.certifications.split(',').map((c) => c.trim())
     : [];
   const hasVerified = certs.some((c) => c.includes('Verified'));
-  const filteredCerts = certs.filter(
-    (c) => !c.includes('Verified')
-  );
-
-  const co2Items = product.co2Details
-    ? product.co2Details
-        .split(',')
-        .map((item) => {
-          const parts = item.split(':');
-          return parts.length === 2
-            ? { label: parts[0].trim(), value: parts[1].trim() }
-            : null;
-        })
-        .filter(Boolean) as { label: string; value: string }[]
-    : [];
-
-  const co2Numeric = product.co2Total?.match(/([\d.]+)/)?.[1] || '0';
-  const co2Status = parseFloat(co2Numeric) < 5 ? 'Low' : 'High';
 
   const normalizeUrl = (url: string) => {
     if (!url) return '';
@@ -277,138 +259,34 @@ export default function ProductDetailScreen() {
         ) : null}
 
         {product.productDescription ? (
-          <Text style={styles.productDesc}>{product.productDescription}</Text>
+          <View style={styles.descContainer}>
+            {product.productDescription.includes('•') ? (
+              product.productDescription.split('•').map((item, idx) => {
+                const trimmed = item.trim();
+                if (!trimmed) return null;
+                return (
+                  <View key={idx} style={styles.descBulletRow}>
+                    <Text style={styles.descBullet}>{'\u2022'}</Text>
+                    <Text style={styles.descBulletText}>{trimmed}</Text>
+                  </View>
+                );
+              })
+            ) : (
+              <Text style={styles.productDesc}>{product.productDescription}</Text>
+            )}
+          </View>
         ) : null}
 
-        <View style={{ height: vs(20) }} />
-
-        {/* Stat Cards */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <View style={styles.statIconCircle}>
-              <MaterialIcons name="eco" size={ms(18)} color={GreenAccent} />
-            </View>
-            <Text style={styles.statLabel}>Total CO{'\u2082'}</Text>
-            <Text style={styles.statValue}>{co2Numeric}</Text>
-            <Text style={styles.statUnit}>Kg CO{'\u2082'}</Text>
-            <View style={[
-              styles.statBadge,
-              { backgroundColor: co2Status === 'Low' ? GreenTint : 'rgba(255,152,0,0.1)' },
-            ]}>
-              <Text style={[
-                styles.statBadgeText,
-                { color: co2Status === 'Low' ? GreenAccent : '#FF9800' },
-              ]}>
-                {co2Status}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.statCard}>
-            <View style={styles.statIconCircle}>
-              <MaterialIcons name="recycling" size={ms(18)} color={GreenAccent} />
-            </View>
-            <Text style={styles.statLabel}>Recyclability</Text>
-            <Text style={styles.statValue}>94%</Text>
-            <View style={[styles.statBadge, { backgroundColor: GreenTint }]}>
-              <Text style={[styles.statBadgeText, { color: GreenAccent }]}>High</Text>
-            </View>
-          </View>
-
-          <View style={styles.statCard}>
-            <View style={styles.statIconCircle}>
-              <MaterialIcons name="inventory-2" size={ms(18)} color={GreenAccent} />
-            </View>
-            <Text style={styles.statLabel}>Batch</Text>
-            <Text style={styles.statValue}>
-              {product.skuId ? `#${product.skuId}` : 'N/A'}
-            </Text>
-            <View style={[styles.statBadge, { backgroundColor: GreenTint }]}>
-              <Text style={[styles.statBadgeText, { color: GreenAccent }]}>Active</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={{ height: vs(20) }} />
+        <View style={{ height: vs(16) }} />
 
         {/* Lifecycle Timeline */}
         <LifecycleTimeline />
 
-        <View style={{ height: vs(20) }} />
-
-        {/* Emission Breakdown */}
-        {product.co2Details ? (
-          <>
-            <EmissionBreakdown co2Details={product.co2Details} />
-            <View style={{ height: vs(20) }} />
-          </>
-        ) : null}
-
-        {/* Specifications Card */}
-        <View style={styles.specsCard}>
-          <Text style={styles.cardTitle}>Specifications</Text>
-          <SpecItem label="Supplier" value={product.supplier || 'N/A'} />
-          <SpecItem label="Price" value={product.price || 'N/A'} />
-          <SpecItem label="Weight" value={product.weight || 'N/A'} />
-          {product.skuId ? <SpecItem label="SKU ID" value={product.skuId} /> : null}
-        </View>
-
         <View style={{ height: vs(16) }} />
 
-        {/* Certifications */}
-        {filteredCerts.length > 0 && (
-          <>
-            <View style={styles.certsCard}>
-              <Text style={styles.cardTitle}>Certifications</Text>
-              {filteredCerts.map((cert) => (
-                <View key={cert} style={styles.certRow}>
-                  <MaterialIcons name="check-circle" size={ms(16)} color={GreenAccent} />
-                  <Text style={styles.certText}>{cert}</Text>
-                </View>
-              ))}
-            </View>
-            <View style={{ height: vs(16) }} />
-          </>
-        )}
-
-        {/* Download PDF */}
-        <TouchableOpacity
-          style={[styles.datasheetCard, downloading && { opacity: 0.7 }]}
-          onPress={handleDownloadPdf}
-          disabled={downloading}
-        >
-          <View style={styles.datasheetLeft}>
-            <View style={styles.datasheetIcon}>
-              {downloading ? (
-                <ActivityIndicator size="small" color={GreenAccent} />
-              ) : (
-                <MaterialIcons name="description" size={ms(20)} color={GreenAccent} />
-              )}
-            </View>
-            <View>
-              <Text style={styles.datasheetTitle}>Product Datasheet</Text>
-              <Text style={styles.datasheetSub}>{downloading ? 'Downloading...' : 'Download PDF'}</Text>
-            </View>
-          </View>
-          {downloading ? (
-            <ActivityIndicator size="small" color={GreenAccent} />
-          ) : (
-            <MaterialIcons name="download" size={ms(20)} color={GreenAccent} />
-          )}
-        </TouchableOpacity>
-        <View style={{ height: vs(16) }} />
 
         {/* Action Buttons - 3 buttons */}
         <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.actionBtnOutline}
-            onPress={() => router.push('/support-chat')}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="support-agent" size={ms(16)} color={GreenAccent} />
-            <Text style={styles.actionBtnOutlineText}>Get Support</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.actionBtnOutline}
             onPress={() => router.push(`/raise-ticket?productId=${product.id}`)}
@@ -449,7 +327,7 @@ export default function ProductDetailScreen() {
             router.push(
               `/webview?url=${encodeURIComponent(product.rawValue)}&title=${encodeURIComponent(
                 'Original Product Page'
-              )}&productData=${encodeURIComponent(pData)}`
+              )}&productData=${encodeURIComponent(pData)}&desktopMode=true`
             );
           }}
         >
@@ -491,6 +369,28 @@ export default function ProductDetailScreen() {
           }}
         />
       ) : null}
+
+      {/* Floating Chat Button - opens Flowise chatbot on original product page */}
+      <TouchableOpacity
+        style={[styles.chatFab, { bottom: vs(16) + insets.bottom }]}
+        onPress={() => {
+          router.push(
+            `/webview?url=${encodeURIComponent(product.rawValue)}&title=${encodeURIComponent(
+              displayName + ' Assistant'
+            )}&openChat=true&productId=${product.id}`
+          );
+        }}
+        activeOpacity={0.85}
+      >
+        <View style={styles.chatFabIcon}>
+          <MaterialIcons name="chat" size={ms(20)} color="#FFFFFF" />
+        </View>
+        <View style={styles.chatFabTextWrap}>
+          <Text style={styles.chatFabTitle}>Need Help?</Text>
+          <Text style={styles.chatFabSub}>Chat with us</Text>
+        </View>
+        <View style={styles.chatFabDot} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -605,65 +505,35 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     marginTop: vs(4),
   },
+  descContainer: {
+    paddingHorizontal: s(20),
+    marginTop: vs(6),
+  },
+  descBulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: vs(4),
+  },
+  descBullet: {
+    fontSize: ms(13),
+    color: GreenAccent,
+    fontWeight: '700',
+    marginRight: s(8),
+    lineHeight: ms(18),
+  },
+  descBulletText: {
+    flex: 1,
+    fontSize: ms(13),
+    color: TextGray,
+    lineHeight: ms(18),
+  },
   productDesc: {
     fontSize: ms(13),
     color: TextGray,
-    textAlign: 'center',
-    paddingHorizontal: s(32),
+    textAlign: 'left',
+    paddingHorizontal: s(20),
     marginTop: vs(6),
     lineHeight: ms(18),
-  },
-  statsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: s(20),
-    gap: s(10),
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: White,
-    borderRadius: s(16),
-    padding: s(12),
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  statIconCircle: {
-    width: s(32),
-    height: s(32),
-    borderRadius: s(16),
-    backgroundColor: GreenTint,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: vs(6),
-  },
-  statLabel: {
-    fontSize: ms(10),
-    color: TextGray,
-    textAlign: 'center',
-    marginBottom: vs(2),
-  },
-  statValue: {
-    fontSize: ms(18),
-    fontWeight: '800',
-    color: TextBlack,
-  },
-  statUnit: {
-    fontSize: ms(10),
-    color: GreenAccent,
-    fontWeight: '600',
-  },
-  statBadge: {
-    borderRadius: s(8),
-    paddingHorizontal: s(8),
-    paddingVertical: vs(2),
-    marginTop: vs(4),
-  },
-  statBadgeText: {
-    fontSize: ms(10),
-    fontWeight: '700',
   },
   specsCard: {
     backgroundColor: White,
@@ -681,28 +551,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: TextBlack,
     marginBottom: vs(8),
-  },
-  certsCard: {
-    backgroundColor: White,
-    borderRadius: s(16),
-    padding: s(16),
-    marginHorizontal: s(20),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  certRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(8),
-    paddingVertical: vs(6),
-  },
-  certText: {
-    fontSize: ms(13),
-    fontWeight: '600',
-    color: TextBlack,
   },
   datasheetCard: {
     flexDirection: 'row',
@@ -814,5 +662,47 @@ const styles = StyleSheet.create({
     fontSize: ms(12),
     color: TextGray,
     fontWeight: '500',
+  },
+  chatFab: {
+    position: 'absolute',
+    right: s(16),
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+    borderRadius: s(24),
+    paddingVertical: vs(10),
+    paddingHorizontal: s(14),
+    gap: s(10),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  chatFabIcon: {
+    width: s(36),
+    height: s(36),
+    borderRadius: s(18),
+    backgroundColor: '#7C4DFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chatFabTextWrap: {
+    marginRight: s(4),
+  },
+  chatFabTitle: {
+    fontSize: ms(13),
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  chatFabSub: {
+    fontSize: ms(11),
+    color: '#CCCCCC',
+  },
+  chatFabDot: {
+    width: s(8),
+    height: s(8),
+    borderRadius: s(4),
+    backgroundColor: '#00E676',
   },
 });

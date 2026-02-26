@@ -51,6 +51,10 @@ export function getDatabaseSync(): SQLite.SQLiteDatabase {
       FOREIGN KEY (ticketId) REFERENCES tickets(id)
     );
   `);
+  // Clear old data on fresh app start (runs before any screen renders)
+  db.runSync('DELETE FROM scanned_products');
+  db.runSync('DELETE FROM chat_messages');
+  db.runSync('DELETE FROM tickets');
   return db;
 }
 

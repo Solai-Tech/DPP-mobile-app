@@ -9,7 +9,7 @@ import {
   Platform,
   StyleSheet,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import ChatBubble from '../../src/components/ChatBubble';
@@ -43,6 +43,7 @@ const QUICK_REPLIES = [
 
 export default function TicketsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { tab, action } = useLocalSearchParams<{ tab?: string; action?: string }>();
   const { tickets, chatMessages, sendMessage, createTicket } = useTickets();
   const [activeTab, setActiveTab] = useState<TabMode>('chat');
@@ -267,7 +268,10 @@ export default function TicketsScreen() {
                       <TicketCard
                         key={ticket.id}
                         ticket={ticket}
-                        onPress={() => {}}
+                        onPress={() => {
+                          console.log('TICKET_OPEN', ticket.id);
+                          router.push({ pathname: '/ticket-detail', params: { ticketId: String(ticket.id) } });
+                        }}
                       />
                     ))}
                   </View>

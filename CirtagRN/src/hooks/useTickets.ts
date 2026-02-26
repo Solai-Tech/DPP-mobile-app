@@ -19,10 +19,9 @@ export function useTickets() {
     setChatMessages(msgs);
   }, []);
 
-  // Start with a fresh chat every time the hook mounts (screen opens)
+  // Load tickets and general chat on mount (don't clear — chat moves to ticket on create)
   useEffect(() => {
     (async () => {
-      await ticketDao.clearGeneralChat();
       await refreshTickets();
       await loadChatMessages(null);
     })();
@@ -69,6 +68,9 @@ export function useTickets() {
           createdAt: now,
           updatedAt: now,
         });
+        // Move only this product's chat messages into this ticket
+        await ticketDao.moveGeneralChatToTicket(id, productId);
+        setChatMessages([]);
         await refreshTickets();
         return id;
       } finally {

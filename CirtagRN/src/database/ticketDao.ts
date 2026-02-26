@@ -73,6 +73,13 @@ export async function clearGeneralChat(): Promise<void> {
   db.runSync('DELETE FROM chat_messages WHERE ticketId IS NULL');
 }
 
+export async function moveGeneralChatToTicket(ticketId: number, productId?: number | null): Promise<void> {
+  const db = getDatabaseSync();
+  // Move only this product's "Need Help?" chat into its ticket
+  const pendingId = productId ? -productId : -1;
+  db.runSync('UPDATE chat_messages SET ticketId = ? WHERE ticketId = ?', [ticketId, pendingId]);
+}
+
 export async function insertChatMessage(
   msg: Omit<ChatMessage, 'id'>
 ): Promise<number> {

@@ -10,7 +10,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTickets } from '../src/hooks/useTickets';
-import { getTicketByProductId } from '../src/database/ticketDao';
+import { getTicketByProductId, moveGeneralChatToTicket } from '../src/database/ticketDao';
 import TicketCard from '../src/components/TicketCard';
 import { s, vs, ms } from '../src/utils/scale';
 
@@ -36,7 +36,11 @@ export default function RaiseTicketScreen() {
     (async () => {
       if (productId) {
         const existing = await getTicketByProductId(Number(productId));
-        if (existing) return; // already has a ticket
+        if (existing) {
+          // Ticket exists — still move any new chat messages into it
+          await moveGeneralChatToTicket(existing.id, Number(productId));
+          return;
+        }
         await createTicket('New Support Request', 'Created from product detail', Number(productId));
       } else {
         await createTicket('New Support Request', 'Created from app');
@@ -74,7 +78,7 @@ export default function RaiseTicketScreen() {
               <TicketCard
                 key={ticket.id}
                 ticket={ticket}
-                onPress={() => {}}
+                onPress={() => router.push({ pathname: '/ticket-detail', params: { ticketId: String(ticket.id) } })}
               />
             ))}
           </View>

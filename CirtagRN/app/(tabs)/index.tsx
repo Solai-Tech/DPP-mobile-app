@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
 import GradientBackground from '../../src/components/GradientBackground';
 import { useProducts } from '../../src/hooks/useProducts';
 import { useUserProfile } from '../../src/hooks/useUserProfile';
@@ -27,14 +26,8 @@ export default function HomeScreen() {
   const totalScans = products.length;
   const totalScansDisplay = `${totalScans}`;
 
-  const handleLifeCyclePress = () => {
-    router.push('/lifecycle');
-  };
   const handleHistoryPress = () => {
     router.push('/(tabs)/scan');
-  };
-  const handleSolaiPress = () => {
-    WebBrowser.openBrowserAsync('https://solai.se/dppx/');
   };
 
   useFocusEffect(
@@ -45,7 +38,7 @@ export default function HomeScreen() {
 
   return (
     <GradientBackground>
-      <View style={[styles.container, { paddingTop: insets.top + vs(10), paddingBottom: vs(10) }]}>
+      <View style={[styles.container, { paddingTop: insets.top + vs(10), paddingBottom: vs(16) }]}>
 
         {/* Top Row */}
         <View style={styles.topRow}>
@@ -56,84 +49,49 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Logo Section */}
-        <View style={styles.logoSection}>
-          <View style={styles.logoMark}>
-            <MaterialIcons name="recycling" size={ms(32)} color="#FFFFFF" />
+        {/* Upper Section — logo + welcome, flexes to fill */}
+        <View style={styles.upperSection}>
+          <View style={styles.logoSection}>
+            <View style={styles.logoMark}>
+              <MaterialIcons name="recycling" size={ms(44)} color="#FFFFFF" />
+            </View>
+            <View style={styles.logoTextRow}>
+              <Text style={styles.logoName}>CIRT</Text>
+              <Text style={styles.logoNameAccent}>AG</Text>
+            </View>
+            <Text style={styles.tagline}>Circular Economy Platform.</Text>
+            <Text style={styles.taglineSub}>Measure. Trace. Act.</Text>
           </View>
-          <View style={styles.logoTextRow}>
-            <Text style={styles.logoName}>CIRT</Text>
-            <Text style={styles.logoNameAccent}>AG</Text>
-          </View>
-          <Text style={styles.tagline}>Circular Economy Platform.</Text>
-          <Text style={styles.taglineSub}>Measure. Trace. Act.</Text>
+
         </View>
 
-        {/* Welcome Card */}
-        <View style={styles.welcomeCard}>
-          <View style={styles.welcomeLeft}>
-            <Text style={styles.welcomeHi}>Welcome to</Text>
-            <Text style={styles.welcomeName}>{profile.company}</Text>
-            <Text style={styles.welcomeSub}>Track your products sustainably</Text>
+        {/* Bottom Section — stats + history */}
+        <View style={styles.bottomSection}>
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{totalScansDisplay}</Text>
+              <Text style={styles.statUnit}>Monthly Scans</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{products.length}</Text>
+              <Text style={styles.statUnit}>Products</Text>
+            </View>
           </View>
-          <View style={styles.avatar}>
-            <MaterialIcons name="recycling" size={ms(22)} color="#FFFFFF" />
-          </View>
-        </View>
 
-        {/* Stats Row — compact */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{totalScansDisplay}</Text>
-            <Text style={styles.statUnit}>Monthly Scans</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{products.length}</Text>
-            <Text style={styles.statUnit}>Products</Text>
-          </View>
-        </View>
-
-        {/* Gap */}
-        <View style={styles.sectionGap} />
-
-        {/* Action Tiles */}
-        <View style={styles.actionsRow}>
+          {/* Products History */}
           <TouchableOpacity
-            style={styles.actionTile}
+            style={styles.historyCard}
             onPress={handleHistoryPress}
             activeOpacity={0.85}
           >
-            <View style={styles.actionIconCircle}>
+            <View style={styles.historyIconCircle}>
               <MaterialIcons name="history" size={ms(20)} color={Accent} />
             </View>
-            <Text style={styles.actionLabel}>Products History</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionTile}
-            onPress={handleLifeCyclePress}
-            activeOpacity={0.85}
-          >
-            <View style={styles.actionIconCircle}>
-              <MaterialIcons name="recycling" size={ms(20)} color={Accent} />
-            </View>
-            <Text style={styles.actionLabel}>Product Life Cycle</Text>
+            <Text style={styles.historyLabel}>Products History</Text>
+            <MaterialIcons name="chevron-right" size={ms(20)} color={TextMuted} />
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          style={styles.solaiCard}
-          onPress={handleSolaiPress}
-          activeOpacity={0.85}
-        >
-          <View style={styles.cirtagIcon}>
-            <MaterialIcons name="eco" size={ms(20)} color="#FFFFFF" />
-          </View>
-          <View style={styles.solaiTextCol}>
-            <Text style={styles.solaiTitle}>CirTag</Text>
-            <Text style={styles.solaiSub}>Open Digital Product Passport</Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={ms(20)} color={TextMuted} />
-        </TouchableOpacity>
       </View>
     </GradientBackground>
   );
@@ -150,6 +108,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: s(4),
+    marginTop: vs(6),
     marginBottom: vs(8),
   },
   topLabel: {
@@ -179,54 +138,59 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Accent,
   },
-  // Logo
+  // Upper section flexes to push bottom content down
+  upperSection: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: vs(20),
+  },
+  // Logo — large to fill screen
   logoSection: {
     alignItems: 'center',
-    paddingTop: vs(44),
-    paddingBottom: vs(14),
+    marginBottom: vs(24),
   },
   logoMark: {
-    width: s(60),
-    height: s(60),
-    borderRadius: s(16),
+    width: s(80),
+    height: s(80),
+    borderRadius: s(24),
     backgroundColor: '#1F7A3A',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: vs(14),
+    marginBottom: vs(20),
     shadowColor: '#00E676',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.45,
+    shadowRadius: 30,
+    elevation: 12,
   },
   logoTextRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: vs(6),
+    marginBottom: vs(10),
   },
   logoName: {
-    fontSize: ms(44),
+    fontSize: ms(58),
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -2,
   },
   logoNameAccent: {
-    fontSize: ms(44),
+    fontSize: ms(58),
     fontWeight: '800',
     color: Accent,
     letterSpacing: -2,
   },
   tagline: {
-    fontSize: ms(14),
+    fontSize: ms(20),
     fontWeight: '600',
     color: TextMuted,
     letterSpacing: 0.5,
   },
   taglineSub: {
-    fontSize: ms(12),
+    fontSize: ms(16),
     fontWeight: '600',
     color: Accent,
-    marginTop: vs(4),
+    marginTop: vs(8),
     letterSpacing: 0.3,
   },
   // Welcome Card
@@ -238,9 +202,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: s(18),
-    padding: s(16),
-    marginTop: vs(6),
-    marginBottom: vs(14),
+    padding: s(18),
   },
   welcomeLeft: {},
   welcomeHi: {
@@ -249,7 +211,7 @@ const styles = StyleSheet.create({
     marginBottom: vs(3),
   },
   welcomeName: {
-    fontSize: ms(16),
+    fontSize: ms(17),
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -259,19 +221,23 @@ const styles = StyleSheet.create({
     marginTop: vs(4),
   },
   avatar: {
-    width: s(42),
-    height: s(42),
-    borderRadius: s(21),
+    width: s(46),
+    height: s(46),
+    borderRadius: s(23),
     backgroundColor: '#1F7A3A',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#00E676',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  // Stats — compact, same height as action tiles
+  // Bottom section sticks to bottom
+  bottomSection: {
+    gap: vs(10),
+  },
+  // Stats — compact
   statsRow: {
     flexDirection: 'row',
     gap: s(10),
@@ -297,26 +263,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: vs(6),
   },
-  // Fixed gap between stats and actions
-  sectionGap: {
-    height: vs(10),
-  },
-  // Actions
-  actionsRow: {
+  // Products History — compact row card
+  historyCard: {
+    marginTop: vs(10),
     flexDirection: 'row',
-    gap: s(10),
-  },
-  actionTile: {
-    flex: 1,
+    alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: s(18),
-    paddingVertical: vs(12),
-    paddingHorizontal: s(10),
-    alignItems: 'center',
+    borderRadius: s(16),
+    paddingVertical: vs(18),
+    paddingHorizontal: s(18),
+    gap: s(14),
   },
-  actionIconCircle: {
+  historyIconCircle: {
     width: s(34),
     height: s(34),
     borderRadius: s(17),
@@ -326,43 +286,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionLabel: {
-    fontSize: ms(11),
-    color: TextMuted,
-    marginTop: vs(10),
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  solaiCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: s(16),
-    padding: s(14),
-    gap: s(12),
-    marginTop: vs(14),
-  },
-  cirtagIcon: {
-    width: s(40),
-    height: s(40),
-    borderRadius: s(12),
-    backgroundColor: '#2EA7FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  solaiTextCol: {
+  historyLabel: {
     flex: 1,
-  },
-  solaiTitle: {
-    fontSize: ms(13),
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  solaiSub: {
-    fontSize: ms(11),
-    color: TextMuted,
-    marginTop: vs(2),
+    fontSize: ms(15),
+    color: TextPrimary,
+    fontWeight: '600',
   },
 });
