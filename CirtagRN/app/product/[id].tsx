@@ -21,6 +21,8 @@ import LifecycleTimeline from '../../src/components/LifecycleTimeline';
 import ActionButton from '../../src/components/ActionButton';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
 import { useProducts } from '../../src/hooks/useProducts';
+import { fetchProductData } from '../../src/utils/productDataFetcher';
+import * as dao from '../../src/database/scannedProductDao';
 import { formatScanDate } from '../../src/utils/dateFormatter';
 import { s, vs, ms } from '../../src/utils/scale';
 import {
@@ -51,6 +53,21 @@ export default function ProductDetailScreen() {
       getProductById(Number(id)).then((p) => setProduct(p));
     }
   }, [id, getProductById]);
+
+  // Re-fetch CO2 details if missing/incomplete
+  useEffect(() => {
+    if (!product || !product.rawValue.startsWith('http')) return;
+    if (product.co2Details && product.co2Details.split(',').length >= 2) return;
+    let cancelled = false;
+    fetchProductData(product.rawValue).then((data) => {
+      if (cancelled) return;
+      if (data.co2Details && data.co2Details.split(',').length >= 2) {
+        dao.updateProductCO2(product.id, data.co2Total, data.co2Details);
+        setProduct((prev) => prev ? { ...prev, co2Total: data.co2Total, co2Details: data.co2Details } : prev);
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [product?.id]);
 
   if (!product) return null;
 
@@ -201,6 +218,29 @@ export default function ProductDetailScreen() {
     .filter(Boolean)
     .join(' \u00B7 ');
 
+  // Parse CO2 breakdown into boxes
+  const co2Boxes: { label: string; value: string }[] = [];
+  if (product.co2Details) {
+    product.co2Details.split(',').forEach((item) => {
+      const [rawLabel, rawValue] = item.split(':');
+      if (!rawLabel || !rawValue) return;
+      let label = rawLabel.trim();
+      // Rename as requested
+      if (/transport|shipping/i.test(label)) label = 'Carbon Footprints';
+      else if (/end of life|eol/i.test(label)) label = 'Recycle';
+      else if (/raw mat/i.test(label)) label = 'Raw Mat.';
+      else if (/manufactur/i.test(label)) label = 'Mfg';
+      else if (/usage/i.test(label)) label = 'Usage';
+      const num = rawValue.replace(/[^\d.]/g, '');
+      if (num) co2Boxes.push({ label, value: num });
+    });
+  }
+  // Fallback: show total if no breakdown
+  if (co2Boxes.length === 0 && product.co2Total) {
+    const num = product.co2Total.replace(/[^\d.]/g, '');
+    if (num) co2Boxes.push({ label: 'Carbon Footprints', value: num });
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
@@ -277,15 +317,27 @@ export default function ProductDetailScreen() {
           </View>
         ) : null}
 
-        <View style={{ height: vs(16) }} />
+        <View style={{ height: vs(10) }} />
 
         {/* Lifecycle Timeline */}
         <LifecycleTimeline />
 
-        <View style={{ height: vs(16) }} />
+        {/* CO2 Footprint Boxes */}
+        {co2Boxes.length > 0 && (
+          <View style={styles.co2Row}>
+            {co2Boxes.map((box, i) => (
+              <View key={i} style={styles.co2Box}>
+                <Text style={styles.co2Value}>{box.value}</Text>
+                <Text style={styles.co2Unit}>Kg CO{'\u2082'}</Text>
+                <Text style={styles.co2Label} numberOfLines={1}>{box.label}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
+        <View style={{ height: vs(30) }} />
 
-        {/* Action Buttons - 3 buttons */}
+        {/* Action Buttons */}
         <View style={styles.actionsRow}>
           <TouchableOpacity
             style={styles.actionBtnOutline}
@@ -298,55 +350,48 @@ export default function ProductDetailScreen() {
 
           <TouchableOpacity
             style={styles.actionBtnFilled}
-            onPress={handleShare}
+            onPress={() => {
+              const pData = JSON.stringify({
+                name: displayName,
+                supplier: product.supplier || '',
+                price: product.price || '',
+                weight: product.weight || '',
+                co2Total: product.co2Total || '',
+                co2Details: product.co2Details || '',
+                certifications: product.certifications || '',
+                description: product.productDescription || '',
+                productId: product.productId || '',
+                skuId: product.skuId || '',
+              });
+              router.push(
+                `/webview?url=${encodeURIComponent(product.rawValue)}&title=${encodeURIComponent(
+                  displayName + ' Assistant'
+                )}&openChat=true&productId=${product.id}&productData=${encodeURIComponent(pData)}`
+              );
+            }}
             activeOpacity={0.7}
           >
-            <MaterialIcons name="share" size={ms(16)} color="#FFFFFF" />
-            <Text style={styles.actionBtnFilledText}>Share DPP</Text>
+            <Image source={require('../../assets/get-support-icon.png')} style={{ width: ms(26), height: ms(26), position: 'absolute', left: s(12) }} />
+            <Text style={styles.actionBtnFilledText}>Get Help</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={{ height: vs(16) }} />
+        <View style={{ height: vs(8) }} />
 
-        {/* View original product link */}
-        <TouchableOpacity
-          style={styles.linkCard}
-          onPress={() => {
-            const pData = JSON.stringify({
-              name: displayName,
-              supplier: product.supplier || '',
-              price: product.price || '',
-              weight: product.weight || '',
-              co2Total: product.co2Total || '',
-              co2Details: product.co2Details || '',
-              certifications: product.certifications || '',
-              description: product.productDescription || '',
-              productId: product.productId || '',
-              skuId: product.skuId || '',
-            });
-            router.push(
-              `/webview?url=${encodeURIComponent(product.rawValue)}&title=${encodeURIComponent(
-                'Original Product Page'
-              )}&productData=${encodeURIComponent(pData)}&desktopMode=true`
-            );
-          }}
-        >
-          <View style={styles.linkLeft}>
-            <MaterialIcons name="open-in-new" size={ms(18)} color={GreenAccent} />
-            <Text style={styles.linkText}>View Original Product Page</Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={ms(18)} color={TextMutedLight} />
-        </TouchableOpacity>
-
-        <View style={{ height: vs(16) }} />
-
-        {/* Scan Info */}
-        <View style={styles.scanInfo}>
-          <MaterialIcons name="check-circle" size={ms(14)} color={GreenAccent} />
-          <Text style={styles.scanInfoText}>
-            Scanned {formatScanDate(product.scannedAt)}
-          </Text>
+        {/* Share DPP */}
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={styles.actionBtnOutline}
+            onPress={handleShare}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="share" size={ms(16)} color={GreenAccent} />
+            <Text style={styles.actionBtnOutlineText}>Share DPP</Text>
+          </TouchableOpacity>
+          <View style={{ flex: 1.3 }} />
         </View>
+
+        <View style={{ height: vs(16) }} />
       </ScrollView>
 
       {/* Hidden WebView for PDF download - no screen change */}
@@ -370,27 +415,6 @@ export default function ProductDetailScreen() {
         />
       ) : null}
 
-      {/* Floating Chat Button - opens Flowise chatbot on original product page */}
-      <TouchableOpacity
-        style={[styles.chatFab, { bottom: vs(16) + insets.bottom }]}
-        onPress={() => {
-          router.push(
-            `/webview?url=${encodeURIComponent(product.rawValue)}&title=${encodeURIComponent(
-              displayName + ' Assistant'
-            )}&openChat=true&productId=${product.id}`
-          );
-        }}
-        activeOpacity={0.85}
-      >
-        <View style={styles.chatFabIcon}>
-          <MaterialIcons name="chat" size={ms(20)} color="#FFFFFF" />
-        </View>
-        <View style={styles.chatFabTextWrap}>
-          <Text style={styles.chatFabTitle}>Need Help?</Text>
-          <Text style={styles.chatFabSub}>Chat with us</Text>
-        </View>
-        <View style={styles.chatFabDot} />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -470,23 +494,23 @@ const styles = StyleSheet.create({
   },
   productIconSection: {
     alignItems: 'center',
-    paddingVertical: vs(16),
+    paddingVertical: vs(8),
   },
   productImage: {
-    width: s(100),
-    height: s(100),
-    borderRadius: s(50),
-  },
-  productIconCircle: {
     width: s(80),
     height: s(80),
     borderRadius: s(40),
+  },
+  productIconCircle: {
+    width: s(64),
+    height: s(64),
+    borderRadius: s(32),
     backgroundColor: GreenTint,
     justifyContent: 'center',
     alignItems: 'center',
   },
   productName: {
-    fontSize: ms(22),
+    fontSize: ms(19),
     fontWeight: '700',
     color: TextBlack,
     textAlign: 'center',
@@ -588,6 +612,43 @@ const styles = StyleSheet.create({
     fontSize: ms(12),
     color: TextGray,
   },
+  co2Row: {
+    flexDirection: 'row',
+    paddingHorizontal: s(20),
+    gap: s(8),
+    marginTop: vs(12),
+  },
+  co2Box: {
+    flex: 1,
+    backgroundColor: White,
+    borderRadius: s(12),
+    paddingVertical: vs(10),
+    paddingHorizontal: s(8),
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  co2Value: {
+    fontSize: ms(18),
+    fontWeight: '800',
+    color: GreenAccent,
+  },
+  co2Unit: {
+    fontSize: ms(9),
+    fontWeight: '600',
+    color: TextGray,
+    marginTop: vs(1),
+  },
+  co2Label: {
+    fontSize: ms(10),
+    fontWeight: '600',
+    color: TextBlack,
+    marginTop: vs(4),
+    textAlign: 'center',
+  },
   actionsRow: {
     flexDirection: 'row',
     paddingHorizontal: s(20),
@@ -612,13 +673,13 @@ const styles = StyleSheet.create({
     color: GreenAccent,
   },
   actionBtnFilled: {
-    flex: 1,
+    flex: 1.3,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: s(12),
-    paddingVertical: vs(12),
-    paddingHorizontal: s(8),
+    paddingVertical: vs(14),
+    paddingHorizontal: s(10),
     gap: s(4),
     backgroundColor: GreenAccent,
   },
@@ -626,30 +687,6 @@ const styles = StyleSheet.create({
     fontSize: ms(12),
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  linkCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: White,
-    borderRadius: s(14),
-    padding: s(14),
-    marginHorizontal: s(20),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  linkLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(10),
-  },
-  linkText: {
-    fontSize: ms(13),
-    fontWeight: '600',
-    color: TextBlack,
   },
   scanInfo: {
     flexDirection: 'row',
@@ -662,47 +699,5 @@ const styles = StyleSheet.create({
     fontSize: ms(12),
     color: TextGray,
     fontWeight: '500',
-  },
-  chatFab: {
-    position: 'absolute',
-    right: s(16),
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#000000',
-    borderRadius: s(24),
-    paddingVertical: vs(10),
-    paddingHorizontal: s(14),
-    gap: s(10),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  chatFabIcon: {
-    width: s(36),
-    height: s(36),
-    borderRadius: s(18),
-    backgroundColor: '#7C4DFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  chatFabTextWrap: {
-    marginRight: s(4),
-  },
-  chatFabTitle: {
-    fontSize: ms(13),
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  chatFabSub: {
-    fontSize: ms(11),
-    color: '#CCCCCC',
-  },
-  chatFabDot: {
-    width: s(8),
-    height: s(8),
-    borderRadius: s(4),
-    backgroundColor: '#00E676',
   },
 });

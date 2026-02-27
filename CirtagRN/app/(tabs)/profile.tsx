@@ -119,8 +119,7 @@ export default function ProfileScreen() {
         <View style={styles.menuSection}>
           <MenuItem icon="settings" label="Settings" subtitle="App preferences" onPress={() => router.push('/settings')} />
           <MenuItem icon="notifications" label="Notifications" subtitle="Manage alerts" onPress={() => router.push('/notifications')} />
-          <MenuItem icon="security" label="Privacy & Security" subtitle="Data protection" onPress={() => router.push('/privacy')} />
-          <MenuItem icon="help-outline" label="Help & FAQ" subtitle="Get answers" onPress={() => router.push('/(tabs)/tickets')} />
+          <MenuItem icon="security" label="Privacy & Security" subtitle="Privacy & Data Terms" onPress={() => router.push('/privacy')} />
           <MenuItem
             icon="info-outline"
             label="About CirTag"

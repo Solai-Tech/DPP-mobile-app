@@ -49,33 +49,49 @@ export function useProducts() {
   // Auto-fix products with missing/dirty names (run once)
   useEffect(() => {
     if (fixedRef.current || products.length === 0) return;
-    const needsFix = products.filter(
+    const needsNameFix = products.filter(
       (p) => p.rawValue.startsWith('http') && isDirtyName(p.productName)
     );
-    if (needsFix.length === 0) return;
+    // Also fix products with missing/incomplete CO2 details
+    const needsCo2Fix = products.filter(
+      (p) => p.rawValue.startsWith('http') && (!p.co2Details || p.co2Details.split(',').length < 2)
+    );
+    if (needsNameFix.length === 0 && needsCo2Fix.length === 0) return;
     fixedRef.current = true;
 
     (async () => {
       let anyFixed = false;
-      for (const product of needsFix) {
+      const allNeedsFix = new Map<number, ScannedProduct>();
+      needsNameFix.forEach((p) => allNeedsFix.set(p.id, p));
+      needsCo2Fix.forEach((p) => allNeedsFix.set(p.id, p));
+
+      for (const product of allNeedsFix.values()) {
         try {
-          // Try full parser first
           const fetchUrl = fixLocalhostUrl(product.rawValue);
           const data = await fetchProductData(fetchUrl);
-          const cleaned = cleanProductName(data.name);
-          if (cleaned) {
-            await dao.updateProductName(product.id, cleaned);
-            anyFixed = true;
-            continue;
-          }
-          // Fallback: fetch page title
-          const title = await fetchTitle(fetchUrl);
-          if (title) {
-            const cleanTitle = cleanProductName(title);
-            if (cleanTitle.length > 0) {
-              await dao.updateProductName(product.id, cleanTitle);
+
+          // Fix name if needed
+          if (isDirtyName(product.productName)) {
+            const cleaned = cleanProductName(data.name);
+            if (cleaned) {
+              await dao.updateProductName(product.id, cleaned);
               anyFixed = true;
+            } else {
+              const title = await fetchTitle(fetchUrl);
+              if (title) {
+                const cleanTitle = cleanProductName(title);
+                if (cleanTitle.length > 0) {
+                  await dao.updateProductName(product.id, cleanTitle);
+                  anyFixed = true;
+                }
+              }
             }
+          }
+
+          // Fix CO2 data if needed
+          if (data.co2Details && data.co2Details.split(',').length >= 2) {
+            await dao.updateProductCO2(product.id, data.co2Total, data.co2Details);
+            anyFixed = true;
           }
         } catch {
           // ignore

@@ -12,6 +12,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import WebView from 'react-native-webview';
 import ChatBubble from '../../src/components/ChatBubble';
 import TicketCard from '../../src/components/TicketCard';
 import { useTickets } from '../../src/hooks/useTickets';

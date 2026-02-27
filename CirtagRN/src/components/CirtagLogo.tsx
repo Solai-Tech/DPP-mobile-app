@@ -19,8 +19,8 @@ export default function CirtagLogo({ size = 'medium' }: Props) {
   return (
     <View style={styles.container}>
       <MaterialIcons name="recycling" size={ms(sizeConfig.iconSize)} color={Accent} />
-      <Text style={[styles.cirt, { fontSize: ms(sizeConfig.fontSize) }]}>CIRT</Text>
-      <Text style={[styles.ag, { fontSize: ms(sizeConfig.fontSize) }]}>AG</Text>
+      <Text style={[styles.cir, { fontSize: ms(sizeConfig.fontSize) }]}>CIR</Text>
+      <Text style={[styles.tag, { fontSize: ms(sizeConfig.fontSize) }]}>TAG</Text>
     </View>
   );
 }
@@ -31,12 +31,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: s(4),
   },
-  cirt: {
+  cir: {
     fontWeight: '800',
     color: TextPrimary,
     letterSpacing: 1,
   },
-  ag: {
+  tag: {
     fontWeight: '800',
     color: Accent,
     letterSpacing: 1,

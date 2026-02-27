@@ -56,8 +56,8 @@ export default function HomeScreen() {
               <MaterialIcons name="recycling" size={ms(44)} color="#FFFFFF" />
             </View>
             <View style={styles.logoTextRow}>
-              <Text style={styles.logoName}>CIRT</Text>
-              <Text style={styles.logoNameAccent}>AG</Text>
+              <Text style={styles.logoName}>CIR</Text>
+              <Text style={styles.logoNameAccent}>TAG</Text>
             </View>
             <Text style={styles.tagline}>Circular Economy Platform.</Text>
             <Text style={styles.taglineSub}>Measure. Trace. Act.</Text>

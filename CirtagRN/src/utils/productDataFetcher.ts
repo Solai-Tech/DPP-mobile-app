@@ -205,27 +205,52 @@ function parseHtml(html: string, baseUrl: string, fullUrl: string): ProductData 
     if (val && val !== 'Not specified' && /\d/.test(val)) weight = val;
   }
 
-  // Total CO2 - prefer co2-total class, then general pattern
-  const co2TotalMatch =
-    html.match(/co2-total[^>]*>([\d.,]+)\s*(?:Kg|kg)\s*CO/i) ||
-    html.match(/([\d.,]+)\s*(?:Kg|kg)\s*CO/i);
-  if (co2TotalMatch) co2Total = `${co2TotalMatch[1]} Kg CO\u2082 Eqv`;
+  // CO2 breakdown - STRATEGY 1: parse JS PCF variables (e.g. const manufacturingPCF = parseFloat('9.33'))
+  const pcfPatterns: [string, RegExp][] = [
+    ['Manufacturing', /manufacturingPCF\s*=\s*parseFloat\(['"](\d+\.?\d*)['"]\)/i],
+    ['Usage', /usagePCF\s*=\s*parseFloat\(['"](\d+\.?\d*)['"]\)/i],
+    ['Transportation', /transportationPCF\s*=\s*parseFloat\(['"](\d+\.?\d*)['"]\)/i],
+    ['End of Life', /endOfLifePCF\s*=\s*parseFloat\(['"](\d+\.?\d*)['"]\)/i],
+  ];
+  for (const [label, pattern] of pcfPatterns) {
+    const match = html.match(pattern);
+    if (match && parseFloat(match[1]) > 0) {
+      co2Items.push(`${label}:${match[1]} Kg CO\u2082`);
+    }
+  }
 
-  // CO2 breakdown - PRIMARY: parse chart.js data (most reliable)
-  const chartMatch = html.match(
-    /labels:\s*\[([^\]]+)\][\s\S]*?label:\s*'CO[\s\S]*?data:\s*\[([^\]]+)\]/
-  );
-  if (chartMatch) {
-    const labels = chartMatch[1].match(/'([^']+)'/g)?.map(s => s.replace(/'/g, ''));
-    const values = chartMatch[2].split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
-    if (labels && labels.length === values.length) {
-      for (let i = 0; i < labels.length; i++) {
-        co2Items.push(`${labels[i]}:${values[i].toFixed(2)} Kg CO\u2082`);
+  // CO2 breakdown - STRATEGY 2: parse carbon-value divs
+  // Format: <div>Manufacturing(kgCO₂)</div>\n<div class="carbon-value">9.33</div>
+  if (co2Items.length === 0) {
+    const carbonBoxRegex = /(Manufacturing|Usage|Transportation|End of Life|Raw Material)[^<]*\(kg\s*CO/gi;
+    let cbMatch;
+    while ((cbMatch = carbonBoxRegex.exec(html)) !== null) {
+      const after = html.substring(cbMatch.index, cbMatch.index + 500);
+      const valMatch = after.match(/carbon-value[^>]*>\s*([\d.,]+)/i);
+      if (valMatch && parseFloat(valMatch[1]) > 0) {
+        const label = cbMatch[1].trim();
+        co2Items.push(`${label}:${valMatch[1]} Kg CO\u2082`);
       }
     }
   }
 
-  // CO2 breakdown - FALLBACK: regex patterns that cross HTML tags
+  // CO2 breakdown - STRATEGY 3: chart.js with category labels array
+  if (co2Items.length === 0) {
+    const chartMatch = html.match(
+      /labels:\s*\[([^\]]+)\][\s\S]*?label:\s*'CO[\s\S]*?data:\s*\[([^\]]+)\]/
+    );
+    if (chartMatch) {
+      const labels = chartMatch[1].match(/'([^']+)'/g)?.map(s => s.replace(/'/g, ''));
+      const values = chartMatch[2].split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+      if (labels && labels.length === values.length) {
+        for (let i = 0; i < labels.length; i++) {
+          co2Items.push(`${labels[i]}:${values[i].toFixed(2)} Kg CO\u2082`);
+        }
+      }
+    }
+  }
+
+  // CO2 breakdown - STRATEGY 4: regex patterns across HTML tags (fallback)
   if (co2Items.length === 0) {
     const co2Patterns: [string, RegExp][] = [
       ['Manufacturing', /Manufacturing[\s\S]{0,500}?(\d+\.?\d*)\s*(?:<[^>]*>\s*)?(?:Kg|kg)\s*CO/i],
@@ -240,6 +265,20 @@ function parseHtml(html: string, baseUrl: string, fullUrl: string): ProductData 
         co2Items.push(`${label}:${match[1]} Kg CO\u2082`);
       }
     }
+  }
+
+  // Total CO2 - compute from breakdown if available, else parse from HTML
+  if (co2Items.length > 0) {
+    const sum = co2Items.reduce((acc, item) => {
+      const val = parseFloat(item.split(':')[1]) || 0;
+      return acc + val;
+    }, 0);
+    co2Total = `${sum.toFixed(2)} Kg CO\u2082 Eqv`;
+  } else {
+    const co2TotalMatch =
+      html.match(/co2-total[^>]*>([\d.,]+)\s*(?:Kg|kg)\s*CO/i) ||
+      html.match(/Total[^<]{0,30}?([\d.,]+)\s*(?:Kg|kg)\s*CO/i);
+    if (co2TotalMatch) co2Total = `${co2TotalMatch[1]} Kg CO\u2082 Eqv`;
   }
 
   // Certifications

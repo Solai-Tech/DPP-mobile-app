@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -51,10 +52,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="tickets"
         options={{
-          title: 'Help',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="support-agent" size={ms(size + 2)} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
