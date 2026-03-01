@@ -19,7 +19,6 @@ import LoadingOverlay from '../../src/components/LoadingOverlay';
 import { useCamera } from '../../src/hooks/useCamera';
 import { useProducts } from '../../src/hooks/useProducts';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
-import { clearGeneralChat } from '../../src/database/ticketDao';
 import { getBarcodeFormatName, inferBarcodeType } from '../../src/utils/barcodeHelpers';
 import { s, vs, ms } from '../../src/utils/scale';
 
@@ -64,11 +63,9 @@ export default function ScanScreen() {
         co2Details: '',
         certifications: '',
         datasheetUrl: '',
+        documents: '',
         scannedAt: Date.now(),
       };
-
-      // Clear old chat on new scan so chatbot starts fresh
-      clearGeneralChat();
 
       scanAndSaveProduct(product, (savedId) => {
         router.push(`/product/${savedId}`);

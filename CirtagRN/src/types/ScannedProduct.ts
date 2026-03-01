@@ -16,5 +16,6 @@ export interface ScannedProduct {
   co2Details: string;       // "Raw Materials:3.15 Kg CO₂,Shipping & Transport:3.18 Kg CO₂"
   certifications: string;   // "ISO 14001,BPA Free,FCC Approved"
   datasheetUrl: string;
+  documents: string;
   scannedAt: number;
 }

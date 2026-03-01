@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Ticket, ChatMessage } from '../types/Ticket';
 import * as ticketDao from '../database/ticketDao';
 import * as dao from '../database/scannedProductDao';
-import { getChatbotReply } from '../utils/chatbotApi';
+import { getChatbotReply, saveChatToServer } from '../utils/chatbotApi';
 
 export function useTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -32,6 +32,7 @@ export function useTickets() {
       const now = Date.now();
       await ticketDao.insertChatMessage({
         ticketId,
+        productId: null,
         message,
         sender: 'user',
         createdAt: now,
@@ -44,10 +45,20 @@ export function useTickets() {
 
       await ticketDao.insertChatMessage({
         ticketId,
+        productId: null,
         message: reply,
         sender: 'bot',
         createdAt: Date.now(),
       });
+
+      // Save chat to remote DB (fire & forget)
+      const recentProduct = products.length > 0 ? products[products.length - 1] : null;
+      saveChatToServer(
+        message,
+        reply,
+        recentProduct?.productName || '',
+        recentProduct?.rawValue || ''
+      );
 
       await loadChatMessages(ticketId);
     },

@@ -21,7 +21,7 @@ import LifecycleTimeline from '../../src/components/LifecycleTimeline';
 import ActionButton from '../../src/components/ActionButton';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
 import { useProducts } from '../../src/hooks/useProducts';
-import { fetchProductData } from '../../src/utils/productDataFetcher';
+import { fetchProductData, DocumentInfo } from '../../src/utils/productDataFetcher';
 import * as dao from '../../src/database/scannedProductDao';
 import { formatScanDate } from '../../src/utils/dateFormatter';
 import { s, vs, ms } from '../../src/utils/scale';
@@ -54,16 +54,22 @@ export default function ProductDetailScreen() {
     }
   }, [id, getProductById]);
 
-  // Re-fetch CO2 details if missing/incomplete
+  // Re-fetch CO2 details and documents if missing/incomplete
   useEffect(() => {
     if (!product || !product.rawValue.startsWith('http')) return;
-    if (product.co2Details && product.co2Details.split(',').length >= 2) return;
+    const needsCo2 = !product.co2Details || product.co2Details.split(',').length < 2;
+    const needsDocs = !product.documents;
+    if (!needsCo2 && !needsDocs) return;
     let cancelled = false;
     fetchProductData(product.rawValue).then((data) => {
       if (cancelled) return;
-      if (data.co2Details && data.co2Details.split(',').length >= 2) {
+      if (needsCo2 && data.co2Details && data.co2Details.split(',').length >= 2) {
         dao.updateProductCO2(product.id, data.co2Total, data.co2Details);
         setProduct((prev) => prev ? { ...prev, co2Total: data.co2Total, co2Details: data.co2Details } : prev);
+      }
+      if (needsDocs && data.documents) {
+        dao.updateProductDocuments(product.id, data.documents);
+        setProduct((prev) => prev ? { ...prev, documents: data.documents } : prev);
       }
     }).catch(() => {});
     return () => { cancelled = true; };
@@ -241,6 +247,18 @@ export default function ProductDetailScreen() {
     if (num) co2Boxes.push({ label: 'Carbon Footprints', value: num });
   }
 
+  // Parse documents
+  let documentList: DocumentInfo[] = [];
+  try {
+    if (product.documents) {
+      documentList = JSON.parse(product.documents);
+    }
+  } catch {}
+  // Include datasheetUrl as first document if not already in list
+  if (product.datasheetUrl && !documentList.some((d) => d.url === product.datasheetUrl)) {
+    documentList.unshift({ name: 'Product Datasheet', url: product.datasheetUrl, type: 'datasheet' });
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
@@ -250,7 +268,7 @@ export default function ProductDetailScreen() {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Product Passport</Text>
-          <Text style={styles.headerSubtitle}>Scanned just now</Text>
+          <Text style={styles.headerSubtitle}>{formatScanDate(product.scannedAt)}</Text>
         </View>
         {hasVerified && (
           <View style={styles.verifiedBadge}>
@@ -335,6 +353,34 @@ export default function ProductDetailScreen() {
           </View>
         )}
 
+        {/* Documents & Downloads */}
+        {documentList.length > 0 && (
+          <View style={styles.docsSection}>
+            <Text style={styles.docsSectionTitle}>Documents & Downloads</Text>
+            {documentList.map((doc, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.docCard}
+                onPress={() => openUrl(doc.url, doc.name)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.docIconBox}>
+                  <MaterialIcons
+                    name={doc.type === 'pdf' ? 'picture-as-pdf' : doc.type === 'certificate' ? 'verified' : 'description'}
+                    size={ms(20)}
+                    color={GreenAccent}
+                  />
+                </View>
+                <View style={styles.docInfo}>
+                  <Text style={styles.docName} numberOfLines={1}>{doc.name}</Text>
+                  <Text style={styles.docType}>{doc.type.toUpperCase()}</Text>
+                </View>
+                <MaterialIcons name="open-in-new" size={ms(18)} color={TextGray} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         <View style={{ height: vs(30) }} />
 
         {/* Action Buttons */}
@@ -351,22 +397,8 @@ export default function ProductDetailScreen() {
           <TouchableOpacity
             style={styles.actionBtnFilled}
             onPress={() => {
-              const pData = JSON.stringify({
-                name: displayName,
-                supplier: product.supplier || '',
-                price: product.price || '',
-                weight: product.weight || '',
-                co2Total: product.co2Total || '',
-                co2Details: product.co2Details || '',
-                certifications: product.certifications || '',
-                description: product.productDescription || '',
-                productId: product.productId || '',
-                skuId: product.skuId || '',
-              });
               router.push(
-                `/webview?url=${encodeURIComponent(product.rawValue)}&title=${encodeURIComponent(
-                  displayName + ' Assistant'
-                )}&openChat=true&productId=${product.id}&productData=${encodeURIComponent(pData)}`
+                `/product-chat?productId=${product.id}&productName=${encodeURIComponent(displayName)}&productUrl=${encodeURIComponent(product.rawValue)}`
               );
             }}
             activeOpacity={0.7}
@@ -648,6 +680,51 @@ const styles = StyleSheet.create({
     color: TextBlack,
     marginTop: vs(4),
     textAlign: 'center',
+  },
+  docsSection: {
+    paddingHorizontal: s(20),
+    marginTop: vs(16),
+  },
+  docsSectionTitle: {
+    fontSize: ms(15),
+    fontWeight: '700',
+    color: TextBlack,
+    marginBottom: vs(10),
+  },
+  docCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: White,
+    borderRadius: s(12),
+    padding: s(12),
+    marginBottom: vs(8),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  docIconBox: {
+    width: s(36),
+    height: s(36),
+    borderRadius: s(8),
+    backgroundColor: GreenTint,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: s(10),
+  },
+  docInfo: {
+    flex: 1,
+  },
+  docName: {
+    fontSize: ms(13),
+    fontWeight: '600',
+    color: TextBlack,
+  },
+  docType: {
+    fontSize: ms(11),
+    color: TextGray,
+    marginTop: vs(2),
   },
   actionsRow: {
     flexDirection: 'row',

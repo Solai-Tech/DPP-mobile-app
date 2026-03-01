@@ -64,6 +64,7 @@ export default function TicketDetailScreen() {
 
     await ticketDao.insertChatMessage({
       ticketId: id,
+      productId: null,
       message: text,
       sender: 'user',
       createdAt: Date.now(),
@@ -77,6 +78,7 @@ export default function TicketDetailScreen() {
 
     await ticketDao.insertChatMessage({
       ticketId: id,
+      productId: null,
       message: reply,
       sender: 'bot',
       createdAt: Date.now(),

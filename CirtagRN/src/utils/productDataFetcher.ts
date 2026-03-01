@@ -1,3 +1,9 @@
+export interface DocumentInfo {
+  name: string;
+  url: string;
+  type: 'pdf' | 'datasheet' | 'certificate' | 'other';
+}
+
 export interface ProductData {
   name: string;
   description: string;
@@ -11,6 +17,7 @@ export interface ProductData {
   co2Details: string;
   certifications: string;
   datasheetUrl: string;
+  documents: string;
 }
 
 function emptyProductData(): ProductData {
@@ -27,6 +34,7 @@ function emptyProductData(): ProductData {
     co2Details: '',
     certifications: '',
     datasheetUrl: '',
+    documents: '',
   };
 }
 
@@ -309,6 +317,44 @@ function parseHtml(html: string, baseUrl: string, fullUrl: string): ProductData 
     datasheetUrl = pdf.startsWith('http') ? pdf : `${baseUrl}${pdf}`;
   }
 
+  // Document extraction
+  const docs: DocumentInfo[] = [];
+  const seenUrls = new Set<string>();
+
+  const linkRegex = /<a\s[^>]*href=["']([^"']+)["'][^>]*(?:\sdownload[^>]*)?>([\s\S]*?)<\/a>/gi;
+  let linkMatch;
+  while ((linkMatch = linkRegex.exec(html)) !== null) {
+    const href = linkMatch[1];
+    const linkText = linkMatch[2].replace(/<[^>]+>/g, '').trim();
+    const isPdf = /\.pdf(\?|#|$)/i.test(href);
+    const isDocPath = /\/(datasheet|document|download|certificate)\//i.test(href);
+    const hasDownload = /\sdownload/i.test(linkMatch[0]);
+
+    if (!isPdf && !isDocPath && !hasDownload) continue;
+
+    const resolvedUrl = href.startsWith('http') ? href : `${baseUrl}${href.startsWith('/') ? '' : '/'}${href}`;
+    if (seenUrls.has(resolvedUrl)) continue;
+    seenUrls.add(resolvedUrl);
+
+    let docName = linkText || '';
+    if (!docName) {
+      const parts = resolvedUrl.split('/');
+      docName = decodeURIComponent(parts[parts.length - 1].split('?')[0]).replace(/[-_]/g, ' ');
+    }
+
+    let docType: DocumentInfo['type'] = 'other';
+    if (isPdf) docType = 'pdf';
+    else if (/datasheet/i.test(resolvedUrl)) docType = 'datasheet';
+    else if (/certificate/i.test(resolvedUrl)) docType = 'certificate';
+
+    docs.push({ name: docName, url: resolvedUrl, type: docType });
+  }
+
+  // Include the primary datasheet if found and not already in the list
+  if (datasheetUrl && !seenUrls.has(datasheetUrl)) {
+    docs.unshift({ name: 'Product Datasheet', url: datasheetUrl, type: 'datasheet' });
+  }
+
   return {
     name,
     description,
@@ -322,5 +368,6 @@ function parseHtml(html: string, baseUrl: string, fullUrl: string): ProductData 
     co2Details: co2Items.join(','),
     certifications: certs.join(','),
     datasheetUrl,
+    documents: docs.length > 0 ? JSON.stringify(docs) : '',
   };
 }

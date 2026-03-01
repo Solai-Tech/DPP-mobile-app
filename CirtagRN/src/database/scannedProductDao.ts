@@ -24,8 +24,8 @@ export async function insertProduct(product: Omit<ScannedProduct, 'id'>): Promis
     `INSERT INTO scanned_products (
       rawValue, displayValue, format, type, productName, productDescription,
       imageUrl, productId, price, supplier, skuId, weight,
-      co2Total, co2Details, certifications, datasheetUrl, scannedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      co2Total, co2Details, certifications, datasheetUrl, documents, scannedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       product.rawValue,
       product.displayValue,
@@ -43,15 +43,26 @@ export async function insertProduct(product: Omit<ScannedProduct, 'id'>): Promis
       product.co2Details,
       product.certifications,
       product.datasheetUrl,
+      product.documents,
       product.scannedAt,
     ]
   );
   return result.lastInsertRowId;
 }
 
+export async function updateProductName(id: number, name: string): Promise<void> {
+  const db = getDatabaseSync();
+  db.runSync('UPDATE scanned_products SET productName = ? WHERE id = ?', [name, id]);
+}
+
 export async function updateProductCO2(id: number, co2Total: string, co2Details: string): Promise<void> {
   const db = getDatabaseSync();
   db.runSync('UPDATE scanned_products SET co2Total = ?, co2Details = ? WHERE id = ?', [co2Total, co2Details, id]);
+}
+
+export async function updateProductDocuments(id: number, documents: string): Promise<void> {
+  const db = getDatabaseSync();
+  db.runSync('UPDATE scanned_products SET documents = ? WHERE id = ?', [documents, id]);
 }
 
 export async function deleteProduct(id: number): Promise<void> {

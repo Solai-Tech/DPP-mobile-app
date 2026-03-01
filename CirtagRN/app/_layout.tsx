@@ -27,6 +27,10 @@ export default function RootLayout() {
           options={{ animation: 'slide_from_right' }}
         />
         <Stack.Screen
+          name="product-chat"
+          options={{ animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
           name="ticket-detail"
           options={{ animation: 'slide_from_right' }}
         />

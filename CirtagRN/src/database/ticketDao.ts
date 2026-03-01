@@ -85,9 +85,31 @@ export async function insertChatMessage(
 ): Promise<number> {
   const db = getDatabaseSync();
   const result = db.runSync(
-    `INSERT INTO chat_messages (ticketId, message, sender, createdAt)
-     VALUES (?, ?, ?, ?)`,
-    [msg.ticketId, msg.message, msg.sender, msg.createdAt]
+    `INSERT INTO chat_messages (ticketId, productId, message, sender, createdAt)
+     VALUES (?, ?, ?, ?, ?)`,
+    [msg.ticketId, msg.productId ?? null, msg.message, msg.sender, msg.createdAt]
+  );
+  return result.lastInsertRowId;
+}
+
+export async function getChatMessagesByProductId(
+  productId: number
+): Promise<ChatMessage[]> {
+  const db = getDatabaseSync();
+  return db.getAllSync<ChatMessage>(
+    'SELECT * FROM chat_messages WHERE productId = ? ORDER BY createdAt ASC',
+    [productId]
+  );
+}
+
+export async function insertProductChatMessage(
+  msg: { productId: number; message: string; sender: 'user' | 'bot'; createdAt: number }
+): Promise<number> {
+  const db = getDatabaseSync();
+  const result = db.runSync(
+    `INSERT INTO chat_messages (ticketId, productId, message, sender, createdAt)
+     VALUES (NULL, ?, ?, ?, ?)`,
+    [msg.productId, msg.message, msg.sender, msg.createdAt]
   );
   return result.lastInsertRowId;
 }

@@ -56,7 +56,10 @@ export function useProducts() {
     const needsCo2Fix = products.filter(
       (p) => p.rawValue.startsWith('http') && (!p.co2Details || p.co2Details.split(',').length < 2)
     );
-    if (needsNameFix.length === 0 && needsCo2Fix.length === 0) return;
+    const needsDocsFix = products.filter(
+      (p) => p.rawValue.startsWith('http') && !p.documents
+    );
+    if (needsNameFix.length === 0 && needsCo2Fix.length === 0 && needsDocsFix.length === 0) return;
     fixedRef.current = true;
 
     (async () => {
@@ -64,6 +67,7 @@ export function useProducts() {
       const allNeedsFix = new Map<number, ScannedProduct>();
       needsNameFix.forEach((p) => allNeedsFix.set(p.id, p));
       needsCo2Fix.forEach((p) => allNeedsFix.set(p.id, p));
+      needsDocsFix.forEach((p) => allNeedsFix.set(p.id, p));
 
       for (const product of allNeedsFix.values()) {
         try {
@@ -91,6 +95,12 @@ export function useProducts() {
           // Fix CO2 data if needed
           if (data.co2Details && data.co2Details.split(',').length >= 2) {
             await dao.updateProductCO2(product.id, data.co2Total, data.co2Details);
+            anyFixed = true;
+          }
+
+          // Fix documents if needed
+          if (!product.documents && data.documents) {
+            await dao.updateProductDocuments(product.id, data.documents);
             anyFixed = true;
           }
         } catch {
@@ -153,6 +163,7 @@ export function useProducts() {
             co2Details: data.co2Details,
             certifications: data.certifications,
             datasheetUrl: data.datasheetUrl,
+            documents: data.documents,
           };
           const id = await dao.insertProduct(enriched);
           await refreshProducts();

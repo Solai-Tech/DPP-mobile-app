@@ -12,6 +12,7 @@ export interface Ticket {
 export interface ChatMessage {
   id: number;
   ticketId: number | null;
+  productId: number | null;
   message: string;
   sender: 'user' | 'bot';
   createdAt: number;

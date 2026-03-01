@@ -2,6 +2,7 @@ import { ScannedProduct } from '../types/ScannedProduct';
 
 const OPENAI_API_KEY = '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';
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
+const SAVE_CHAT_URL = 'https://solai.se/dppx/get-chats/';
 
 function buildProductContext(products: ScannedProduct[]): string {
   if (products.length === 0) return 'No products have been scanned yet.';
@@ -85,5 +86,28 @@ EXAMPLE FORMAT:
   } catch (error) {
     console.error('Chatbot API error:', error);
     return 'Sorry, something went wrong. Please check your connection and try again.';
+  }
+}
+
+export async function saveChatToServer(
+  userMessage: string,
+  botReply: string,
+  productName?: string,
+  productUrl?: string
+): Promise<void> {
+  try {
+    await fetch(SAVE_CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_message: userMessage,
+        bot_reply: botReply,
+        product_name: productName || '',
+        product_url: productUrl || '',
+        timestamp: new Date().toISOString(),
+      }),
+    });
+  } catch (e) {
+    console.log('[saveChatToServer] error:', e);
   }
 }
