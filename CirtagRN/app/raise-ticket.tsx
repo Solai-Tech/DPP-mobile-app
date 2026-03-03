@@ -14,12 +14,13 @@ import { getTicketByProductId, moveGeneralChatToTicket } from '../src/database/t
 import TicketCard from '../src/components/TicketCard';
 import { s, vs, ms } from '../src/utils/scale';
 
-const LightBg = '#F5F7FA';
-const GreenAccent = '#1B7A3D';
-const TextBlack = '#1A1A1A';
-const TextGray = '#6B6B6B';
-const TextMutedLight = '#999999';
-const TextPrimary = '#E8F5E9';
+const CreamBg = '#F7F5F0';
+const White = '#FFFFFF';
+const SageAccent = '#5A8C5A';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const TextMutedLight = 'rgba(44,62,45,0.4)';
+const Border = 'rgba(44,62,45,0.1)';
 
 export default function RaiseTicketScreen() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function RaiseTicketScreen() {
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color={TextPrimary} />
+          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color={White} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Tickets</Text>
       </View>
@@ -91,7 +92,7 @@ export default function RaiseTicketScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: LightBg,
+    backgroundColor: CreamBg,
   },
   flex: {
     flex: 1,
@@ -101,9 +102,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(12),
-    backgroundColor: '#0A1A14',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: SageAccent,
   },
   backBtn: {
     width: s(34),
@@ -117,7 +116,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: ms(16),
     fontWeight: '700',
-    color: TextPrimary,
+    color: White,
   },
   content: {
     paddingHorizontal: s(20),
@@ -134,7 +133,7 @@ const styles = StyleSheet.create({
     width: s(64),
     height: s(64),
     borderRadius: s(32),
-    backgroundColor: '#F0F2F5',
+    backgroundColor: '#F0EDE6',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: vs(12),

@@ -36,6 +36,8 @@ export function useProducts() {
       .replace(/^(DPP|Digital Product Passport)\s*[-|–]\s*/i, '')
       .trim();
     name = name.replace(/^[\"'`]+|[\"'`,.;:]+$/g, '').trim();
+    // Remove R_ or RN_ or RN prefixes (common raw name artifacts)
+    name = name.replace(/^RN?[_ ]/i, '').replace(/_/g, ' ').trim();
     if (/^(productname|product name|product)$/i.test(name)) return '';
     return name;
   };

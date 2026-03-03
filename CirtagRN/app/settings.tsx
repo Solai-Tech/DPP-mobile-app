@@ -5,6 +5,14 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { s, vs, ms } from '../src/utils/scale';
 
+const CreamBg = '#F7F5F0';
+const White = '#FFFFFF';
+const SageAccent = '#5A8C5A';
+const TextDark = '#2C3E2D';
+const TextMuted = 'rgba(44,62,45,0.4)';
+const Border = 'rgba(44,62,45,0.1)';
+const SageTint = 'rgba(90,140,90,0.08)';
+
 interface SettingItemProps {
   icon: string;
   label: string;
@@ -15,10 +23,10 @@ function SettingItem({ icon, label, onPress }: SettingItemProps) {
   return (
     <TouchableOpacity style={styles.itemRow} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.itemIcon}>
-        <MaterialIcons name={icon as any} size={ms(20)} color="#00E676" />
+        <MaterialIcons name={icon as any} size={ms(20)} color={SageAccent} />
       </View>
       <Text style={styles.itemLabel}>{label}</Text>
-      <MaterialIcons name="chevron-right" size={ms(20)} color="rgba(255,255,255,0.4)" />
+      <MaterialIcons name="chevron-right" size={ms(20)} color={TextMuted} />
     </TouchableOpacity>
   );
 }
@@ -31,7 +39,7 @@ export default function SettingsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color={TextDark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
       </View>
@@ -57,15 +65,16 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A1A14',
+    backgroundColor: CreamBg,
   },
   header: {
     height: vs(48),
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(12),
+    backgroundColor: White,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: Border,
   },
   backBtn: {
     width: s(34),
@@ -78,7 +87,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: TextDark,
   },
   content: {
     padding: s(20),
@@ -88,16 +97,21 @@ const styles = StyleSheet.create({
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: White,
     borderRadius: s(14),
     padding: s(16),
     gap: s(12),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   itemIcon: {
     width: s(40),
     height: s(40),
     borderRadius: s(20),
-    backgroundColor: 'rgba(0,230,118,0.1)',
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -105,6 +119,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: ms(15),
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: TextDark,
   },
 });

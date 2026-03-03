@@ -22,15 +22,16 @@ import { ScannedProduct } from '../../src/types/ScannedProduct';
 import { getBarcodeFormatName, inferBarcodeType } from '../../src/utils/barcodeHelpers';
 import { s, vs, ms } from '../../src/utils/scale';
 
-// Light theme colors
-const LightBg = '#F5F7FA';
+// Botanical Fresh theme colors
+const CreamBg = '#F7F5F0';
 const White = '#FFFFFF';
-const GreenAccent = '#1B7A3D';
-const BrightGreen = '#00E676';
-const TextBlack = '#1A1A1A';
-const TextGray = '#6B6B6B';
-const TextMutedLight = '#999999';
-const CameraBg = '#0D2818';
+const SageAccent = '#5A8C5A';
+const SageLight = '#7BAF7B';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const TextMutedLight = 'rgba(44,62,45,0.4)';
+const CameraBg = '#2C3E2D';
+const Border = 'rgba(44,62,45,0.1)';
 
 export default function ScanScreen() {
   const router = useRouter();
@@ -138,7 +139,7 @@ export default function ScanScreen() {
       .join(' \u00B7 ');
     const hasImage = !!item.imageUrl;
 
-    const iconColors = ['#E8F5E9', '#E3F2FD', '#FFF3E0', '#F3E5F5', '#E0F7FA'];
+    const iconColors = ['#E8F0E8', '#E0F0F0', '#F5E6D8', '#F0E8F0', '#E8F0F0'];
     const colorIndex = item.id % iconColors.length;
     const iconBg = iconColors[colorIndex];
 
@@ -157,7 +158,7 @@ export default function ScanScreen() {
           />
         ) : (
           <View style={[styles.productIcon, { backgroundColor: iconBg }]}>
-            <MaterialIcons name="recycling" size={ms(22)} color={GreenAccent} />
+            <MaterialIcons name="recycling" size={ms(22)} color={SageAccent} />
           </View>
         )}
         <View style={styles.productInfo}>
@@ -246,7 +247,7 @@ export default function ScanScreen() {
               </>
             ) : (
               <View style={styles.scanPlaceholder}>
-                <MaterialIcons name="qr-code-scanner" size={ms(42)} color={GreenAccent} />
+                <MaterialIcons name="qr-code-scanner" size={ms(42)} color={SageAccent} />
                 <Text style={styles.scanPlaceholderTitle}>Ready to Scan</Text>
                 <Text style={styles.scanPlaceholderSub}>
                   Tap below to start the camera and scan a product
@@ -263,7 +264,7 @@ export default function ScanScreen() {
           </View>
         ) : (
           <View style={styles.permissionCard}>
-            <MaterialIcons name="camera-alt" size={ms(48)} color={GreenAccent} />
+            <MaterialIcons name="camera-alt" size={ms(48)} color={SageAccent} />
             <Text style={styles.permTitle}>Camera Access Required</Text>
             <Text style={styles.permSubtitle}>
               CirTag needs camera access to scan QR codes
@@ -309,7 +310,7 @@ export default function ScanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: LightBg,
+    backgroundColor: CreamBg,
   },
   pageHeader: {
     paddingHorizontal: s(20),
@@ -318,7 +319,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: ms(26),
     fontWeight: '800',
-    color: TextBlack,
+    color: TextDark,
   },
   pageSubtitle: {
     fontSize: ms(14),
@@ -332,7 +333,7 @@ const styles = StyleSheet.create({
     height: vs(280),
     backgroundColor: CameraBg,
     borderWidth: 2,
-    borderColor: BrightGreen,
+    borderColor: SageAccent,
   },
   camera: {
     flex: 1,
@@ -357,7 +358,7 @@ const styles = StyleSheet.create({
   scanPlaceholderTitle: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: TextBlack,
+    color: TextDark,
     marginTop: vs(12),
   },
   scanPlaceholderSub: {
@@ -368,7 +369,7 @@ const styles = StyleSheet.create({
   },
   scanStartBtn: {
     marginTop: vs(14),
-    backgroundColor: GreenAccent,
+    backgroundColor: SageAccent,
     paddingHorizontal: s(18),
     paddingVertical: vs(10),
     borderRadius: s(12),
@@ -386,14 +387,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 3,
   },
   permTitle: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: TextBlack,
+    color: TextDark,
     marginTop: vs(16),
   },
   permSubtitle: {
@@ -403,7 +404,7 @@ const styles = StyleSheet.create({
     marginTop: vs(6),
   },
   permButton: {
-    backgroundColor: GreenAccent,
+    backgroundColor: SageAccent,
     borderRadius: s(12),
     paddingVertical: vs(12),
     paddingHorizontal: s(32),
@@ -425,12 +426,12 @@ const styles = StyleSheet.create({
   savedTitle: {
     fontSize: ms(20),
     fontWeight: '800',
-    color: TextBlack,
+    color: TextDark,
   },
   seeAll: {
     fontSize: ms(14),
     fontWeight: '700',
-    color: GreenAccent,
+    color: SageAccent,
   },
   emptyCard: {
     backgroundColor: White,
@@ -440,7 +441,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
     padding: s(14),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -477,7 +478,7 @@ const styles = StyleSheet.create({
     height: s(48),
     borderRadius: s(12),
     marginRight: s(12),
-    backgroundColor: '#F0F2F5',
+    backgroundColor: '#F0EDE6',
   },
   productIcon: {
     width: s(48),
@@ -493,7 +494,7 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: ms(15),
     fontWeight: '700',
-    color: TextBlack,
+    color: TextDark,
   },
   productMeta: {
     fontSize: ms(12),
@@ -508,6 +509,6 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: s(4),
     borderRadius: s(8),
-    backgroundColor: '#F5F6F8',
+    backgroundColor: '#F0EDE6',
   },
 });

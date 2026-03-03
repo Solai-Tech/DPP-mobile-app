@@ -18,18 +18,33 @@ import { useProductChat } from '../src/hooks/useProductChat';
 import { ChatMessage } from '../src/types/Ticket';
 import { s, vs, ms } from '../src/utils/scale';
 
-const DarkBg = '#0A1A14';
-const HeaderBg = '#0D2818';
+// Botanical Fresh theme colors
+const CreamBg = '#F7F5F0';
+const HeaderBg = '#5A8C5A';
 const White = '#FFFFFF';
-const GreenAccent = '#1B7A3D';
-const BrightGreen = '#00E676';
-const GreenTint = 'rgba(0,230,118,0.08)';
-const UserBubbleBg = 'rgba(0,230,118,0.12)';
-const BotBubbleBg = '#F0F2F5';
-const TextBlack = '#1A1A1A';
-const TextGray = '#6B6B6B';
-const InputBg = '#F5F7FA';
-const LightBg = '#F5F7FA';
+const SageAccent = '#5A8C5A';
+const SageLight = '#7BAF7B';
+const SageTint = 'rgba(90,140,90,0.08)';
+const UserBubbleBg = 'rgba(90,140,90,0.10)';
+const BotBubbleBg = '#FFFFFF';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const InputBg = '#F0EDE6';
+const Border = 'rgba(44,62,45,0.1)';
+
+function FormattedText({ text, style }: { text: string; style: any }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <Text style={style}>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <Text key={i} style={{ fontWeight: '700' }}>{part.slice(2, -2)}</Text>;
+        }
+        return part;
+      })}
+    </Text>
+  );
+}
 
 const QUICK_REPLIES = [
   'Tell me about this product',
@@ -124,7 +139,7 @@ export default function ProductChatScreen() {
           </View>
         )}
         <View style={[styles.bubble, isUser ? styles.userBubble : styles.botBubble]}>
-          <Text style={[styles.bubbleText, isUser && styles.userBubbleText]}>{item.message}</Text>
+          <FormattedText text={item.message} style={[styles.bubbleText, isUser && styles.userBubbleText]} />
         </View>
       </View>
     );
@@ -133,7 +148,7 @@ export default function ProductChatScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { paddingTop: insets.top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={0}
     >
       {/* Header */}
@@ -212,7 +227,7 @@ export default function ProductChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: LightBg,
+    backgroundColor: CreamBg,
   },
   header: {
     flexDirection: 'row',
@@ -242,12 +257,12 @@ const styles = StyleSheet.create({
     width: s(6),
     height: s(6),
     borderRadius: s(3),
-    backgroundColor: BrightGreen,
+    backgroundColor: '#A8D5A8',
     marginRight: s(4),
   },
   onlineText: {
     fontSize: ms(11),
-    color: BrightGreen,
+    color: 'rgba(255,255,255,0.8)',
     fontWeight: '500',
   },
   messageList: {
@@ -266,7 +281,7 @@ const styles = StyleSheet.create({
     width: s(30),
     height: s(30),
     borderRadius: s(15),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: s(8),
@@ -280,6 +295,11 @@ const styles = StyleSheet.create({
   botBubble: {
     backgroundColor: BotBubbleBg,
     borderBottomLeftRadius: s(4),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   userBubble: {
     backgroundColor: UserBubbleBg,
@@ -288,11 +308,11 @@ const styles = StyleSheet.create({
   },
   bubbleText: {
     fontSize: ms(14),
-    color: TextBlack,
+    color: TextDark,
     lineHeight: ms(20),
   },
   userBubbleText: {
-    color: GreenAccent,
+    color: SageAccent,
   },
   typingRow: {
     flexDirection: 'row',
@@ -307,6 +327,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(16),
     paddingVertical: vs(12),
     gap: s(4),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   typingDot: {
     width: s(8),
@@ -322,7 +347,7 @@ const styles = StyleSheet.create({
     width: s(60),
     height: s(60),
     borderRadius: s(30),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: vs(12),
@@ -330,7 +355,7 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: ms(18),
     fontWeight: '700',
-    color: TextBlack,
+    color: TextDark,
   },
   welcomeSubtitle: {
     fontSize: ms(13),
@@ -347,14 +372,14 @@ const styles = StyleSheet.create({
     backgroundColor: White,
     borderRadius: s(12),
     borderWidth: 1,
-    borderColor: GreenAccent,
+    borderColor: SageAccent,
     paddingHorizontal: s(16),
     paddingVertical: vs(10),
     alignItems: 'center',
   },
   quickReplyText: {
     fontSize: ms(13),
-    color: GreenAccent,
+    color: SageAccent,
     fontWeight: '600',
   },
   inputBar: {
@@ -364,7 +389,7 @@ const styles = StyleSheet.create({
     paddingTop: vs(8),
     backgroundColor: White,
     borderTopWidth: 1,
-    borderTopColor: '#E8ECF0',
+    borderTopColor: Border,
   },
   textInput: {
     flex: 1,
@@ -373,14 +398,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: s(16),
     paddingVertical: vs(10),
     fontSize: ms(14),
-    color: TextBlack,
+    color: TextDark,
     maxHeight: vs(100),
   },
   sendBtn: {
     width: s(40),
     height: s(40),
     borderRadius: s(20),
-    backgroundColor: GreenAccent,
+    backgroundColor: SageAccent,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: s(8),

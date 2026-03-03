@@ -43,6 +43,9 @@ export default function SavedProductCard({ product, onPress, onDelete }: Props) 
     displayName = 'Product';
   }
 
+  // Clean product name: remove "R_" / "RN_" / "RN " prefix and replace underscores
+  displayName = displayName.replace(/^RN?[_ ]/i, '').replace(/_/g, ' ').trim();
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       {product.imageUrl ? (

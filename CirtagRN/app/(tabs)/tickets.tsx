@@ -23,16 +23,16 @@ import { s, vs, ms } from '../../src/utils/scale';
 
 type TabMode = 'chat' | 'tickets';
 
-// Light theme colors
-const LightBg = '#F5F7FA';
+// Botanical Fresh theme colors
+const CreamBg = '#F7F5F0';
 const White = '#FFFFFF';
-const GreenAccent = '#1B7A3D';
-const BrightGreen = '#00E676';
-const GreenTint = 'rgba(0,230,118,0.08)';
-const TextBlack = '#1A1A1A';
-const TextGray = '#6B6B6B';
-const TextMutedLight = '#999999';
-const Border = '#E8ECF0';
+const SageAccent = '#5A8C5A';
+const SageLight = '#7BAF7B';
+const SageTint = 'rgba(90,140,90,0.08)';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const TextMutedLight = 'rgba(44,62,45,0.4)';
+const Border = 'rgba(44,62,45,0.1)';
 
 // Quick reply options
 const QUICK_REPLIES = [
@@ -148,7 +148,7 @@ export default function TicketsScreen() {
               <View style={styles.agentHeader}>
                 <View style={styles.agentAvatarContainer}>
                   <View style={styles.agentAvatar}>
-                    <MaterialIcons name="support-agent" size={ms(22)} color={GreenAccent} />
+                    <MaterialIcons name="support-agent" size={ms(22)} color={SageAccent} />
                   </View>
                   <View style={styles.onlineDot} />
                 </View>
@@ -170,7 +170,7 @@ export default function TicketsScreen() {
                 {chatMessages.length === 0 && (
                   <View style={styles.welcomeChat}>
                     <View style={styles.welcomeIcon}>
-                      <MaterialIcons name="support-agent" size={ms(32)} color={GreenAccent} />
+                      <MaterialIcons name="support-agent" size={ms(32)} color={SageAccent} />
                     </View>
                     <Text style={styles.welcomeTitle}>CirTag Support</Text>
                     <Text style={styles.welcomeSubtext}>
@@ -184,7 +184,7 @@ export default function TicketsScreen() {
                     {msg.sender === 'bot' ? (
                       <View style={styles.botBubbleRow}>
                         <View style={styles.botAvatarSmall}>
-                          <MaterialIcons name="support-agent" size={ms(14)} color={GreenAccent} />
+                          <MaterialIcons name="support-agent" size={ms(14)} color={SageAccent} />
                         </View>
                         <View style={styles.botBubble}>
                           <Text style={styles.botBubbleText}>{msg.message}</Text>
@@ -289,7 +289,7 @@ export default function TicketsScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: LightBg,
+    backgroundColor: CreamBg,
   },
   flex: {
     flex: 1,
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: ms(26),
     fontWeight: '800',
-    color: TextBlack,
+    color: TextDark,
   },
   headerSubtitle: {
     fontSize: ms(14),
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: GreenAccent,
+    borderBottomColor: SageAccent,
   },
   tabLabel: {
     fontSize: ms(14),
@@ -336,10 +336,10 @@ const styles = StyleSheet.create({
     color: TextMutedLight,
   },
   activeTabLabel: {
-    color: GreenAccent,
+    color: SageAccent,
   },
   badge: {
-    backgroundColor: BrightGreen,
+    backgroundColor: SageAccent,
     borderRadius: s(8),
     minWidth: s(18),
     height: s(18),
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: ms(10),
     fontWeight: '700',
-    color: '#0A1A14',
+    color: '#FFFFFF',
   },
   // Agent Header
   agentHeader: {
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     width: s(40),
     height: s(40),
     borderRadius: s(20),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -379,9 +379,9 @@ const styles = StyleSheet.create({
     width: s(10),
     height: s(10),
     borderRadius: s(5),
-    backgroundColor: BrightGreen,
+    backgroundColor: SageAccent,
     borderWidth: 2,
-    borderColor: LightBg,
+    borderColor: CreamBg,
   },
   agentInfo: {
     marginLeft: s(12),
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   agentName: {
     fontSize: ms(15),
     fontWeight: '700',
-    color: TextBlack,
+    color: TextDark,
   },
   agentStatus: {
     fontSize: ms(12),
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     width: s(64),
     height: s(64),
     borderRadius: s(32),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: vs(16),
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: ms(18),
     fontWeight: '700',
-    color: TextBlack,
+    color: TextDark,
   },
   welcomeSubtext: {
     fontSize: ms(14),
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     width: s(28),
     height: s(28),
     borderRadius: s(14),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: s(8),
@@ -456,10 +456,10 @@ const styles = StyleSheet.create({
   },
   botBubbleText: {
     fontSize: ms(14),
-    color: TextBlack,
+    color: TextDark,
     lineHeight: ms(20),
   },
-  // User bubble (right, light green bg)
+  // User bubble (right, sage tint bg)
   userBubbleRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -471,11 +471,11 @@ const styles = StyleSheet.create({
     borderRadius: s(16),
     borderBottomRightRadius: s(4),
     padding: s(12),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
   },
   userBubbleText: {
     fontSize: ms(14),
-    color: GreenAccent,
+    color: SageAccent,
     lineHeight: ms(20),
   },
   // Quick Replies
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
   },
   quickReplyBtn: {
     borderWidth: 1.5,
-    borderColor: GreenAccent,
+    borderColor: SageAccent,
     borderRadius: s(20),
     paddingHorizontal: s(14),
     paddingVertical: vs(8),
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   quickReplyText: {
     fontSize: ms(13),
     fontWeight: '600',
-    color: GreenAccent,
+    color: SageAccent,
   },
   // Input
   inputRow: {
@@ -518,12 +518,12 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    backgroundColor: LightBg,
+    backgroundColor: CreamBg,
     borderRadius: s(20),
     paddingHorizontal: s(16),
     paddingVertical: vs(10),
     fontSize: ms(14),
-    color: TextBlack,
+    color: TextDark,
     borderWidth: 1,
     borderColor: Border,
   },
@@ -531,14 +531,14 @@ const styles = StyleSheet.create({
     width: s(36),
     height: s(36),
     borderRadius: s(18),
-    backgroundColor: GreenAccent,
+    backgroundColor: SageAccent,
     justifyContent: 'center',
     alignItems: 'center',
   },
   newTicketBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: GreenAccent,
+    backgroundColor: SageAccent,
     borderRadius: s(18),
     paddingHorizontal: s(12),
     paddingVertical: vs(8),
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: GreenAccent,
+    backgroundColor: SageAccent,
     borderRadius: s(12),
     paddingVertical: vs(12),
     gap: s(8),
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
     width: s(64),
     height: s(64),
     borderRadius: s(32),
-    backgroundColor: '#F0F2F5',
+    backgroundColor: '#F0EDE6',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: vs(12),

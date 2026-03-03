@@ -136,7 +136,7 @@ export default function ProfileScreen() {
 
         {/* Sign Out */}
         <TouchableOpacity style={styles.signOutBtn} activeOpacity={0.7}>
-          <MaterialIcons name="logout" size={ms(18)} color="#E53935" />
+          <MaterialIcons name="logout" size={ms(18)} color="#C45A5A" />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: vs(30),
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(44,62,45,0.12)',
   },
   menuSection: {
     paddingHorizontal: s(20),
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(229,57,53,0.1)',
+    backgroundColor: 'rgba(196,90,90,0.08)',
     borderRadius: s(14),
     marginHorizontal: s(20),
     paddingVertical: vs(14),
@@ -232,6 +232,6 @@ const styles = StyleSheet.create({
   signOutText: {
     fontSize: ms(14),
     fontWeight: '700',
-    color: '#E53935',
+    color: '#C45A5A',
   },
 });

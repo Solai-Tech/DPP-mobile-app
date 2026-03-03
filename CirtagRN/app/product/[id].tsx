@@ -6,39 +6,32 @@ import {
   TouchableOpacity,
   StyleSheet,
   Share,
-  Linking,
   Alert,
-  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { WebView } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system/legacy';
-import VerifiedBadge from '../../src/components/VerifiedBadge';
-import LifecycleTimeline from '../../src/components/LifecycleTimeline';
-import ActionButton from '../../src/components/ActionButton';
+import * as IntentLauncher from 'expo-intent-launcher';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
 import { useProducts } from '../../src/hooks/useProducts';
 import { fetchProductData, DocumentInfo } from '../../src/utils/productDataFetcher';
 import * as dao from '../../src/database/scannedProductDao';
 import { formatScanDate } from '../../src/utils/dateFormatter';
 import { s, vs, ms } from '../../src/utils/scale';
-import {
-  Accent,
-} from '../../src/theme/colors';
 
-// Light theme colors
-const LightBg = '#F5F7FA';
+// Premium Botanical theme colors
+const CreamBg = '#F5F3EE';
 const White = '#FFFFFF';
-const GreenAccent = '#1B7A3D';
-const BrightGreen = '#00E676';
-const GreenTint = 'rgba(0,230,118,0.08)';
-const TextBlack = '#1A1A1A';
-const TextGray = '#6B6B6B';
-const TextMutedLight = '#999999';
-const Border = '#E8ECF0';
+const SageAccent = '#5A8C5A';
+const SageTint = 'rgba(90,140,90,0.08)';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const TextMutedLight = 'rgba(44,62,45,0.4)';
+const Border = 'rgba(44,62,45,0.08)';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,7 +40,6 @@ export default function ProductDetailScreen() {
   const { getProductById } = useProducts();
   const [product, setProduct] = useState<ScannedProduct | null>(null);
   const [downloading, setDownloading] = useState(false);
-  const [pdfWebViewUrl, setPdfWebViewUrl] = useState('');
   useEffect(() => {
     if (id) {
       getProductById(Number(id)).then((p) => setProduct(p));
@@ -111,8 +103,8 @@ export default function ProductDetailScreen() {
     displayName = product.displayValue || product.rawValue || 'Unknown Product';
   }
 
-  // Clean product name: remove "R_" prefix and replace underscores
-  displayName = displayName.replace(/^R_/, '').replace(/_/g, ' ').trim();
+  // Clean product name: remove "R_" / "RN_" / "RN " prefix and replace underscores
+  displayName = displayName.replace(/^RN?[_ ]/i, '').replace(/_/g, ' ').trim();
 
   const certs = product.certifications
     ? product.certifications.split(',').map((c) => c.trim())
@@ -131,7 +123,6 @@ export default function ProductDetailScreen() {
       Alert.alert('Link unavailable', 'No valid link found for this item.');
       return;
     }
-    // For PDF URLs, wrap with Google Docs viewer so Android WebView can render them
     let viewUrl = safeUrl;
     if (/\.pdf(\?|$)/i.test(safeUrl)) {
       viewUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(safeUrl)}`;
@@ -141,78 +132,43 @@ export default function ProductDetailScreen() {
     );
   };
 
-  const handleDownloadPdf = () => {
-    if (!product) return;
-    if (downloading) return;
-    const url = product.datasheetUrl || product.rawValue;
-    const safeUrl = normalizeUrl(url);
-    if (!safeUrl) {
-      Alert.alert('Unavailable', 'No document link available.');
+  // Find the first available PDF URL from documents only
+  const findPdfUrl = (): string | null => {
+    let docs: DocumentInfo[] = [];
+    try { if (product.documents) docs = JSON.parse(product.documents); } catch {}
+    const pdfDoc = docs.find((d) => /\.pdf(\?|#|$)/i.test(d.url));
+    if (pdfDoc) return normalizeUrl(pdfDoc.url);
+    // Only use datasheetUrl if it's an actual PDF file
+    if (product.datasheetUrl && /\.pdf(\?|#|$)/i.test(product.datasheetUrl)) {
+      return normalizeUrl(product.datasheetUrl);
+    }
+    return null;
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!product || downloading) return;
+    const pdfUrl = findPdfUrl();
+    if (!pdfUrl) {
+      Alert.alert('No PDF available', 'This product does not have a downloadable PDF.');
       return;
     }
     setDownloading(true);
-    setPdfWebViewUrl(safeUrl);
-  };
-
-  const onPdfMessage = (event: { nativeEvent: { data: string } }) => {
     try {
-      const data = JSON.parse(event.nativeEvent.data);
-      if (data.type === 'pdf_download' && data.url) {
-        setPdfWebViewUrl('');
-        const pdfUrl = data.url;
-        const filename = `${(product.productName || 'datasheet').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-        const dest = `${FileSystem.documentDirectory}${filename}`;
-        FileSystem.downloadAsync(pdfUrl, dest).then(() => {
-          setDownloading(false);
-          Alert.alert('Downloaded!', 'PDF has been saved successfully.');
-        }).catch(() => {
-          setDownloading(false);
-          Alert.alert('Download failed', 'Unable to download the PDF.');
-        });
-      }
-      if (data.type === 'no_pdf_found') {
-        setPdfWebViewUrl('');
-        setDownloading(false);
-        Alert.alert('No PDF found', 'No downloadable PDF found for this product.');
-      }
-    } catch {}
-  };
-
-  const pdfFinderJS = `
-  (function() {
-    document.addEventListener('click', function(e) {
-      var el = e.target;
-      while (el && el.tagName !== 'A') el = el.parentElement;
-      if (!el || !el.href) return;
-      if (el.href.match(/\\.pdf(\\?|#|$)/i) || el.hasAttribute('download') ||
-          (el.textContent && el.textContent.toLowerCase().includes('download pdf'))) {
-        e.preventDefault();
-        e.stopPropagation();
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pdf_download', url: el.href }));
-        return false;
-      }
-    }, true);
-    function findPdf() {
-      var links = document.querySelectorAll('a[href]');
-      for (var i = 0; i < links.length; i++) {
-        if (links[i].href.match(/\\.pdf(\\?|#|$)/i)) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pdf_download', url: links[i].href }));
-          return;
-        }
-      }
-      for (var i = 0; i < links.length; i++) {
-        if (links[i].hasAttribute('download') ||
-            (links[i].textContent && links[i].textContent.toLowerCase().includes('download pdf'))) {
-          links[i].click();
-          return;
-        }
-      }
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'no_pdf_found' }));
+      const filename = `${(displayName || 'datasheet').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      const dest = `${FileSystem.documentDirectory}${filename}`;
+      await FileSystem.downloadAsync(pdfUrl, dest);
+      const contentUri = await FileSystem.getContentUriAsync(dest);
+      await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+        data: contentUri,
+        flags: 1,
+        type: 'application/pdf',
+      });
+    } catch {
+      Alert.alert('Download failed', 'Unable to download or open the PDF.');
+    } finally {
+      setDownloading(false);
     }
-    setTimeout(findPdf, 2500);
-    true;
-  })();
-  `;
+  };
 
   const handleShare = () => {
     Share.share({
@@ -247,248 +203,193 @@ export default function ProductDetailScreen() {
     if (num) co2Boxes.push({ label: 'Carbon Footprints', value: num });
   }
 
-  // Parse documents
-  let documentList: DocumentInfo[] = [];
-  try {
-    if (product.documents) {
-      documentList = JSON.parse(product.documents);
-    }
-  } catch {}
-  // Include datasheetUrl as first document if not already in list
-  if (product.datasheetUrl && !documentList.some((d) => d.url === product.datasheetUrl)) {
-    documentList.unshift({ name: 'Product Datasheet', url: product.datasheetUrl, type: 'datasheet' });
-  }
+  // CO2 color mapping for each category
+  const co2Colors = ['#5A8C5A', '#2E7D8B', '#C17B3A', '#7B6BA8', '#D4694A'];
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={ms(22)} color={TextBlack} />
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Product Passport</Text>
-          <Text style={styles.headerSubtitle}>{formatScanDate(product.scannedAt)}</Text>
-        </View>
-        {hasVerified && (
-          <View style={styles.verifiedBadge}>
-            <MaterialIcons name="verified" size={ms(14)} color={BrightGreen} />
-            <Text style={styles.verifiedText}>Verified</Text>
-          </View>
-        )}
-      </View>
-
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: vs(32) + insets.bottom }}
       >
-        {/* Product Icon */}
-        <View style={styles.productIconSection}>
-          {product.imageUrl ? (
-            <Image
-              source={{ uri: product.imageUrl }}
-              style={styles.productImage}
-              contentFit="cover"
-              transition={300}
-            />
-          ) : (
-            <View style={styles.productIconCircle}>
-              <MaterialIcons name="recycling" size={ms(40)} color={GreenAccent} />
+        {/* Hero Section */}
+        <LinearGradient
+          colors={['#5A8C5A', '#4A7A4A', '#3D6B3D']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroGradient}
+        >
+          {/* Header overlay */}
+          <View style={styles.heroHeader}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <MaterialIcons name="arrow-back" size={ms(22)} color={White} />
+            </TouchableOpacity>
+            <View style={styles.headerCenter}>
+              <Text style={styles.headerTitle}>Product Passport</Text>
             </View>
-          )}
-        </View>
+            {hasVerified && (
+              <View style={styles.verifiedBadge}>
+                <MaterialIcons name="verified" size={ms(13)} color={White} />
+                <Text style={styles.verifiedText}>Verified</Text>
+              </View>
+            )}
+          </View>
 
-        {/* Product Name */}
-        <Text style={styles.productName}>{displayName}</Text>
+          {/* Product image + name inside hero */}
+          <View style={styles.heroContent}>
+            <View style={styles.imageWrapper}>
+              {product.imageUrl ? (
+                <Image
+                  source={{ uri: product.imageUrl }}
+                  style={styles.productImage}
+                  contentFit="cover"
+                  transition={300}
+                />
+              ) : (
+                <View style={styles.productIconCircle}>
+                  <MaterialIcons name="eco" size={ms(36)} color={White} />
+                </View>
+              )}
+            </View>
+            <Text style={styles.productName}>{displayName}</Text>
+            {supplierLocation ? (
+              <Text style={styles.supplierText}>{supplierLocation}</Text>
+            ) : null}
+            {product.productId ? (
+              <View style={styles.dppIdPill}>
+                <MaterialIcons name="fingerprint" size={ms(12)} color="rgba(255,255,255,0.7)" />
+                <Text style={styles.dppIdText}>
+                  {product.productId.startsWith('DPP-')
+                    ? product.productId
+                    : `DPP-${product.productId}`}
+                </Text>
+              </View>
+            ) : null}
+            <Text style={styles.scanDate}>{formatScanDate(product.scannedAt)}</Text>
+          </View>
+        </LinearGradient>
 
-        {/* Supplier / Location */}
-        {supplierLocation ? (
-          <Text style={styles.supplierText}>{supplierLocation}</Text>
-        ) : null}
-
-        {/* DPP ID */}
-        {product.productId ? (
-          <Text style={styles.dppId}>
-            {product.productId.startsWith('DPP-')
-              ? product.productId
-              : `DPP-${product.productId}`}
-          </Text>
-        ) : null}
-
+        {/* Description Card */}
         {product.productDescription ? (
-          <View style={styles.descContainer}>
-            {product.productDescription.includes('•') ? (
-              product.productDescription.split('•').map((item, idx) => {
+          <View style={styles.sectionCard}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons name="info-outline" size={ms(16)} color={SageAccent} />
+              <Text style={styles.sectionTitle}>About This Product</Text>
+            </View>
+            <View style={styles.divider} />
+            {product.productDescription.includes('\u2022') ? (
+              product.productDescription.split('\u2022').map((item, idx) => {
                 const trimmed = item.trim();
                 if (!trimmed) return null;
                 return (
                   <View key={idx} style={styles.descBulletRow}>
-                    <Text style={styles.descBullet}>{'\u2022'}</Text>
+                    <View style={styles.bulletDot} />
                     <Text style={styles.descBulletText}>{trimmed}</Text>
                   </View>
                 );
               })
             ) : (
-              <Text style={styles.productDesc}>{product.productDescription}</Text>
+              <Text style={styles.productDesc}>
+                {product.productDescription.replace(/\\n/g, '\n').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')}
+              </Text>
             )}
           </View>
         ) : null}
 
-        <View style={{ height: vs(10) }} />
-
-        {/* Lifecycle Timeline */}
-        <LifecycleTimeline />
-
-        {/* CO2 Footprint Boxes */}
+        {/* CO2 Footprint Section */}
         {co2Boxes.length > 0 && (
-          <View style={styles.co2Row}>
-            {co2Boxes.map((box, i) => (
-              <View key={i} style={styles.co2Box}>
-                <Text style={styles.co2Value}>{box.value}</Text>
-                <Text style={styles.co2Unit}>Kg CO{'\u2082'}</Text>
-                <Text style={styles.co2Label} numberOfLines={1}>{box.label}</Text>
+          <View style={styles.sectionCard}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons name="eco" size={ms(16)} color={SageAccent} />
+              <Text style={styles.sectionTitle}>Carbon Footprint</Text>
+              {product.co2Total ? (
+                <View style={styles.co2TotalPill}>
+                  <Text style={styles.co2TotalText}>{product.co2Total}</Text>
+                </View>
+              ) : null}
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.co2Grid}>
+              {co2Boxes.map((box, i) => {
+                const color = co2Colors[i % co2Colors.length];
+                return (
+                  <View key={i} style={styles.co2Card}>
+                    <View style={[styles.co2Accent, { backgroundColor: color }]} />
+                    <Text style={[styles.co2Value, { color }]}>{box.value}</Text>
+                    <Text style={styles.co2Unit}>Kg CO{'\u2082'}</Text>
+                    <Text style={styles.co2Label} numberOfLines={2}>{box.label}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* Quick Actions Grid */}
+        <View style={styles.quickActionsContainer}>
+          <View style={styles.quickActionsGrid}>
+<TouchableOpacity
+              style={styles.quickAction}
+              onPress={() => router.push(`/documents?productId=${product.id}`)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(193,123,58,0.10)' }]}>
+                <MaterialIcons name="folder-open" size={ms(16)} color="#C17B3A" />
               </View>
-            ))}
+              <Text style={styles.quickActionLabel}>Documents</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.quickAction}
+              onPress={() => {
+                router.push(
+                  `/product-chat?productId=${product.id}&productName=${encodeURIComponent(displayName)}&productUrl=${encodeURIComponent(product.rawValue)}`
+                );
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(90,140,90,0.10)' }]}>
+                <MaterialIcons name="support-agent" size={ms(16)} color={SageAccent} />
+              </View>
+              <Text style={styles.quickActionLabel}>Get Support</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.quickAction} onPress={handleShare} activeOpacity={0.7}>
+              <View style={[styles.quickActionIcon, { backgroundColor: 'rgba(123,107,168,0.10)' }]}>
+                <MaterialIcons name="share" size={ms(16)} color="#7B6BA8" />
+              </View>
+              <Text style={styles.quickActionLabel}>Share DPP</Text>
+            </TouchableOpacity>
           </View>
-        )}
-
-        {/* Documents & Downloads */}
-        {documentList.length > 0 && (
-          <View style={styles.docsSection}>
-            <Text style={styles.docsSectionTitle}>Documents & Downloads</Text>
-            {documentList.map((doc, i) => (
-              <TouchableOpacity
-                key={i}
-                style={styles.docCard}
-                onPress={() => openUrl(doc.url, doc.name)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.docIconBox}>
-                  <MaterialIcons
-                    name={doc.type === 'pdf' ? 'picture-as-pdf' : doc.type === 'certificate' ? 'verified' : 'description'}
-                    size={ms(20)}
-                    color={GreenAccent}
-                  />
-                </View>
-                <View style={styles.docInfo}>
-                  <Text style={styles.docName} numberOfLines={1}>{doc.name}</Text>
-                  <Text style={styles.docType}>{doc.type.toUpperCase()}</Text>
-                </View>
-                <MaterialIcons name="open-in-new" size={ms(18)} color={TextGray} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        <View style={{ height: vs(30) }} />
-
-        {/* Action Buttons */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.actionBtnOutline}
-            onPress={() => router.push(`/raise-ticket?productId=${product.id}`)}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="confirmation-number" size={ms(16)} color={GreenAccent} />
-            <Text style={styles.actionBtnOutlineText}>Raise Ticket</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionBtnFilled}
-            onPress={() => {
-              router.push(
-                `/product-chat?productId=${product.id}&productName=${encodeURIComponent(displayName)}&productUrl=${encodeURIComponent(product.rawValue)}`
-              );
-            }}
-            activeOpacity={0.7}
-          >
-            <Image source={require('../../assets/get-support-icon.png')} style={{ width: ms(26), height: ms(26), position: 'absolute', left: s(12) }} />
-            <Text style={styles.actionBtnFilledText}>Get Help</Text>
-          </TouchableOpacity>
         </View>
 
-        <View style={{ height: vs(8) }} />
-
-        {/* Share DPP */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.actionBtnOutline}
-            onPress={handleShare}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="share" size={ms(16)} color={GreenAccent} />
-            <Text style={styles.actionBtnOutlineText}>Share DPP</Text>
-          </TouchableOpacity>
-          <View style={{ flex: 1.3 }} />
-        </View>
-
-        <View style={{ height: vs(16) }} />
       </ScrollView>
-
-      {/* Hidden WebView for PDF download - no screen change */}
-      {pdfWebViewUrl ? (
-        <WebView
-          source={{ uri: pdfWebViewUrl }}
-          style={{ height: 0, width: 0, opacity: 0, position: 'absolute' }}
-          javaScriptEnabled
-          domStorageEnabled
-          injectedJavaScript={pdfFinderJS}
-          onMessage={onPdfMessage}
-          onShouldStartLoadWithRequest={(request) => {
-            if (/\.pdf(\?|#|$)/i.test(request.url)) {
-              onPdfMessage({
-                nativeEvent: { data: JSON.stringify({ type: 'pdf_download', url: request.url }) },
-              });
-              return false;
-            }
-            return true;
-          }}
-        />
-      ) : null}
-
     </View>
   );
 }
-
-function SpecItem({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={specStyles.row}>
-      <Text style={specStyles.label}>{label}</Text>
-      <Text style={specStyles.value}>{value}</Text>
-    </View>
-  );
-}
-
-const specStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: vs(8),
-    borderBottomWidth: 1,
-    borderBottomColor: Border,
-  },
-  label: {
-    fontSize: ms(13),
-    color: TextGray,
-  },
-  value: {
-    fontSize: ms(13),
-    fontWeight: '600',
-    color: TextBlack,
-  },
-});
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: LightBg,
+    backgroundColor: CreamBg,
   },
-  header: {
+  scrollView: {
+    flex: 1,
+  },
+
+  // --- Hero gradient section ---
+  heroGradient: {
+    paddingBottom: vs(28),
+    borderBottomLeftRadius: s(28),
+    borderBottomRightRadius: s(28),
+  },
+  heroHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(4),
-    paddingVertical: vs(10),
+    paddingTop: vs(6),
+    paddingBottom: vs(4),
   },
   backBtn: {
     padding: s(12),
@@ -497,19 +398,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: ms(18),
+    fontSize: ms(17),
     fontWeight: '700',
-    color: TextBlack,
-  },
-  headerSubtitle: {
-    fontSize: ms(11),
-    color: TextGray,
-    fontWeight: '500',
+    color: White,
+    letterSpacing: -0.2,
   },
   verifiedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: GreenTint,
+    backgroundColor: 'rgba(255,255,255,0.18)',
     borderRadius: s(20),
     paddingHorizontal: s(10),
     paddingVertical: vs(5),
@@ -517,156 +414,209 @@ const styles = StyleSheet.create({
     gap: s(4),
   },
   verifiedText: {
-    fontSize: ms(12),
+    fontSize: ms(11),
     fontWeight: '700',
-    color: GreenAccent,
+    color: White,
   },
-  scrollView: {
-    flex: 1,
-  },
-  productIconSection: {
+  heroContent: {
     alignItems: 'center',
-    paddingVertical: vs(8),
+    paddingTop: vs(4),
+  },
+  imageWrapper: {
+    padding: s(4),
+    borderRadius: s(52),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    marginBottom: vs(12),
   },
   productImage: {
-    width: s(80),
-    height: s(80),
-    borderRadius: s(40),
+    width: s(88),
+    height: s(88),
+    borderRadius: s(44),
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   productIconCircle: {
-    width: s(64),
-    height: s(64),
-    borderRadius: s(32),
-    backgroundColor: GreenTint,
+    width: s(88),
+    height: s(88),
+    borderRadius: s(44),
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  productName: {
+    fontSize: ms(21),
+    fontWeight: '800',
+    color: White,
+    textAlign: 'center',
+    paddingHorizontal: s(24),
+    letterSpacing: -0.3,
+  },
+  supplierText: {
+    fontSize: ms(13),
+    color: 'rgba(255,255,255,0.75)',
+    textAlign: 'center',
+    marginTop: vs(4),
+    fontWeight: '500',
+  },
+  dppIdPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: s(16),
+    paddingHorizontal: s(10),
+    paddingVertical: vs(4),
+    marginTop: vs(8),
+    gap: s(4),
+  },
+  dppIdText: {
+    fontSize: ms(11),
+    color: 'rgba(255,255,255,0.7)',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontWeight: '500',
+  },
+  scanDate: {
+    fontSize: ms(11),
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: vs(6),
+    fontWeight: '500',
+  },
+
+  // --- Quick Actions ---
+  quickActionsContainer: {
+    marginTop: vs(10),
+    paddingHorizontal: s(16),
+    marginBottom: vs(4),
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    backgroundColor: White,
+    borderRadius: s(12),
+    paddingVertical: vs(8),
+    paddingHorizontal: s(6),
+    shadowColor: '#2C3E2D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  quickAction: {
+    flex: 1,
+    alignItems: 'center',
+    gap: vs(3),
+  },
+  quickActionIcon: {
+    width: s(34),
+    height: s(34),
+    borderRadius: s(10),
     justifyContent: 'center',
     alignItems: 'center',
   },
-  productName: {
-    fontSize: ms(19),
-    fontWeight: '700',
-    color: TextBlack,
+  quickActionLabel: {
+    fontSize: ms(10),
+    fontWeight: '600',
+    color: TextDark,
     textAlign: 'center',
-    paddingHorizontal: s(20),
   },
-  supplierText: {
+
+  // --- Section Cards ---
+  sectionCard: {
+    backgroundColor: White,
+    borderRadius: s(16),
+    marginHorizontal: s(16),
+    marginTop: vs(14),
+    padding: s(16),
+    shadowColor: '#2C3E2D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(6),
+  },
+  sectionTitle: {
+    flex: 1,
     fontSize: ms(14),
-    color: TextGray,
-    textAlign: 'center',
-    marginTop: vs(4),
+    fontWeight: '700',
+    color: TextDark,
+    letterSpacing: -0.1,
   },
-  dppId: {
-    fontSize: ms(13),
-    color: TextMutedLight,
-    textAlign: 'center',
-    fontFamily: 'monospace',
-    marginTop: vs(4),
+  divider: {
+    height: 1,
+    backgroundColor: Border,
+    marginVertical: vs(10),
   },
-  descContainer: {
-    paddingHorizontal: s(20),
-    marginTop: vs(6),
-  },
+
+  // --- Description ---
   descBulletRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: vs(4),
+    marginBottom: vs(6),
   },
-  descBullet: {
-    fontSize: ms(13),
-    color: GreenAccent,
-    fontWeight: '700',
-    marginRight: s(8),
-    lineHeight: ms(18),
+  bulletDot: {
+    width: s(6),
+    height: s(6),
+    borderRadius: s(3),
+    backgroundColor: SageAccent,
+    marginTop: vs(6),
+    marginRight: s(10),
   },
   descBulletText: {
     flex: 1,
     fontSize: ms(13),
     color: TextGray,
-    lineHeight: ms(18),
+    lineHeight: ms(19),
   },
   productDesc: {
     fontSize: ms(13),
     color: TextGray,
-    textAlign: 'left',
-    paddingHorizontal: s(20),
-    marginTop: vs(6),
-    lineHeight: ms(18),
+    lineHeight: ms(19),
   },
-  specsCard: {
-    backgroundColor: White,
-    borderRadius: s(16),
-    padding: s(16),
-    marginHorizontal: s(20),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  cardTitle: {
-    fontSize: ms(14),
-    fontWeight: '700',
-    color: TextBlack,
-    marginBottom: vs(8),
-  },
-  datasheetCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: White,
-    borderRadius: s(14),
-    padding: s(14),
-    marginHorizontal: s(20),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  datasheetLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(12),
-  },
-  datasheetIcon: {
-    width: s(40),
-    height: s(40),
-    borderRadius: s(10),
-    backgroundColor: GreenTint,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  datasheetTitle: {
-    fontSize: ms(14),
-    fontWeight: '600',
-    color: TextBlack,
-  },
-  datasheetSub: {
-    fontSize: ms(12),
-    color: TextGray,
-  },
-  co2Row: {
-    flexDirection: 'row',
-    paddingHorizontal: s(20),
-    gap: s(8),
-    marginTop: vs(12),
-  },
-  co2Box: {
-    flex: 1,
-    backgroundColor: White,
+
+  // --- CO2 Section ---
+  co2TotalPill: {
+    backgroundColor: 'rgba(90,140,90,0.10)',
     borderRadius: s(12),
-    paddingVertical: vs(10),
+    paddingHorizontal: s(8),
+    paddingVertical: vs(3),
+  },
+  co2TotalText: {
+    fontSize: ms(11),
+    fontWeight: '700',
+    color: SageAccent,
+  },
+  co2Grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: s(8),
+  },
+  co2Card: {
+    flexBasis: '30%',
+    flexGrow: 1,
+    backgroundColor: CreamBg,
+    borderRadius: s(12),
+    paddingVertical: vs(12),
     paddingHorizontal: s(8),
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    overflow: 'hidden',
+  },
+  co2Accent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: s(3),
+    borderTopLeftRadius: s(12),
+    borderTopRightRadius: s(12),
   },
   co2Value: {
     fontSize: ms(18),
     fontWeight: '800',
-    color: GreenAccent,
+    marginTop: vs(2),
   },
   co2Unit: {
     fontSize: ms(9),
@@ -677,104 +627,9 @@ const styles = StyleSheet.create({
   co2Label: {
     fontSize: ms(10),
     fontWeight: '600',
-    color: TextBlack,
+    color: TextDark,
     marginTop: vs(4),
     textAlign: 'center',
   },
-  docsSection: {
-    paddingHorizontal: s(20),
-    marginTop: vs(16),
-  },
-  docsSectionTitle: {
-    fontSize: ms(15),
-    fontWeight: '700',
-    color: TextBlack,
-    marginBottom: vs(10),
-  },
-  docCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: White,
-    borderRadius: s(12),
-    padding: s(12),
-    marginBottom: vs(8),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  docIconBox: {
-    width: s(36),
-    height: s(36),
-    borderRadius: s(8),
-    backgroundColor: GreenTint,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: s(10),
-  },
-  docInfo: {
-    flex: 1,
-  },
-  docName: {
-    fontSize: ms(13),
-    fontWeight: '600',
-    color: TextBlack,
-  },
-  docType: {
-    fontSize: ms(11),
-    color: TextGray,
-    marginTop: vs(2),
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: s(20),
-    gap: s(8),
-  },
-  actionBtnOutline: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: s(12),
-    paddingVertical: vs(12),
-    paddingHorizontal: s(8),
-    gap: s(4),
-    borderWidth: 1.5,
-    borderColor: GreenAccent,
-    backgroundColor: White,
-  },
-  actionBtnOutlineText: {
-    fontSize: ms(12),
-    fontWeight: '700',
-    color: GreenAccent,
-  },
-  actionBtnFilled: {
-    flex: 1.3,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: s(12),
-    paddingVertical: vs(14),
-    paddingHorizontal: s(10),
-    gap: s(4),
-    backgroundColor: GreenAccent,
-  },
-  actionBtnFilledText: {
-    fontSize: ms(12),
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  scanInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: s(6),
-    padding: s(12),
-  },
-  scanInfoText: {
-    fontSize: ms(12),
-    color: TextGray,
-    fontWeight: '500',
-  },
+
 });

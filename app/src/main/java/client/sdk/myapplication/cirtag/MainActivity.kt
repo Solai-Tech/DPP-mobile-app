@@ -131,7 +131,11 @@ fun CirtagApp(viewModel: MainViewModel = viewModel()) {
             composable(Screen.Scanner.route) {
                 ScannerScreen(
                     isLoading = isLoading,
+                    products = products,
                     onBarcodeScanned = { barcode ->
+
+
+
                         val product = ScannedProduct(
                             rawValue = barcode.rawValue ?: "",
                             displayValue = barcode.displayValue ?: barcode.rawValue ?: "",
@@ -141,6 +145,9 @@ fun CirtagApp(viewModel: MainViewModel = viewModel()) {
                         viewModel.scanAndSaveProduct(product) { savedId ->
                             navController.navigate(Screen.ProductDetail.createRoute(savedId))
                         }
+                    },
+                    onProductClick = { product ->
+                        navController.navigate(Screen.ProductDetail.createRoute(product.id))
                     }
                 )
             }

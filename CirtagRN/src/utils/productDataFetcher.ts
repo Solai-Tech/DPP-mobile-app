@@ -172,7 +172,12 @@ function parseHtml(html: string, baseUrl: string, fullUrl: string): ProductData 
     /Product Description[\s\S]*?<(?:p|div|textarea)[^>]*>([\s\S]*?)<\/(?:p|div|textarea)>/i
   );
   if (descMatch) {
-    description = descMatch[1].replace(/<[^>]+>/g, '').trim();
+    description = descMatch[1]
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/(?:p|div|li|tr)>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
   }
 
   // Price - handle tags between label and value
@@ -350,8 +355,8 @@ function parseHtml(html: string, baseUrl: string, fullUrl: string): ProductData 
     docs.push({ name: docName, url: resolvedUrl, type: docType });
   }
 
-  // Include the primary datasheet if found and not already in the list
-  if (datasheetUrl && !seenUrls.has(datasheetUrl)) {
+  // Only use datasheetUrl if it's an actual PDF file, not a page URL
+  if (datasheetUrl && /\.pdf(\?|#|$)/i.test(datasheetUrl) && !seenUrls.has(datasheetUrl)) {
     docs.unshift({ name: 'Product Datasheet', url: datasheetUrl, type: 'datasheet' });
   }
 

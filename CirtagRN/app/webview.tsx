@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import WebView from 'react-native-webview';
 import * as FileSystem from 'expo-file-system/legacy';
-import { TextMuted, TextPrimary } from '../src/theme/colors';
+import { TextMuted, TextPrimary, Accent, Border } from '../src/theme/colors';
 import { s, vs, ms } from '../src/utils/scale';
 
 async function downloadPdf(pdfUrl: string) {
@@ -134,7 +134,7 @@ export default function WebViewScreen() {
 
       {isAutoDownload && pdfStatus ? (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#00E676" />
+          <ActivityIndicator size="large" color={Accent} />
           <Text style={styles.loadingText}>
             {pdfStatus === 'downloading' ? 'Downloading PDF...' : 'Finding PDF...'}
           </Text>
@@ -177,16 +177,16 @@ export default function WebViewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F7F5F0',
   },
   header: {
     height: vs(48),
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(12),
-    backgroundColor: '#0A1A14',
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: Border,
   },
   backBtn: {
     width: s(34),
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: ms(16),
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: '#2C3E2D',
   },
   cancelBtn: {
     marginTop: vs(12),
@@ -226,12 +226,12 @@ const styles = StyleSheet.create({
     paddingVertical: vs(10),
     borderRadius: s(10),
     borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderColor: 'rgba(44,62,45,0.15)',
   },
   cancelText: {
     fontSize: ms(14),
     fontWeight: '600',
-    color: '#6B6B6B',
+    color: 'rgba(44,62,45,0.65)',
   },
   empty: {
     flex: 1,

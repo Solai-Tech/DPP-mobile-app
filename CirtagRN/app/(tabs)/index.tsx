@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import GradientBackground from '../../src/components/GradientBackground';
 import { useProducts } from '../../src/hooks/useProducts';
 import { useUserProfile } from '../../src/hooks/useUserProfile';
@@ -11,11 +12,13 @@ import {
   Accent,
   TextPrimary,
   TextMuted,
+  AccentDim,
+  Border,
 } from '../../src/theme/colors';
 import { s, vs, ms } from '../../src/utils/scale';
 
-const GreenGlow = 'rgba(0,230,118,0.15)';
-const GreenBorder = 'rgba(0,230,118,0.25)';
+const SageGlow = 'rgba(90,140,90,0.10)';
+const SageBorder = 'rgba(90,140,90,0.20)';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -52,20 +55,22 @@ export default function HomeScreen() {
         {/* Upper Section — logo + welcome, flexes to fill */}
         <View style={styles.upperSection}>
           <View style={styles.logoSection}>
-            <View style={styles.logoMark}>
-              <MaterialIcons name="recycling" size={ms(44)} color="#FFFFFF" />
+            <View style={styles.logoGlow}>
+              <Image
+                source={require('../../assets/cirtag_logo.png')}
+                style={styles.logoMark}
+                contentFit="contain"
+              />
             </View>
             <View style={styles.logoTextRow}>
               <Text style={styles.logoName}>CIR</Text>
               <Text style={styles.logoNameAccent}>TAG</Text>
             </View>
-            <Text style={styles.tagline}>Circular Economy Platform.</Text>
-            <Text style={styles.taglineSub}>Measure. Trace. Act.</Text>
+            <Text style={styles.taglineSub}>Digital Product Passport Platform</Text>
           </View>
-
         </View>
 
-        {/* Bottom Section — stats + history */}
+        {/* Bottom Section */}
         <View style={styles.bottomSection}>
           {/* Stats Row */}
           <View style={styles.statsRow}>
@@ -78,6 +83,22 @@ export default function HomeScreen() {
               <Text style={styles.statUnit}>Products</Text>
             </View>
           </View>
+
+          {/* DPP Portal */}
+          <TouchableOpacity
+            style={styles.dppCard}
+            onPress={() => router.push(`/webview?url=${encodeURIComponent('https://solai.se/dppx/')}&title=${encodeURIComponent('DPP Portal')}`)}
+            activeOpacity={0.85}
+          >
+            <View style={styles.dppIconCircle}>
+              <MaterialIcons name="language" size={ms(20)} color="#2E7D8B" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.dppLabel}>DPP Portal</Text>
+              <Text style={styles.dppUrl}>solai.se/dppx</Text>
+            </View>
+            <MaterialIcons name="open-in-new" size={ms(16)} color={TextMuted} />
+          </TouchableOpacity>
 
           {/* Products History */}
           <TouchableOpacity
@@ -120,9 +141,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: s(6),
-    backgroundColor: GreenGlow,
+    backgroundColor: SageGlow,
     borderWidth: 1,
-    borderColor: GreenBorder,
+    borderColor: SageBorder,
     borderRadius: s(20),
     paddingHorizontal: s(12),
     paddingVertical: vs(5),
@@ -141,37 +162,34 @@ const styles = StyleSheet.create({
   // Upper section flexes to push bottom content down
   upperSection: {
     flex: 1,
-    justifyContent: 'flex-end',
-    paddingBottom: vs(20),
+    justifyContent: 'center',
   },
   // Logo — large to fill screen
   logoSection: {
     alignItems: 'center',
-    marginBottom: vs(24),
+    marginBottom: vs(0),
+  },
+  logoGlow: {
+    shadowColor: 'rgba(90,140,90,0.5)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 8,
+    marginBottom: vs(16),
   },
   logoMark: {
-    width: s(80),
-    height: s(80),
-    borderRadius: s(24),
-    backgroundColor: '#1F7A3A',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: vs(20),
-    shadowColor: '#00E676',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.45,
-    shadowRadius: 30,
-    elevation: 12,
+    width: s(110),
+    height: s(110),
   },
   logoTextRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: vs(10),
+    marginBottom: vs(4),
   },
   logoName: {
     fontSize: ms(58),
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: TextPrimary,
     letterSpacing: -2,
   },
   logoNameAccent: {
@@ -183,26 +201,31 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: ms(20),
     fontWeight: '600',
-    color: TextMuted,
+    color: Accent,
     letterSpacing: 0.5,
   },
   taglineSub: {
-    fontSize: ms(16),
-    fontWeight: '600',
-    color: Accent,
-    marginTop: vs(8),
-    letterSpacing: 0.3,
+    fontSize: ms(13),
+    fontWeight: '500',
+    color: TextMuted,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   // Welcome Card
   welcomeCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: Border,
     borderRadius: s(18),
     padding: s(18),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   welcomeLeft: {},
   welcomeHi: {
@@ -213,7 +236,7 @@ const styles = StyleSheet.create({
   welcomeName: {
     fontSize: ms(17),
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: TextPrimary,
   },
   welcomeSub: {
     fontSize: ms(11),
@@ -224,18 +247,14 @@ const styles = StyleSheet.create({
     width: s(46),
     height: s(46),
     borderRadius: s(23),
-    backgroundColor: '#1F7A3A',
+    backgroundColor: AccentDim,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#00E676',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 5,
   },
   // Bottom section sticks to bottom
   bottomSection: {
-    gap: vs(10),
+    gap: vs(6),
+    paddingBottom: vs(0),
   },
   // Stats — compact
   statsRow: {
@@ -244,18 +263,23 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: Border,
     borderRadius: s(16),
     paddingVertical: vs(14),
     paddingHorizontal: s(10),
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   statValue: {
     fontSize: ms(22),
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: TextPrimary,
   },
   statUnit: {
     fontSize: ms(10),
@@ -263,26 +287,69 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: vs(6),
   },
-  // Products History — compact row card
-  historyCard: {
-    marginTop: vs(10),
+  // DPP Portal card
+  dppCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: Border,
+    borderRadius: s(16),
+    paddingVertical: vs(14),
+    paddingHorizontal: s(18),
+    gap: s(14),
+    marginTop: vs(4),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  dppIconCircle: {
+    width: s(34),
+    height: s(34),
+    borderRadius: s(17),
+    backgroundColor: 'rgba(46,125,139,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(46,125,139,0.20)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dppLabel: {
+    fontSize: ms(14),
+    color: TextPrimary,
+    fontWeight: '600',
+  },
+  dppUrl: {
+    fontSize: ms(11),
+    color: TextMuted,
+    marginTop: vs(1),
+  },
+  // Products History — compact row card
+  historyCard: {
+    marginTop: vs(4),
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: Border,
     borderRadius: s(16),
     paddingVertical: vs(18),
     paddingHorizontal: s(18),
     gap: s(14),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   historyIconCircle: {
     width: s(34),
     height: s(34),
     borderRadius: s(17),
-    backgroundColor: 'rgba(0,230,118,0.12)',
+    backgroundColor: AccentDim,
     borderWidth: 1,
-    borderColor: 'rgba(0,230,118,0.25)',
+    borderColor: SageBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },

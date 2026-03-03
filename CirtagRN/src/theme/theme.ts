@@ -20,18 +20,18 @@ export interface AppTheme {
   };
 }
 
-// App always uses dark green theme
+// Botanical Fresh light theme
 export const CirtagTheme: AppTheme = {
-  dark: true,
+  dark: false,
   colors: {
     primary: Colors.Accent,
-    onPrimary: Colors.BackgroundDark,
+    onPrimary: '#FFFFFF',
     primaryContainer: Colors.PrimaryContainer,
     onPrimaryContainer: Colors.OnPrimaryContainer,
     secondary: Colors.Secondary,
     secondaryContainer: Colors.SecondaryContainer,
-    tertiary: Colors.Accent,
-    tertiaryContainer: Colors.AccentDim,
+    tertiary: Colors.Warm,
+    tertiaryContainer: Colors.WarmLight,
     background: Colors.BackgroundDark,
     surface: Colors.SurfaceDark,
     error: Colors.Error,

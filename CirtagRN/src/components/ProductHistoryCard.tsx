@@ -50,6 +50,9 @@ export default function ProductHistoryCard({ product, onPress, onDelete }: Props
     displayName = product.displayValue || product.rawValue || 'Unknown Product';
   }
 
+  // Clean product name: remove "R_" / "RN_" / "RN " prefix and replace underscores
+  displayName = displayName.replace(/^RN?[_ ]/i, '').replace(/_/g, ' ').trim();
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       {product.imageUrl ? (

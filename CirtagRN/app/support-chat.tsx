@@ -15,15 +15,28 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTickets } from '../src/hooks/useTickets';
 import { s, vs, ms } from '../src/utils/scale';
 
-const LightBg = '#F5F7FA';
+function FormattedText({ text, style }: { text: string; style: any }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <Text style={style}>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <Text key={i} style={{ fontWeight: '700' }}>{part.slice(2, -2)}</Text>;
+        }
+        return part;
+      })}
+    </Text>
+  );
+}
+
+const CreamBg = '#F7F5F0';
 const White = '#FFFFFF';
-const GreenAccent = '#1B7A3D';
-const GreenTint = 'rgba(0,230,118,0.08)';
-const TextBlack = '#1A1A1A';
-const TextGray = '#6B6B6B';
-const TextMutedLight = '#999999';
-const Border = '#E8ECF0';
-const TextPrimary = '#E8F5E9';
+const SageAccent = '#5A8C5A';
+const SageTint = 'rgba(90,140,90,0.08)';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const TextMutedLight = 'rgba(44,62,45,0.4)';
+const Border = 'rgba(44,62,45,0.1)';
 
 const QUICK_REPLIES = [
   'Track my order',
@@ -60,7 +73,7 @@ export default function SupportChatScreen() {
         {/* Header with back button */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color={TextPrimary} />
+            <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color={White} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Support Chat</Text>
         </View>
@@ -69,7 +82,7 @@ export default function SupportChatScreen() {
         <View style={styles.agentHeader}>
           <View style={styles.agentAvatarContainer}>
             <View style={styles.agentAvatar}>
-              <MaterialIcons name="support-agent" size={ms(22)} color={GreenAccent} />
+              <MaterialIcons name="support-agent" size={ms(22)} color={SageAccent} />
             </View>
             <View style={styles.onlineDot} />
           </View>
@@ -89,7 +102,7 @@ export default function SupportChatScreen() {
           {chatMessages.length === 0 && (
             <View style={styles.welcomeChat}>
               <View style={styles.welcomeIcon}>
-                <MaterialIcons name="support-agent" size={ms(32)} color={GreenAccent} />
+                <MaterialIcons name="support-agent" size={ms(32)} color={SageAccent} />
               </View>
               <Text style={styles.welcomeTitle}>CirTag Support</Text>
               <Text style={styles.welcomeSubtext}>
@@ -103,10 +116,10 @@ export default function SupportChatScreen() {
               {msg.sender === 'bot' ? (
                 <View style={styles.botBubbleRow}>
                   <View style={styles.botAvatarSmall}>
-                    <MaterialIcons name="support-agent" size={ms(14)} color={GreenAccent} />
+                    <MaterialIcons name="support-agent" size={ms(14)} color={SageAccent} />
                   </View>
                   <View style={styles.botBubble}>
-                    <Text style={styles.botBubbleText}>{msg.message}</Text>
+                    <FormattedText text={msg.message} style={styles.botBubbleText} />
                   </View>
                 </View>
               ) : (
@@ -161,7 +174,7 @@ export default function SupportChatScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: LightBg,
+    backgroundColor: CreamBg,
   },
   flex: {
     flex: 1,
@@ -171,9 +184,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(12),
-    backgroundColor: '#0A1A14',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: SageAccent,
   },
   backBtn: {
     width: s(34),
@@ -187,7 +198,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: ms(16),
     fontWeight: '700',
-    color: TextPrimary,
+    color: White,
   },
   agentHeader: {
     flexDirection: 'row',
@@ -204,7 +215,7 @@ const styles = StyleSheet.create({
     width: s(40),
     height: s(40),
     borderRadius: s(20),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -215,9 +226,9 @@ const styles = StyleSheet.create({
     width: s(10),
     height: s(10),
     borderRadius: s(5),
-    backgroundColor: '#00E676',
+    backgroundColor: SageAccent,
     borderWidth: 2,
-    borderColor: LightBg,
+    borderColor: CreamBg,
   },
   agentInfo: {
     marginLeft: s(12),
@@ -225,7 +236,7 @@ const styles = StyleSheet.create({
   agentName: {
     fontSize: ms(15),
     fontWeight: '700',
-    color: TextBlack,
+    color: TextDark,
   },
   agentStatus: {
     fontSize: ms(12),
@@ -243,7 +254,7 @@ const styles = StyleSheet.create({
     width: s(64),
     height: s(64),
     borderRadius: s(32),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: vs(16),
@@ -251,7 +262,7 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: ms(18),
     fontWeight: '700',
-    color: TextBlack,
+    color: TextDark,
   },
   welcomeSubtext: {
     fontSize: ms(14),
@@ -271,7 +282,7 @@ const styles = StyleSheet.create({
     width: s(28),
     height: s(28),
     borderRadius: s(14),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: s(8),
@@ -290,7 +301,7 @@ const styles = StyleSheet.create({
   },
   botBubbleText: {
     fontSize: ms(14),
-    color: TextBlack,
+    color: TextDark,
     lineHeight: ms(20),
   },
   userBubbleRow: {
@@ -304,11 +315,11 @@ const styles = StyleSheet.create({
     borderRadius: s(16),
     borderBottomRightRadius: s(4),
     padding: s(12),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
   },
   userBubbleText: {
     fontSize: ms(14),
-    color: GreenAccent,
+    color: SageAccent,
     lineHeight: ms(20),
   },
   quickRepliesSection: {
@@ -327,7 +338,7 @@ const styles = StyleSheet.create({
   },
   quickReplyBtn: {
     borderWidth: 1.5,
-    borderColor: GreenAccent,
+    borderColor: SageAccent,
     borderRadius: s(20),
     paddingHorizontal: s(14),
     paddingVertical: vs(8),
@@ -335,7 +346,7 @@ const styles = StyleSheet.create({
   quickReplyText: {
     fontSize: ms(13),
     fontWeight: '600',
-    color: GreenAccent,
+    color: SageAccent,
   },
   inputRow: {
     flexDirection: 'row',
@@ -349,12 +360,12 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    backgroundColor: LightBg,
+    backgroundColor: CreamBg,
     borderRadius: s(20),
     paddingHorizontal: s(16),
     paddingVertical: vs(10),
     fontSize: ms(14),
-    color: TextBlack,
+    color: TextDark,
     borderWidth: 1,
     borderColor: Border,
   },
@@ -362,7 +373,7 @@ const styles = StyleSheet.create({
     width: s(36),
     height: s(36),
     borderRadius: s(18),
-    backgroundColor: GreenAccent,
+    backgroundColor: SageAccent,
     justifyContent: 'center',
     alignItems: 'center',
   },

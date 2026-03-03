@@ -30,7 +30,7 @@ export default function LifeCycleScreen() {
         {/* Product Card */}
         <View style={styles.productCard}>
           <View style={styles.productIcon}>
-            <MaterialIcons name="recycling" size={ms(28)} color="#1B7A3D" />
+            <MaterialIcons name="recycling" size={ms(28)} color="#5A8C5A" />
           </View>
           <View style={styles.productInfo}>
             <Text style={styles.productName}>Eco Packaging</Text>
@@ -143,7 +143,7 @@ function EmissionRow({ label, value, color }: { label: string; value: string; co
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F7F5F0',
     paddingHorizontal: s(16),
   },
   header: {
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#2C3E2D',
   },
   subtitle: {
     fontSize: ms(11),
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: ms(15),
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#2C3E2D',
   },
   productMeta: {
     fontSize: ms(11),
@@ -261,13 +261,13 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#2C3E2D',
     marginTop: vs(2),
   },
   statUnit: {
     fontSize: ms(10),
     fontWeight: '600',
-    color: '#4CAF50',
+    color: '#5A8C5A',
     marginTop: vs(2),
   },
   sectionCard: {
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: ms(13),
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#2C3E2D',
     marginBottom: vs(8),
   },
   lifeRow: {
@@ -310,14 +310,14 @@ const styles = StyleSheet.create({
     marginBottom: vs(4),
   },
   lifeIconActive: {
-    backgroundColor: '#1B7A3D',
+    backgroundColor: '#5A8C5A',
   },
   lifeLabel: {
     fontSize: ms(9),
     color: '#7A8A85',
   },
   lifeLabelActive: {
-    color: '#1B7A3D',
+    color: '#5A8C5A',
     fontWeight: '700',
   },
   emissionRow: {
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   },
   emissionValue: {
     fontSize: ms(11),
-    color: '#1A1A1A',
+    color: '#2C3E2D',
     fontWeight: '600',
   },
   emissionBar: {
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     marginTop: vs(4),
   },
   actionText: {
-    color: '#1A1A1A',
+    color: '#2C3E2D',
     fontSize: ms(10),
     fontWeight: '600',
     marginTop: vs(4),

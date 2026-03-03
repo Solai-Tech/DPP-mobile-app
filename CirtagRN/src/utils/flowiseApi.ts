@@ -1,4 +1,9 @@
-const CHATFLOW_ID = 'b3156ec9-acda-427b-9124-282f79fb291d';
+// Each server has its own Flowise chatflow
+const CHATFLOW_MAP: Record<string, string> = {
+  'https://solai.se': '9d61481d-0ea9-42c1-8ea6-08b36127fdb9',
+  'https://demo.cirtag.eu': 'b3156ec9-acda-427b-9124-282f79fb291d',
+};
+const DEFAULT_CHATFLOW_ID = 'b3156ec9-acda-427b-9124-282f79fb291d';
 
 export interface FlowiseReply {
   text: string;
@@ -9,7 +14,8 @@ export interface FlowiseReply {
 export async function getFlowiseChatReply(
   productUrl: string,
   question: string,
-  sessionId?: string
+  sessionId?: string,
+  productName?: string
 ): Promise<FlowiseReply> {
   let apiHost: string;
   try {
@@ -18,10 +24,14 @@ export async function getFlowiseChatReply(
     apiHost = 'https://demo.cirtag.eu';
   }
 
-  const endpoint = `${apiHost}/api/v1/prediction/${CHATFLOW_ID}`;
+  const chatflowId = CHATFLOW_MAP[apiHost] || DEFAULT_CHATFLOW_ID;
+  const endpoint = `${apiHost}/api/v1/prediction/${chatflowId}`;
 
-  const body: Record<string, string> = { question };
+  const body: Record<string, any> = { question };
   if (sessionId) body.sessionId = sessionId;
+  if (productName) {
+    body.overrideConfig = { productName };
+  }
 
   const response = await fetch(endpoint, {
     method: 'POST',

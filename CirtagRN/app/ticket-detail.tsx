@@ -18,14 +18,14 @@ import { getChatbotReply } from '../src/utils/chatbotApi';
 import { ChatMessage, Ticket } from '../src/types/Ticket';
 import { s, vs, ms } from '../src/utils/scale';
 
-const LightBg = '#F5F7FA';
+const CreamBg = '#F7F5F0';
 const White = '#FFFFFF';
-const GreenAccent = '#1B7A3D';
-const GreenTint = 'rgba(0,230,118,0.08)';
-const TextBlack = '#1A1A1A';
-const TextGray = '#6B6B6B';
-const TextMutedLight = '#999999';
-const Border = '#E8ECF0';
+const SageAccent = '#5A8C5A';
+const SageTint = 'rgba(90,140,90,0.08)';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const TextMutedLight = 'rgba(44,62,45,0.4)';
+const Border = 'rgba(44,62,45,0.1)';
 
 export default function TicketDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -105,7 +105,7 @@ export default function TicketDetailScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <MaterialIcons name="chevron-left" size={ms(28)} color={TextBlack} />
+            <MaterialIcons name="chevron-left" size={ms(28)} color={TextDark} />
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <Text style={styles.headerTitle} numberOfLines={1}>
@@ -140,7 +140,7 @@ export default function TicketDetailScreen() {
               {msg.sender === 'bot' ? (
                 <View style={styles.botBubbleRow}>
                   <View style={styles.botAvatarSmall}>
-                    <MaterialIcons name="support-agent" size={ms(14)} color={GreenAccent} />
+                    <MaterialIcons name="support-agent" size={ms(14)} color={SageAccent} />
                   </View>
                   <View style={styles.botBubble}>
                     <Text style={styles.botBubbleText}>{msg.message}</Text>
@@ -178,7 +178,7 @@ export default function TicketDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: LightBg },
+  root: { flex: 1, backgroundColor: CreamBg },
   flex: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -191,13 +191,13 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: s(4) },
   headerInfo: { flex: 1, marginLeft: s(8) },
-  headerTitle: { fontSize: ms(17), fontWeight: '700', color: TextBlack },
+  headerTitle: { fontSize: ms(17), fontWeight: '700', color: TextDark },
   headerSub: { fontSize: ms(12), color: TextGray, marginTop: vs(2), textTransform: 'capitalize' },
   chatContent: { paddingVertical: vs(12) },
   emptyState: { alignItems: 'center', padding: s(40) },
   emptyIcon: {
     width: s(64), height: s(64), borderRadius: s(32),
-    backgroundColor: '#F0F2F5', justifyContent: 'center', alignItems: 'center', marginBottom: vs(12),
+    backgroundColor: '#F0EDE6', justifyContent: 'center', alignItems: 'center', marginBottom: vs(12),
   },
   emptyText: { fontSize: ms(14), fontWeight: '600', color: TextGray },
   emptySubtext: { fontSize: ms(12), color: TextMutedLight, marginTop: vs(4), textAlign: 'center' },
@@ -206,32 +206,32 @@ const styles = StyleSheet.create({
   },
   botAvatarSmall: {
     width: s(28), height: s(28), borderRadius: s(14),
-    backgroundColor: GreenTint, justifyContent: 'center', alignItems: 'center', marginRight: s(8),
+    backgroundColor: SageTint, justifyContent: 'center', alignItems: 'center', marginRight: s(8),
   },
   botBubble: {
     maxWidth: '75%', borderRadius: s(16), borderBottomLeftRadius: s(4), padding: s(12),
     backgroundColor: White, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
-  botBubbleText: { fontSize: ms(14), color: TextBlack, lineHeight: ms(20) },
+  botBubbleText: { fontSize: ms(14), color: TextDark, lineHeight: ms(20) },
   userBubbleRow: {
     flexDirection: 'row', justifyContent: 'flex-end', marginBottom: vs(10), paddingHorizontal: s(16),
   },
   userBubble: {
     maxWidth: '75%', borderRadius: s(16), borderBottomRightRadius: s(4), padding: s(12),
-    backgroundColor: GreenTint,
+    backgroundColor: SageTint,
   },
-  userBubbleText: { fontSize: ms(14), color: GreenAccent, lineHeight: ms(20) },
+  userBubbleText: { fontSize: ms(14), color: SageAccent, lineHeight: ms(20) },
   inputRow: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: s(12), paddingTop: vs(8),
     gap: s(8), backgroundColor: White, borderTopWidth: 1, borderTopColor: Border,
   },
   textInput: {
-    flex: 1, backgroundColor: LightBg, borderRadius: s(20), paddingHorizontal: s(16),
-    paddingVertical: vs(10), fontSize: ms(14), color: TextBlack, borderWidth: 1, borderColor: Border,
+    flex: 1, backgroundColor: CreamBg, borderRadius: s(20), paddingHorizontal: s(16),
+    paddingVertical: vs(10), fontSize: ms(14), color: TextDark, borderWidth: 1, borderColor: Border,
   },
   sendBtn: {
     width: s(36), height: s(36), borderRadius: s(18),
-    backgroundColor: GreenAccent, justifyContent: 'center', alignItems: 'center',
+    backgroundColor: SageAccent, justifyContent: 'center', alignItems: 'center',
   },
 });

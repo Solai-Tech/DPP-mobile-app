@@ -5,6 +5,14 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { s, vs, ms } from '../src/utils/scale';
 
+const CreamBg = '#F7F5F0';
+const White = '#FFFFFF';
+const SageAccent = '#5A8C5A';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const SageTint = 'rgba(90,140,90,0.08)';
+const Border = 'rgba(44,62,45,0.1)';
+
 interface NotifItemProps {
   icon: string;
   title: string;
@@ -17,7 +25,7 @@ function NotifItem({ icon, title, description, value, onToggle }: NotifItemProps
   return (
     <View style={styles.notifRow}>
       <View style={styles.notifIcon}>
-        <MaterialIcons name={icon as any} size={ms(22)} color="#00E676" />
+        <MaterialIcons name={icon as any} size={ms(22)} color={SageAccent} />
       </View>
       <View style={styles.notifInfo}>
         <Text style={styles.notifTitle}>{title}</Text>
@@ -26,8 +34,8 @@ function NotifItem({ icon, title, description, value, onToggle }: NotifItemProps
       <Switch
         value={value}
         onValueChange={onToggle}
-        trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(0,230,118,0.4)' }}
-        thumbColor={value ? '#00E676' : '#888'}
+        trackColor={{ false: 'rgba(44,62,45,0.12)', true: 'rgba(90,140,90,0.35)' }}
+        thumbColor={value ? SageAccent : '#BBBBBB'}
       />
     </View>
   );
@@ -44,7 +52,7 @@ export default function NotificationsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color={TextDark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
       </View>
@@ -79,15 +87,16 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A1A14',
+    backgroundColor: CreamBg,
   },
   header: {
     height: vs(48),
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(12),
+    backgroundColor: White,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: Border,
   },
   backBtn: {
     width: s(34),
@@ -100,7 +109,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: TextDark,
   },
   content: {
     padding: s(20),
@@ -110,16 +119,21 @@ const styles = StyleSheet.create({
   notifRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: White,
     borderRadius: s(14),
     padding: s(16),
     gap: s(12),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   notifIcon: {
     width: s(44),
     height: s(44),
     borderRadius: s(22),
-    backgroundColor: 'rgba(0,230,118,0.1)',
+    backgroundColor: SageTint,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -129,12 +143,12 @@ const styles = StyleSheet.create({
   notifTitle: {
     fontSize: ms(15),
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: TextDark,
     marginBottom: vs(4),
   },
   notifDesc: {
     fontSize: ms(12),
-    color: 'rgba(255,255,255,0.6)',
+    color: TextGray,
     lineHeight: ms(17),
   },
 });

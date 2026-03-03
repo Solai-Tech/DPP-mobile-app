@@ -5,6 +5,14 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { s, vs, ms } from '../src/utils/scale';
 
+const CreamBg = '#F7F5F0';
+const White = '#FFFFFF';
+const SageAccent = '#5A8C5A';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const TextLight = 'rgba(44,62,45,0.5)';
+const Border = 'rgba(44,62,45,0.1)';
+
 export default function PrivacyScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -22,7 +30,7 @@ export default function PrivacyScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color={TextDark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Privacy & Security</Text>
       </View>
@@ -38,7 +46,7 @@ export default function PrivacyScreen() {
 
         {points.map((point, i) => (
           <View key={i} style={styles.pointRow}>
-            <MaterialIcons name="check-circle" size={ms(18)} color="#00E676" style={styles.pointIcon} />
+            <MaterialIcons name="check-circle" size={ms(18)} color={SageAccent} style={styles.pointIcon} />
             <Text style={styles.pointText}>{point}</Text>
           </View>
         ))}
@@ -50,15 +58,16 @@ export default function PrivacyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A1A14',
+    backgroundColor: CreamBg,
   },
   header: {
     height: vs(48),
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(12),
+    backgroundColor: White,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: Border,
   },
   backBtn: {
     width: s(34),
@@ -71,7 +80,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: TextDark,
   },
   content: {
     padding: s(20),
@@ -80,18 +89,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: ms(22),
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: TextDark,
     marginBottom: vs(12),
   },
   intro: {
     fontSize: ms(15),
-    color: 'rgba(255,255,255,0.85)',
+    color: TextDark,
     lineHeight: ms(22),
     marginBottom: vs(8),
   },
   subIntro: {
     fontSize: ms(14),
-    color: 'rgba(255,255,255,0.6)',
+    color: TextGray,
     lineHeight: ms(20),
     marginBottom: vs(20),
   },
@@ -107,7 +116,7 @@ const styles = StyleSheet.create({
   pointText: {
     flex: 1,
     fontSize: ms(14),
-    color: 'rgba(255,255,255,0.8)',
+    color: TextLight,
     lineHeight: ms(20),
   },
 });

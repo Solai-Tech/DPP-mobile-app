@@ -5,17 +5,24 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { s, vs, ms } from '../src/utils/scale';
 
+const CreamBg = '#F7F5F0';
+const White = '#FFFFFF';
+const SageAccent = '#5A8C5A';
+const TextDark = '#2C3E2D';
+const TextGray = 'rgba(44,62,45,0.65)';
+const Border = 'rgba(44,62,45,0.1)';
+
 export default function PreferencesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const [autoScan, setAutoScan] = useState(true);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color="#FFFFFF" />
+          <MaterialIcons name="arrow-back-ios-new" size={ms(18)} color={TextDark} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Preferences</Text>
       </View>
@@ -29,8 +36,8 @@ export default function PreferencesScreen() {
           <Switch
             value={darkMode}
             onValueChange={setDarkMode}
-            trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(0,230,118,0.4)' }}
-            thumbColor={darkMode ? '#00E676' : '#888'}
+            trackColor={{ false: 'rgba(44,62,45,0.12)', true: 'rgba(90,140,90,0.35)' }}
+            thumbColor={darkMode ? SageAccent : '#BBBBBB'}
           />
         </View>
         <View style={styles.row}>
@@ -41,8 +48,8 @@ export default function PreferencesScreen() {
           <Switch
             value={autoScan}
             onValueChange={setAutoScan}
-            trackColor={{ false: 'rgba(255,255,255,0.15)', true: 'rgba(0,230,118,0.4)' }}
-            thumbColor={autoScan ? '#00E676' : '#888'}
+            trackColor={{ false: 'rgba(44,62,45,0.12)', true: 'rgba(90,140,90,0.35)' }}
+            thumbColor={autoScan ? SageAccent : '#BBBBBB'}
           />
         </View>
       </ScrollView>
@@ -53,15 +60,16 @@ export default function PreferencesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A1A14',
+    backgroundColor: CreamBg,
   },
   header: {
     height: vs(48),
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: s(12),
+    backgroundColor: White,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: Border,
   },
   backBtn: {
     width: s(34),
@@ -74,7 +82,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: ms(16),
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: TextDark,
   },
   content: {
     padding: s(20),
@@ -84,9 +92,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: White,
     borderRadius: s(14),
     padding: s(16),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   rowInfo: {
     flex: 1,
@@ -94,11 +107,11 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontSize: ms(15),
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: TextDark,
     marginBottom: vs(4),
   },
   rowDesc: {
     fontSize: ms(12),
-    color: 'rgba(255,255,255,0.6)',
+    color: TextGray,
   },
 });

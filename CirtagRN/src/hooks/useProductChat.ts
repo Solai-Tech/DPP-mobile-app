@@ -41,7 +41,7 @@ export function useProductChat(productId: number, productUrl: string, productNam
     setIsTyping(true);
 
     try {
-      const reply = await getFlowiseChatReply(productUrl, text);
+      const reply = await getFlowiseChatReply(productUrl, text, undefined, productName);
 
       const botId = await insertProductChatMessage({
         productId,

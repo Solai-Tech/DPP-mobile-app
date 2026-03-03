@@ -14,7 +14,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   open: { bg: AccentDim, text: Accent },
   in_progress: { bg: 'rgba(255,152,0,0.15)', text: Warning },
   resolved: { bg: 'rgba(76,175,80,0.15)', text: '#4CAF50' },
-  closed: { bg: 'rgba(255,255,255,0.08)', text: TextMuted },
+  closed: { bg: 'rgba(44,62,45,0.06)', text: TextMuted },
 };
 
 export default function TicketCard({ ticket, onPress }: Props) {

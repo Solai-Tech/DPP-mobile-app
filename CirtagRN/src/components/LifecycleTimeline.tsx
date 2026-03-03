@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     backgroundColor: AccentDim,
   },
   inactiveCircle: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(44,62,45,0.05)',
   },
   currentCircle: {
     borderWidth: 2,

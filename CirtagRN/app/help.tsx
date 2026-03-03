@@ -14,7 +14,7 @@ export default function HelpScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: s(20), backgroundColor: '#0A1A14' },
-  title: { color: '#FFFFFF', fontSize: ms(18), fontWeight: '700' },
-  sub: { color: 'rgba(255,255,255,0.6)', marginTop: vs(8) },
+  container: { flex: 1, paddingHorizontal: s(20), backgroundColor: '#F7F5F0' },
+  title: { color: '#2C3E2D', fontSize: ms(18), fontWeight: '700' },
+  sub: { color: 'rgba(44,62,45,0.65)', marginTop: vs(8) },
 });
