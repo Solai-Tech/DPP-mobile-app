@@ -96,7 +96,6 @@ export default function HomeScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.dppLabel}>DPP Portal</Text>
             </View>
-            <MaterialIcons name="open-in-new" size={ms(16)} color={TextMuted} />
           </TouchableOpacity>
 
           {/* Products History */}
