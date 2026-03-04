@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import GradientBackground from '../../src/components/GradientBackground';
-import CirtagLogo from '../../src/components/CirtagLogo';
 import { useUserProfile } from '../../src/hooks/useUserProfile';
 import { useProducts } from '../../src/hooks/useProducts';
 import { s, vs, ms } from '../../src/utils/scale';
@@ -84,13 +83,7 @@ export default function ProfileScreen() {
         contentContainerStyle={{ paddingTop: insets.top + vs(12), paddingBottom: vs(32) }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.headerRow}>
-          <CirtagLogo size="small" />
-          <Text style={styles.headerTitle}>Profile</Text>
-        </View>
-
-        <View style={{ height: vs(24) }} />
+        <View style={{ height: vs(20) }} />
 
         {/* Avatar + Info */}
         <View style={styles.profileCard}>

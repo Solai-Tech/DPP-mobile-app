@@ -226,7 +226,7 @@ export default function ProductDetailScreen() {
               <MaterialIcons name="arrow-back" size={ms(22)} color={White} />
             </TouchableOpacity>
             <View style={styles.headerCenter}>
-              <Text style={styles.headerTitle}>Product Passport</Text>
+              <Text style={styles.headerTitle}>Digital Product Passport</Text>
             </View>
             {hasVerified && (
               <View style={styles.verifiedBadge}>

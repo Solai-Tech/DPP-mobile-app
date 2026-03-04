@@ -206,7 +206,7 @@ export default function ScanScreen() {
       >
         {/* Page Header */}
         <View style={[styles.pageHeader, { paddingTop: insets.top + vs(12) }]}>
-          <Text style={styles.pageTitle}>Scan Product</Text>
+          <Text style={styles.pageTitle}>Digital Product Passport</Text>
           <Text style={styles.pageSubtitle}>
             Scan a product or tap a saved one
           </Text>
