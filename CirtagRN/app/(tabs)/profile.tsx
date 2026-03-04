@@ -113,7 +113,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={{ height: vs(20) }} />
+        <View style={{ height: vs(40) }} />
 
         {/* Menu Items */}
         <View style={styles.menuSection}>
@@ -133,12 +133,6 @@ export default function ProfileScreen() {
         </View>
 
         <View style={{ height: vs(24) }} />
-
-        {/* Sign Out */}
-        <TouchableOpacity style={styles.signOutBtn} activeOpacity={0.7}>
-          <MaterialIcons name="logout" size={ms(18)} color="#C45A5A" />
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
       </ScrollView>
     </GradientBackground>
   );
