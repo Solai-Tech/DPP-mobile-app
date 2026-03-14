@@ -31,7 +31,14 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# cookies
+cookies.txt
+
+# keystores (keep debug.keystore only if needed)
+*.keystore
 
 # typescript
 *.tsbuildinfo

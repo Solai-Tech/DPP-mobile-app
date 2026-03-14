@@ -1,8 +1,10 @@
 import { ScannedProduct } from '../types/ScannedProduct';
+import Constants from 'expo-constants';
 
-const OPENAI_API_KEY = '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';
+const extra = Constants.expoConfig?.extra ?? {};
+const OPENAI_API_KEY = extra.openaiApiKey ?? '';
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
-const SAVE_CHAT_URL = 'https://solai.se/dppx/get-chats/';
+const SAVE_CHAT_URL = extra.saveChatUrl ?? 'https://solai.se/dppx/get-chats/';
 
 function buildProductContext(products: ScannedProduct[]): string {
   if (products.length === 0) return 'No products have been scanned yet.';

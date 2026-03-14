@@ -1,9 +1,10 @@
-// Each server has its own Flowise chatflow
-const CHATFLOW_MAP: Record<string, string> = {
-  'https://solai.se': '9d61481d-0ea9-42c1-8ea6-08b36127fdb9',
-  'https://demo.cirtag.eu': 'b3156ec9-acda-427b-9124-282f79fb291d',
-};
-const DEFAULT_CHATFLOW_ID = 'b3156ec9-acda-427b-9124-282f79fb291d';
+import Constants from 'expo-constants';
+
+const extra = Constants.expoConfig?.extra ?? {};
+
+// Each server has its own Flowise chatflow — IDs loaded from app config
+const CHATFLOW_MAP: Record<string, string> = extra.flowiseChatflowMap ?? {};
+const DEFAULT_CHATFLOW_ID = extra.flowiseDefaultChatflowId ?? '';
 
 export interface FlowiseReply {
   text: string;
