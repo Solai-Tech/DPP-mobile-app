@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Ticket, ChatMessage } from '../types/Ticket';
 import * as ticketDao from '../database/ticketDao';
 import * as dao from '../database/scannedProductDao';
-import { getChatbotReply, saveChatToServer } from '../utils/chatbotApi';
+import { getFlowiseChatReply } from '../utils/flowiseApi';
 
 export function useTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -39,26 +39,21 @@ export function useTickets() {
       });
       await loadChatMessages(ticketId);
 
-      // Fetch all scanned products for context
+      // Get the most recent product to determine which Flowise server to use
       const products = await dao.getAllProducts();
-      const reply = await getChatbotReply(message, products);
+      const recentProduct = products.length > 0 ? products[products.length - 1] : null;
+      const productUrl = recentProduct?.rawValue || '';
+      const productName = recentProduct?.productName || '';
+
+      const reply = await getFlowiseChatReply(productUrl, message, undefined, productName);
 
       await ticketDao.insertChatMessage({
         ticketId,
         productId: null,
-        message: reply,
+        message: reply.text,
         sender: 'bot',
         createdAt: Date.now(),
       });
-
-      // Save chat to remote DB (fire & forget)
-      const recentProduct = products.length > 0 ? products[products.length - 1] : null;
-      saveChatToServer(
-        message,
-        reply,
-        recentProduct?.productName || '',
-        recentProduct?.rawValue || ''
-      );
 
       await loadChatMessages(ticketId);
     },

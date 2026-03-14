@@ -5,6 +5,7 @@ const extra = Constants.expoConfig?.extra ?? {};
 // Each server has its own Flowise chatflow — IDs loaded from app config
 const CHATFLOW_MAP: Record<string, string> = extra.flowiseChatflowMap ?? {};
 const DEFAULT_CHATFLOW_ID = extra.flowiseDefaultChatflowId ?? '';
+const SAVE_CHAT_URL = extra.saveChatUrl ?? 'https://solai.se/dppx/get-chats/';
 
 export interface FlowiseReply {
   text: string;
@@ -76,4 +77,27 @@ export async function getFlowiseChatReply(
     chatId: data.chatId,
     chatMessageId: data.chatMessageId,
   };
+}
+
+export async function saveChatToServer(
+  userMessage: string,
+  botReply: string,
+  productName?: string,
+  productUrl?: string
+): Promise<void> {
+  try {
+    await fetch(SAVE_CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_message: userMessage,
+        bot_reply: botReply,
+        product_name: productName || '',
+        product_url: productUrl || '',
+        timestamp: new Date().toISOString(),
+      }),
+    });
+  } catch (e) {
+    console.log('[saveChatToServer] error:', e);
+  }
 }

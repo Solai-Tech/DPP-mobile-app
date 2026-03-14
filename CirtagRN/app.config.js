@@ -4,7 +4,6 @@ module.exports = ({ config }) => ({
   ...config,
   extra: {
     ...config.extra,
-    openaiApiKey: process.env.OPENAI_API_KEY ?? '',
     saveChatUrl: process.env.SAVE_CHAT_URL ?? 'https://solai.se/dppx/get-chats/',
     flowiseChatflowMap: {
       'https://solai.se': process.env.FLOWISE_SOLAI_ID ?? '',

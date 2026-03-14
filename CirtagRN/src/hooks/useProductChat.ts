@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChatMessage } from '../types/Ticket';
 import { getChatMessagesByProductId, insertProductChatMessage } from '../database/ticketDao';
-import { getFlowiseChatReply } from '../utils/flowiseApi';
-import { saveChatToServer } from '../utils/chatbotApi';
+import { getFlowiseChatReply, saveChatToServer } from '../utils/flowiseApi';
 
 export function useProductChat(productId: number, productUrl: string, productName: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);

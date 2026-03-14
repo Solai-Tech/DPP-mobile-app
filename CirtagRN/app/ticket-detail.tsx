@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ticketDao from '../src/database/ticketDao';
 import * as dao from '../src/database/scannedProductDao';
-import { getChatbotReply } from '../src/utils/chatbotApi';
+import { getFlowiseChatReply } from '../src/utils/flowiseApi';
 import { ChatMessage, Ticket } from '../src/types/Ticket';
 import { s, vs, ms } from '../src/utils/scale';
 
@@ -73,13 +73,17 @@ export default function TicketDetailScreen() {
     const msgs = await ticketDao.getChatMessages(id);
     setMessages(msgs);
 
-    const products = await dao.getAllProducts();
-    const reply = await getChatbotReply(text, products);
+    // Look up the ticket's product to determine which Flowise server to use
+    const product = ticket?.productId ? await dao.getProductById(ticket.productId) : null;
+    const productUrl = product?.rawValue || '';
+    const productName = product?.productName || '';
+
+    const reply = await getFlowiseChatReply(productUrl, text, undefined, productName);
 
     await ticketDao.insertChatMessage({
       ticketId: id,
       productId: null,
-      message: reply,
+      message: reply.text,
       sender: 'bot',
       createdAt: Date.now(),
     });
