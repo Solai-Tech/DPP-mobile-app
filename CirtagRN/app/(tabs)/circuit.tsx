@@ -287,6 +287,14 @@ export default function CircuitBoardScreen() {
             <Text style={styles.sectionTitle}>Analysis Results</Text>
 
             <View style={styles.resultCard}>
+              {/* Material */}
+              {analysis.material && (
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Material</Text>
+                  <Text style={styles.materialText}>{analysis.material}</Text>
+                </View>
+              )}
+
               {/* Category */}
               <View style={styles.resultRow}>
                 <Text style={styles.resultLabel}>Category</Text>
@@ -295,15 +303,31 @@ export default function CircuitBoardScreen() {
                   analysis.category === 2 && styles.categoryBadge2
                 ]}>
                   <Text style={styles.categoryText}>
-                    Category {analysis.category}
+                    {typeof analysis.category === 'string' ? analysis.category : `Category ${analysis.category}`}
                   </Text>
                 </View>
               </View>
 
-              {/* Price */}
+              {/* Price per kg */}
+              {analysis.pricePerKg && (
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Price/kg</Text>
+                  <Text style={styles.pricePerKgText}>{analysis.pricePerKg} kr/kg</Text>
+                </View>
+              )}
+
+              {/* Weight */}
+              {analysis.weight && (
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Weight</Text>
+                  <Text style={styles.weightText}>{analysis.weight} kg</Text>
+                </View>
+              )}
+
+              {/* Total Price */}
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Price</Text>
-<Text style={styles.priceText}>{analysis.price.toFixed(2)} kr</Text>
+                <Text style={styles.resultLabel}>Total Price</Text>
+                <Text style={styles.priceText}>{analysis.price.toFixed(2)} kr</Text>
               </View>
 
               {/* PCF */}
@@ -618,6 +642,24 @@ const styles = StyleSheet.create({
     fontSize: ms(12),
     fontWeight: '700',
     color: SageAccent,
+  },
+  materialText: {
+    fontSize: ms(14),
+    fontWeight: '600',
+    color: TextDark,
+    flex: 1,
+    textAlign: 'right',
+    marginLeft: s(12),
+  },
+  pricePerKgText: {
+    fontSize: ms(14),
+    fontWeight: '700',
+    color: SageAccent,
+  },
+  weightText: {
+    fontSize: ms(14),
+    fontWeight: '600',
+    color: TextDark,
   },
   priceText: {
     fontSize: ms(18),

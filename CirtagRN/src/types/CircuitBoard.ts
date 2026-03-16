@@ -8,15 +8,20 @@ export interface CircuitBoardInput {
 }
 
 export interface CircuitBoardAnalysis {
-  category: 1 | 2;
-  price: number;       // in EUR
-  pcf: number;         // Product Carbon Footprint in kg CO2
-  pcfBreakdown: { stage: string; value: number }[];
+  category: string | number;
+  material?: string;       // Material name from database
+  pricePerKg?: number;     // Price per kg
+  price: number;           // Total price
+  weight?: number;         // Weight in kg
+  currency?: string;       // Currency (kr, EUR, etc.)
+  pcf: number;             // Product Carbon Footprint in kg CO2
+  pcfBreakdown?: { stage: string; value: number }[];
   description: string;
   components: string[];
-  productId?: string;       // SKU like PCB-1234-abcd
-  productDbId?: number;     // DPP database product ID
-  productUrl?: string;      // URL to view product in DPP
+  confidence?: number;     // LLM confidence score
+  productId?: string;      // SKU like PCB-1234-abcd
+  productDbId?: number;    // DPP database product ID
+  productUrl?: string;     // URL to view product in DPP
 }
 
 export interface CircuitBoardDPP {
