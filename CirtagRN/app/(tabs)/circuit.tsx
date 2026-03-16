@@ -303,7 +303,7 @@ export default function CircuitBoardScreen() {
               {/* Price */}
               <View style={styles.resultRow}>
                 <Text style={styles.resultLabel}>Price</Text>
-                <Text style={styles.priceText}>{analysis.price.toFixed(2)}</Text>
+<Text style={styles.priceText}>{analysis.price.toFixed(2)} kr</Text>
               </View>
 
               {/* PCF */}

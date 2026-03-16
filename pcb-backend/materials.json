@@ -1,0 +1,483 @@
+{
+  "version": "1.0",
+  "currency": "kr",
+  "unit": "kilot",
+  "lastUpdated": "2026-03-17",
+  "materials": [
+    {
+      "id": "household-low-grade",
+      "name": "Household electronics low grade without battery",
+      "description": "Miscellaneous Household electrical and/or electronic appliances. For example: shavers, coffee machines, kettles, microwaves, deep-fat fryers, etc.",
+      "requirements": {
+        "mustNotContain": ["batteries", "bulbs", "toner", "hazardous components"]
+      },
+      "pricePerKg": 0.5,
+      "category": "household"
+    },
+    {
+      "id": "tv-receiver",
+      "name": "TV Receiver",
+      "description": "TV receiver for cable or satellite TV. Complete.",
+      "pricePerKg": 4,
+      "category": "household"
+    },
+    {
+      "id": "adapter-without-cable",
+      "name": "Adapter without cable",
+      "description": "External adapters without cable from thin client, laptop, notebook, etc.",
+      "pricePerKg": 2,
+      "category": "adapters"
+    },
+    {
+      "id": "adapter-with-cable",
+      "name": "Adapter with cable",
+      "description": "External adapters with cable from thin client, laptop, notebook, etc. Dry and undamaged.",
+      "pricePerKg": 2.5,
+      "category": "adapters"
+    },
+    {
+      "id": "lead-battery",
+      "name": "Lead Battery",
+      "description": "Lead acid batteries",
+      "pricePerKg": 5,
+      "category": "batteries"
+    },
+    {
+      "id": "computer-incomplete",
+      "name": "Computer, incomplete",
+      "description": "Used computer from which one or more components have been removed, but the motherboard at least is still present. Not crushed so that disassembly is still possible.",
+      "pricePerKg": 3,
+      "category": "computers"
+    },
+    {
+      "id": "thin-client",
+      "name": "Thin Client (Network Computer)",
+      "description": "Used network computer/thin client with original parts. Not crushed so that disassembly is still possible.",
+      "pricePerKg": 4,
+      "category": "computers"
+    },
+    {
+      "id": "laptop-without-battery",
+      "name": "Laptop, complete without battery",
+      "description": "Used laptop, complete and with original parts. Dry and undamaged. Screen not broken. Without battery. Not crushed so that disassembly is still possible.",
+      "requirements": {
+        "mustHave": ["complete", "original parts", "screen not broken"],
+        "mustNotContain": ["battery"]
+      },
+      "pricePerKg": 16,
+      "category": "laptops"
+    },
+    {
+      "id": "laptop-with-battery",
+      "name": "Laptop, complete with battery",
+      "description": "Used laptop, complete and with original parts. Dry and undamaged. Screen not broken.",
+      "requirements": {
+        "mustHave": ["complete", "original parts", "screen not broken", "battery"]
+      },
+      "pricePerKg": 14,
+      "category": "laptops"
+    },
+    {
+      "id": "server-complete",
+      "name": "Server Complete",
+      "description": "Used, non-emptied server with all original parts. Dry and undamaged.",
+      "pricePerKg": 8,
+      "category": "servers"
+    },
+    {
+      "id": "server-incomplete",
+      "name": "Server Incomplete",
+      "description": "Used server with one or more parts missing but with at least one motherboard still present. Not crushed so that disassembly is still possible.",
+      "pricePerKg": 6,
+      "category": "servers"
+    },
+    {
+      "id": "router-switch-rack",
+      "name": "Router/switch, professional, rack mounted",
+      "description": "Used, non-emptied business router/switch with original parts. Dry and undamaged.",
+      "pricePerKg": 6,
+      "category": "networking"
+    },
+    {
+      "id": "tablet-ipad",
+      "name": "Tablet/iPad",
+      "description": "Complete used tablet or iPad.",
+      "pricePerKg": 7,
+      "category": "mobile"
+    },
+    {
+      "id": "mobile-with-battery",
+      "name": "Mobile phone/Handheld with battery",
+      "description": "Complete used mobile phones with battery. No DECT phones or other cordless home phones.",
+      "requirements": {
+        "mustHave": ["battery"],
+        "mustNotContain": ["DECT phones", "cordless home phones"]
+      },
+      "pricePerKg": 32,
+      "category": "mobile"
+    },
+    {
+      "id": "mobile-without-battery",
+      "name": "Mobile phone/Handheld without battery",
+      "description": "Complete used mobile phones without battery. No DECT phones or other cordless home phones.",
+      "requirements": {
+        "mustNotContain": ["battery", "DECT phones", "cordless home phones"]
+      },
+      "pricePerKg": 125,
+      "category": "mobile"
+    },
+    {
+      "id": "smartphone-high-grade",
+      "name": "Smartphone high grade with battery",
+      "description": "Complete used smartphones with and without battery. Maximum permitted quantity of Chinese smartphones (with double SIM): 10%. No handhelds, DECT phones or other cordless home phones.",
+      "pricePerKg": 16,
+      "category": "mobile"
+    },
+    {
+      "id": "car-computer-ecu",
+      "name": "Car computer/ECU Aluminium/plastic housing",
+      "description": "Car computers/ECUs with plastic or aluminium housing. Not emptied.",
+      "pricePerKg": 4.5,
+      "category": "automotive"
+    },
+    {
+      "id": "ups-battery-backup",
+      "name": "UPS/Battery Backup",
+      "description": "UPS emergency power supply. Complete with batteries.",
+      "pricePerKg": 2.5,
+      "category": "power"
+    },
+    {
+      "id": "hdd",
+      "name": "Hard disk drive (HDD)",
+      "description": "Complete HDDs without attachment. Complete and intact.",
+      "pricePerKg": 14,
+      "category": "storage"
+    },
+    {
+      "id": "hdd-with-brackets",
+      "name": "Hard disk with brackets",
+      "description": "Complete HDDs with attachments. Complete and intact.",
+      "pricePerKg": 10,
+      "category": "storage"
+    },
+    {
+      "id": "ssd",
+      "name": "Solid State Drive (SSD)",
+      "description": "SSD without brackets.",
+      "pricePerKg": 22,
+      "category": "storage"
+    },
+    {
+      "id": "cd-dvd-drive",
+      "name": "CD/DVD Driver (Drive mechanism)",
+      "description": "Various drive mechanisms DVD/CD drivers/floppy drives without attachments.",
+      "pricePerKg": 4,
+      "category": "drives"
+    },
+    {
+      "id": "back-panel-high-grade",
+      "name": "Back panel, high-grade server",
+      "description": "Origin: back panel of servers with ample gold-plated plug-in options.",
+      "requirements": {
+        "mustHave": ["gold-plated plug-in options"],
+        "mustNotContain": ["attachments", "screws", "cables", "metal connections"]
+      },
+      "pricePerKg": 60,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "back-panel-low-grade",
+      "name": "Back panel, Low-Grade",
+      "description": "Origin: back panel of larger PCs with ample gold-plated plug-in options.",
+      "requirements": {
+        "mustHave": ["gold-plated plug-in options"],
+        "mustNotContain": ["attachments", "screws", "cables", "metal connections"]
+      },
+      "pricePerKg": 40,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "circuit-board-cat-1-plus",
+      "name": "Circuit board Category 1+",
+      "description": "High-quality circuitry. A fully gold-plated side. Other side partly gold plated.",
+      "requirements": {
+        "mustHave": ["high-quality circuitry", "fully gold-plated side"],
+        "mustNotContain": ["metal attachments", "batteries", "transformers", "copper components"]
+      },
+      "pricePerKg": 135,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "circuit-board-cat-1",
+      "name": "Circuit board Category 1",
+      "description": "High-quality circuitry. A gold-plated base, so not completely gold-plated.",
+      "requirements": {
+        "mustHave": ["high-quality circuitry", "gold-plated base"],
+        "mustNotContain": ["metal attachments", "batteries", "transformers", "copper components"]
+      },
+      "pricePerKg": 93,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "circuit-board-cat-2",
+      "name": "Circuit board Category 2",
+      "description": "At least one side heavily printed. ICs and CPUs containing visible gold.",
+      "requirements": {
+        "mustHave": ["heavily printed side", "ICs with visible gold"],
+        "mustNotContain": ["metal attachments", "batteries", "transformers", "copper components"]
+      },
+      "pricePerKg": 70,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "circuit-board-cat-3-plus",
+      "name": "Circuit board Category 3+",
+      "description": "At least one printed side. Possibly with gold-plated connectors.",
+      "requirements": {
+        "mustHave": ["printed side"],
+        "mustNotContain": ["copper elements", "metal attachments", "batteries"]
+      },
+      "pricePerKg": 38,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "circuit-board-cat-3",
+      "name": "Circuit board Category 3",
+      "description": "At least on one side medium-heavy, high-performance circuitry with ICs and processors. Copper, aluminium or plastic components. Possibly with gold-plated connectors.",
+      "requirements": {
+        "mustNotContain": ["metal attachments", "batteries"]
+      },
+      "pricePerKg": 30,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "circuit-board-cat-4",
+      "name": "Circuit board Category 4",
+      "description": "Relatively large number of transformers and components containing copper or aluminium. High-quality IC and processor circuitry.",
+      "requirements": {
+        "mustNotContain": ["iron or aluminium heat sinks", "batteries"]
+      },
+      "pricePerKg": 11,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "circuit-board-cat-5",
+      "name": "Circuit board Category 5",
+      "description": "Few or no ICs and/or CPUs. Relatively large number of copper components. Light attachments made of iron, aluminium or plastic.",
+      "requirements": {
+        "mustNotContain": ["batteries"]
+      },
+      "pricePerKg": 14,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "hdd-pcb",
+      "name": "Hard Disk Drive (HDD) printed circuit board",
+      "description": "Origin: Printed circuit board from hard disk drive (HDD).",
+      "requirements": {
+        "mustNotContain": ["metal attachments", "batteries"]
+      },
+      "pricePerKg": 140,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "ssd-pcb",
+      "name": "Solid State Drive (SSD) printed circuit board",
+      "description": "Origin: Circuit board from Solid State Drive (SSD).",
+      "requirements": {
+        "mustNotContain": ["metal attachments", "batteries"]
+      },
+      "pricePerKg": 87,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "smartphone-pcb-high-grade",
+      "name": "Circuit board, handheld/smartphone, high grade",
+      "description": "Origin: printed circuit boards from mobile phones and smart phones from the European market.",
+      "requirements": {
+        "mustNotContain": ["DECT home phone PCB", "PDA PCB", "attachments", "display", "battery"]
+      },
+      "pricePerKg": 153,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "plug-in-card-gold-no-attach",
+      "name": "Plug-in card, gold-plated comb without attachment",
+      "description": "Origin: from computer, server, laptop, etc. For example: Sound card, Video card, Network card, etc.",
+      "requirements": {
+        "mustNotContain": ["attachments", "cable", "plugs", "coolers", "heat sinks", "mounting edge", "batteries"]
+      },
+      "pricePerKg": 73,
+      "category": "cards"
+    },
+    {
+      "id": "plug-in-card-gold-with-attach",
+      "name": "Plug-in card, gold-plated comb with mounting edge and attachment",
+      "description": "Origin: from computer, server, laptop, etc. For example: Sound card, Video card, Network card, etc. With mounting edge, attachments, cable, plugs, coolers/heat sinks.",
+      "requirements": {
+        "mustNotContain": ["batteries"]
+      },
+      "pricePerKg": 20,
+      "category": "cards"
+    },
+    {
+      "id": "ram-silver-tin",
+      "name": "RAM card silver/tin-plated comb",
+      "description": "RAM card from computer, server, laptop with tin-plated or silver-plated insertion edge and without attachment (e.g. cooler). Dry and undamaged.",
+      "pricePerKg": 20,
+      "category": "memory"
+    },
+    {
+      "id": "ram-gold-no-attach",
+      "name": "RAM card, gold-plated comb without attachment",
+      "description": "RAM card from computer, server, laptop with gold-plated insertion edge and without attachment (e.g. cooler). In a mix of single-sided and at least 50% double-sided RAM cards. Dry and undamaged.",
+      "pricePerKg": 550,
+      "category": "memory"
+    },
+    {
+      "id": "ram-gold-with-attach",
+      "name": "RAM card, gold-plated comb with attachment",
+      "description": "RAM card from computer, server, laptop with gold-plated insertion edge with cooler surround. Dry and undamaged.",
+      "pricePerKg": 100,
+      "category": "memory"
+    },
+    {
+      "id": "cpu-socket-775",
+      "name": "CPU Socket 775",
+      "description": "CPU (Processor) Socket 775. Green plastic CPU without gold pins on the front. Equipped with heat sink on the back. Complete, dry and undamaged.",
+      "pricePerKg": 80,
+      "category": "processors"
+    },
+    {
+      "id": "cpu-ceramic-gold-cap",
+      "name": "CPU, ceramic, gold cap",
+      "description": "CPU (Processor) of ceramic material and with gold-plated cap (heat distributor). Equipped with gold-plated contacts. The side with the pins also has a gold-plated inlay. Without cooling cap. Complete and dry.",
+      "pricePerKg": 1000,
+      "category": "processors"
+    },
+    {
+      "id": "cpu-ceramic-intel-286-386-486",
+      "name": "CPU, ceramic, Intel 286/386/486",
+      "description": "CPU (processor) from Intel 286/386/486 made of ceramic material and with gold-plated contacts.",
+      "pricePerKg": 1100,
+      "category": "processors"
+    },
+    {
+      "id": "cpu-plastic-no-cap",
+      "name": "CPU, plastic, green/brown without cooling cap",
+      "description": "CPU (Processor) of green or brown plastic (PVC) and not equipped with cooling cap. Equipped with gold-plated contacts. Complete and dry.",
+      "pricePerKg": 270,
+      "category": "processors"
+    },
+    {
+      "id": "cpu-plastic-with-cap",
+      "name": "Plastic CPU with Cooling Cap",
+      "description": "Processor/CPU made of plastic (PVC). Equipped with gold-plated or silver-plated contacts. Equipped with solid copper, stainless steel or aluminium cooling cap. Complete and dry.",
+      "pricePerKg": 125,
+      "category": "processors"
+    },
+    {
+      "id": "ic-ceramic-plastic",
+      "name": "IC Ceramic IC Plastic",
+      "description": "IC made of plastic (PVC) or ceramic material with silver-plated contacts. Complete and dry.",
+      "pricePerKg": 100,
+      "category": "components"
+    },
+    {
+      "id": "power-supply-server",
+      "name": "Power supply ex-server",
+      "description": "Server power supplies.",
+      "pricePerKg": 10,
+      "category": "power"
+    },
+    {
+      "id": "power-supply-no-cable",
+      "name": "Power supply without cable",
+      "description": "Power supplies without cable from computers, servers etc. No adapters (only aluminium or iron housing).",
+      "pricePerKg": 6,
+      "category": "power"
+    },
+    {
+      "id": "connectors-gold-plated",
+      "name": "Connectors Computer/ICT (gold-plated pins)",
+      "description": "Plugs with plastic housing with the cable cut off, usually from ICT or telecoms. The plugs are not magnetic and the metallic part is made of copper or brass. The connectors are gold-plated.",
+      "pricePerKg": 8,
+      "category": "connectors"
+    },
+    {
+      "id": "cd-dvd-pcb",
+      "name": "Circuit board CD/DVD driver (drives)",
+      "description": "Origin: Printed circuit boards from drives/optical drives such as CD/DVD-ROM, DVD and/or Blue Ray.",
+      "pricePerKg": 68,
+      "category": "circuit-boards"
+    },
+    {
+      "id": "motherboard-server-no-attach",
+      "name": "Motherboard, servers without attachment",
+      "description": "Origin: Motherboard from server. Multiple CPU locations.",
+      "requirements": {
+        "mustHave": ["multiple CPU locations"],
+        "mustNotContain": ["metal attachments", "coolers", "heat sinks", "batteries"]
+      },
+      "pricePerKg": 50,
+      "category": "motherboards"
+    },
+    {
+      "id": "household-plugs",
+      "name": "Household Plugs",
+      "description": "Household plugs.",
+      "pricePerKg": 1,
+      "category": "household"
+    },
+    {
+      "id": "computer-complete",
+      "name": "Computer, complete",
+      "description": "Used non-emptied computer with original parts. Not crushed so that disassembly is still possible.",
+      "pricePerKg": 5,
+      "category": "computers"
+    },
+    {
+      "id": "motherboard-laptop-no-attach",
+      "name": "Motherboard, laptop without attachments",
+      "description": "Origin: Motherboards from laptops.",
+      "requirements": {
+        "mustNotContain": ["metal attachments", "batteries"]
+      },
+      "pricePerKg": 27,
+      "category": "motherboards"
+    },
+    {
+      "id": "motherboard-old-gen",
+      "name": "Motherboard, computer, old generation without attachment",
+      "description": "Origin: Computer and laptop. Green base colour. 4 RAM sockets. Large base.",
+      "requirements": {
+        "mustHave": ["green base colour", "4 RAM sockets", "large base"],
+        "mustNotContain": ["coolers", "heat sinks", "batteries"]
+      },
+      "pricePerKg": 58,
+      "category": "motherboards"
+    },
+    {
+      "id": "motherboard-new-gen",
+      "name": "Motherboard, computer, new generation without attachment",
+      "description": "Origin: Computer or laptop. Green, blue or red base colour. 2 to 4 RAM sockets. Small base.",
+      "requirements": {
+        "mustHave": ["2-4 RAM sockets", "small base"],
+        "mustNotContain": ["coolers", "heat sinks", "batteries"]
+      },
+      "pricePerKg": 27,
+      "category": "motherboards"
+    },
+    {
+      "id": "lithium-battery",
+      "name": "Lithium Battery",
+      "description": "Lithium batteries. Must not be swollen or damaged.",
+      "requirements": {
+        "mustNotContain": ["swollen", "damaged"]
+      },
+      "pricePerKg": 0.5,
+      "category": "batteries"
+    }
+  ]
+}

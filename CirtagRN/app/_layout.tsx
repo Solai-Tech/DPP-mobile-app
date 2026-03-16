@@ -7,7 +7,6 @@ import { useFonts, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, Outf
 import { BackgroundDark } from '../src/theme/colors';
 
 LogBox.ignoreAllLogs(true);
-SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -19,15 +18,9 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      const timer = setTimeout(() => {
-        SplashScreen.hideAsync().catch(() => {});
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) return null;
+    // Hide splash immediately
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: BackgroundDark }}>
