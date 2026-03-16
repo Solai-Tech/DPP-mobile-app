@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChatMessage } from '../types/Ticket';
-import { getChatMessagesByProductId, insertProductChatMessage } from '../database/ticketDao';
+import { getChatMessagesByProductId, insertProductChatMessage, deleteProductChatMessages } from '../database/ticketDao';
 import { getFlowiseChatReply, saveChatToServer } from '../utils/flowiseApi';
 
 export function useProductChat(productId: number, productUrl: string, productName: string) {
@@ -83,5 +83,10 @@ export function useProductChat(productId: number, productUrl: string, productNam
     }
   }, [productId, productUrl, productName]);
 
-  return { messages, isTyping, sendMessage, loadMessages };
+  const clearMessages = useCallback(async () => {
+    await deleteProductChatMessages(productId);
+    setMessages([]);
+  }, [productId]);
+
+  return { messages, isTyping, sendMessage, loadMessages, clearMessages };
 }

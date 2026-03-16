@@ -113,3 +113,8 @@ export async function insertProductChatMessage(
   );
   return result.lastInsertRowId;
 }
+
+export async function deleteProductChatMessages(productId: number): Promise<void> {
+  const db = getDatabaseSync();
+  db.runSync('DELETE FROM chat_messages WHERE productId = ?', [productId]);
+}

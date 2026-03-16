@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,6 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Linking,
 } from 'react-native';
 import { CameraView } from 'expo-camera';
 import { Image } from 'expo-image';
@@ -19,6 +16,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useCamera } from '../../src/hooks/useCamera';
 import { analyzeAndCreateCircuitBoard } from '../../src/utils/circuitBoardApi';
 import { CircuitBoardAnalysis } from '../../src/types/CircuitBoard';
+import { insertProduct, getProductByRawValue } from '../../src/database/scannedProductDao';
 import { s, vs, ms } from '../../src/utils/scale';
 
 // Theme colors
@@ -38,9 +36,13 @@ export default function CircuitBoardScreen() {
   const { hasPermission, requestPermission } = useCamera();
   const cameraRef = useRef<CameraView>(null);
 
-  // State
+  const scrollRef = useRef<ScrollView>(null);
+
+  // State — store base64 image in ref to avoid re-renders on keystroke
   const [isCameraActive, setIsCameraActive] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const capturedImageRef = useRef<string | null>(null);
+  const [hasImage, setHasImage] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [weight, setWeight] = useState('');
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
@@ -57,7 +59,9 @@ export default function CircuitBoardScreen() {
       });
 
       if (photo?.base64) {
-        setCapturedImage(photo.base64);
+        capturedImageRef.current = photo.base64;
+        setImageUri(`data:image/jpeg;base64,${photo.base64}`);
+        setHasImage(true);
         setIsCameraActive(false);
       }
     } catch (error) {
@@ -67,16 +71,19 @@ export default function CircuitBoardScreen() {
   };
 
   const handleRetakePhoto = () => {
-    setCapturedImage(null);
+    capturedImageRef.current = null;
+    setImageUri(null);
+    setHasImage(false);
     setAnalysis(null);
     setIsCameraActive(true);
   };
 
   const handleAnalyzeAndCreate = async () => {
-    if (!capturedImage) {
+    if (!capturedImageRef.current) {
       Alert.alert('Error', 'Please take a photo first');
       return;
     }
+    const capturedImage = capturedImageRef.current;
 
     const weightNum = parseFloat(weight);
     const widthNum = parseFloat(width);
@@ -101,17 +108,63 @@ export default function CircuitBoardScreen() {
         heightNum
       );
       setAnalysis(result);
-      Alert.alert('Success', `DPP Created!\nID: ${result.productId}`);
-    } catch (error) {
+
+      // Save to local product history (skip if already exists)
+      // Use stable key from specs — same weight+width+height = same board
+      const rawKey = `circuit-${weightNum}-${widthNum}-${heightNum}`;
+      const existing = await getProductByRawValue(rawKey);
+      if (!existing) {
+        const co2Details = (result.pcfBreakdown || [])
+          .map((b) => `${b.stage}:${b.value.toFixed(2)} Kg CO₂`)
+          .join(',');
+        const catName = result.category === 2 ? 'Complex' : 'Simple';
+        const shortName = `${catName} Circuit Board (PCB)`;
+        const area = (widthNum * heightNum).toFixed(1);
+        const components = (result.components || []).length > 0
+          ? `, featuring components such as ${result.components.join(', ')}` : '';
+        const fullDesc = result.description
+          ? result.description
+          : `This is a ${catName.toLowerCase()} printed circuit board with dimensions ${widthNum}cm x ${heightNum}cm `
+            + `and a total area of ${area} square centimeters, weighing ${weightNum}kg. `
+            + `It is classified as a Category ${result.category} PCB with ${catName === 'Complex' ? 'multi-layer' : 'single or double-layer'} construction`
+            + `${components}. The board is manufactured using standard FR4 fiberglass substrate material `
+            + `and is registered as a Digital Product Passport for EU compliance and sustainability tracking.`;
+
+        await insertProduct({
+          rawValue: rawKey,
+          displayValue: shortName,
+          format: 'PCB',
+          type: 'circuit_board',
+          productName: shortName,
+          productDescription: fullDesc,
+          imageUrl: imageUri || '',
+          productId: rawKey,
+          price: `€${result.price.toFixed(2)}`,
+          supplier: '',
+          skuId: result.productId || rawKey,
+          weight: `${weightNum} kg`,
+          co2Total: `${typeof result.pcf === 'number' ? result.pcf.toFixed(2) : result.pcf} Kg CO₂`,
+          co2Details,
+          certifications: `Category ${result.category}`,
+          datasheetUrl: '',
+          documents: '',
+          scannedAt: Date.now(),
+        });
+      }
+
+      Alert.alert('Success', 'Circuit board analyzed and saved to product history!');
+    } catch (error: any) {
       console.error('Analysis failed:', error);
-      Alert.alert('Error', 'Failed to analyze circuit board. Please try again.');
+      Alert.alert('Error', error?.message || 'Failed to analyze circuit board. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   const handleReset = () => {
-    setCapturedImage(null);
+    capturedImageRef.current = null;
+    setImageUri(null);
+    setHasImage(false);
     setWeight('');
     setWidth('');
     setHeight('');
@@ -119,25 +172,14 @@ export default function CircuitBoardScreen() {
     setIsCameraActive(false);
   };
 
-  const handleOpenProductUrl = () => {
-    if (analysis?.productUrl) {
-      // Build full URL - adjust host for your DPP server
-      const fullUrl = `https://solai.se/dpp/product/${analysis.productDbId}/`;
-      Linking.openURL(fullUrl).catch(() => {
-        Alert.alert('Info', `Product URL: ${analysis.productUrl}`);
-      });
-    }
-  };
-
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
       <ScrollView
+        ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: vs(30) }}
+        contentContainerStyle={{ paddingBottom: vs(300) }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         {/* Header */}
         <View style={[styles.pageHeader, { paddingTop: insets.top + vs(12) }]}>
@@ -167,21 +209,13 @@ export default function CircuitBoardScreen() {
                   </TouchableOpacity>
                 </View>
               </>
-            ) : capturedImage ? (
+            ) : hasImage ? (
               <View style={styles.imagePreviewContainer}>
                 <Image
-                  source={{ uri: `data:image/jpeg;base64,${capturedImage}` }}
+                  source={{ uri: imageUri! }}
                   style={styles.imagePreview}
                   contentFit="cover"
                 />
-                <TouchableOpacity
-                  style={styles.retakeButton}
-                  onPress={handleRetakePhoto}
-                  activeOpacity={0.8}
-                >
-                  <MaterialIcons name="refresh" size={ms(20)} color={White} />
-                  <Text style={styles.retakeText}>Retake</Text>
-                </TouchableOpacity>
               </View>
             ) : (
               <View style={styles.scanPlaceholder}>
@@ -219,7 +253,19 @@ export default function CircuitBoardScreen() {
 
         {/* Input Form */}
         <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Board Specifications</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={styles.sectionTitle}>Board Specifications</Text>
+            {analysis && (
+              <TouchableOpacity
+                style={styles.resetButton}
+                onPress={handleReset}
+                activeOpacity={0.85}
+              >
+                <MaterialIcons name="refresh" size={ms(16)} color={SageAccent} />
+                <Text style={styles.resetText}>Scan New Board</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
           <View style={styles.inputRow}>
             <View style={styles.inputGroup}>
@@ -231,6 +277,7 @@ export default function CircuitBoardScreen() {
                 placeholder="0.5"
                 placeholderTextColor={TextMutedLight}
                 keyboardType="decimal-pad"
+                onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300)}
               />
             </View>
           </View>
@@ -245,6 +292,10 @@ export default function CircuitBoardScreen() {
                 placeholder="10"
                 placeholderTextColor={TextMutedLight}
                 keyboardType="decimal-pad"
+                onFocus={() => {
+                  setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+                  setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 500);
+                }}
               />
             </View>
             <View style={[styles.inputGroup, { flex: 1, marginLeft: s(8) }]}>
@@ -256,6 +307,10 @@ export default function CircuitBoardScreen() {
                 placeholder="8"
                 placeholderTextColor={TextMutedLight}
                 keyboardType="decimal-pad"
+                onFocus={() => {
+                  setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+                  setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 500);
+                }}
               />
             </View>
           </View>
@@ -264,10 +319,10 @@ export default function CircuitBoardScreen() {
           <TouchableOpacity
             style={[
               styles.analyzeButton,
-              (!capturedImage || isAnalyzing) && styles.buttonDisabled,
+              (!hasImage || isAnalyzing || !!analysis) && styles.buttonDisabled,
             ]}
             onPress={handleAnalyzeAndCreate}
-            disabled={!capturedImage || isAnalyzing}
+            disabled={!hasImage || isAnalyzing || !!analysis}
             activeOpacity={0.85}
           >
             {isAnalyzing ? (
@@ -383,31 +438,10 @@ export default function CircuitBoardScreen() {
               </View>
             )}
 
-            {/* View in DPP Button */}
-            {analysis.productUrl && (
-              <TouchableOpacity
-                style={styles.createDppButton}
-                onPress={handleOpenProductUrl}
-                activeOpacity={0.85}
-              >
-                <MaterialIcons name="open-in-new" size={ms(20)} color={White} />
-                <Text style={styles.createDppText}>View in DPP</Text>
-              </TouchableOpacity>
-            )}
-
-            {/* Reset Button */}
-            <TouchableOpacity
-              style={styles.resetButton}
-              onPress={handleReset}
-              activeOpacity={0.85}
-            >
-              <MaterialIcons name="refresh" size={ms(18)} color={SageAccent} />
-              <Text style={styles.resetText}>Scan New Board</Text>
-            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -724,21 +758,6 @@ const styles = StyleSheet.create({
   pcfCredit: {
     color: '#4A9F4A',
   },
-  createDppButton: {
-    backgroundColor: '#2E7D32',
-    borderRadius: s(12),
-    paddingVertical: vs(14),
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: s(8),
-    marginTop: vs(16),
-  },
-  createDppText: {
-    color: White,
-    fontWeight: '700',
-    fontSize: ms(14),
-  },
   dppCreated: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -754,10 +773,7 @@ const styles = StyleSheet.create({
   resetButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: vs(16),
-    paddingVertical: vs(12),
-    gap: s(6),
+    gap: s(4),
   },
   resetText: {
     fontSize: ms(14),

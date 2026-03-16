@@ -37,9 +37,16 @@ export default function ScanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { hasPermission, requestPermission } = useCamera();
-  const { products, isLoading, scanAndSaveProduct, deleteProduct } = useProducts();
+  const { products, isLoading, scanAndSaveProduct, deleteProduct, refreshProducts } = useProducts();
   const canScan = useRef(true);
   const [isScanning, setIsScanning] = useState(false);
+
+  // Refresh product list when tab gets focus (picks up circuit products too)
+  useFocusEffect(
+    useCallback(() => {
+      refreshProducts();
+    }, [refreshProducts])
+  );
 
   const handleBarCodeScanned = useCallback(
     (result: BarcodeScanningResult) => {

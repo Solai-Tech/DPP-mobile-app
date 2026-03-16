@@ -28,6 +28,7 @@ export async function getFlowiseChatReply(
 
   const chatflowId = CHATFLOW_MAP[apiHost] || DEFAULT_CHATFLOW_ID;
   const endpoint = `${apiHost}/api/v1/prediction/${chatflowId}`;
+  console.log('[Flowise] apiHost:', apiHost, 'chatflowId:', chatflowId, 'endpoint:', endpoint);
 
   const body: Record<string, any> = { question };
   if (sessionId) body.sessionId = sessionId;

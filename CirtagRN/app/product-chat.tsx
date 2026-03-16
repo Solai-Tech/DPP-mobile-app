@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -107,7 +108,7 @@ export default function ProductChatScreen() {
   const safeName = productName || 'Product';
   const safeUrl = productUrl || '';
 
-  const { messages, isTyping, sendMessage } = useProductChat(numericId, safeUrl, safeName);
+  const { messages, isTyping, sendMessage, clearMessages } = useProductChat(numericId, safeUrl, safeName);
   const [input, setInput] = useState('');
   const flatListRef = useRef<FlatList>(null);
 
@@ -163,6 +164,17 @@ export default function ProductChatScreen() {
             <Text style={styles.onlineText}>Online</Text>
           </View>
         </View>
+        <TouchableOpacity
+          onPress={() => {
+            Alert.alert('Clear Chat', 'Clear all messages and start fresh?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Clear', style: 'destructive', onPress: clearMessages },
+            ]);
+          }}
+          style={styles.refreshBtn}
+        >
+          <MaterialIcons name="refresh" size={ms(22)} color={White} />
+        </TouchableOpacity>
       </View>
 
       {/* Messages */}
@@ -237,6 +249,9 @@ const styles = StyleSheet.create({
     paddingVertical: vs(10),
   },
   backBtn: {
+    padding: s(8),
+  },
+  refreshBtn: {
     padding: s(8),
   },
   headerCenter: {
