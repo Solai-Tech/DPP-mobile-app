@@ -11,9 +11,12 @@ export interface CircuitBoardAnalysis {
   category: 1 | 2;
   price: number;       // in EUR
   pcf: number;         // Product Carbon Footprint in kg CO2
+  pcfBreakdown: { stage: string; value: number }[];
   description: string;
   components: string[];
-  productId?: string;
+  productId?: string;       // SKU like PCB-1234-abcd
+  productDbId?: number;     // DPP database product ID
+  productUrl?: string;      // URL to view product in DPP
 }
 
 export interface CircuitBoardDPP {
@@ -27,5 +30,7 @@ export interface CircuitBoardDPP {
   pcf: number;
   description: string;
   components: string[];
+  productUrl?: string;
+  productDbId?: number;
   createdAt: number;
 }

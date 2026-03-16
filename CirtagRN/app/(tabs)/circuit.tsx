@@ -10,14 +10,15 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { CameraView } from 'expo-camera';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCamera } from '../../src/hooks/useCamera';
-import { analyzeCircuitBoard, createCircuitBoardDPP, calculatePCF } from '../../src/utils/circuitBoardApi';
-import { CircuitBoardAnalysis, CircuitBoardDPP } from '../../src/types/CircuitBoard';
+import { analyzeAndCreateCircuitBoard } from '../../src/utils/circuitBoardApi';
+import { CircuitBoardAnalysis } from '../../src/types/CircuitBoard';
 import { s, vs, ms } from '../../src/utils/scale';
 
 // Theme colors
@@ -45,7 +46,6 @@ export default function CircuitBoardScreen() {
   const [height, setHeight] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<CircuitBoardAnalysis | null>(null);
-  const [dpp, setDpp] = useState<CircuitBoardDPP | null>(null);
 
   const handleTakePhoto = async () => {
     if (!cameraRef.current) return;
@@ -69,11 +69,10 @@ export default function CircuitBoardScreen() {
   const handleRetakePhoto = () => {
     setCapturedImage(null);
     setAnalysis(null);
-    setDpp(null);
     setIsCameraActive(true);
   };
 
-  const handleAnalyze = async () => {
+  const handleAnalyzeAndCreate = async () => {
     if (!capturedImage) {
       Alert.alert('Error', 'Please take a photo first');
       return;
@@ -95,39 +94,19 @@ export default function CircuitBoardScreen() {
 
     setIsAnalyzing(true);
     try {
-      const result = await analyzeCircuitBoard(
+      const result = await analyzeAndCreateCircuitBoard(
         capturedImage,
         weightNum,
         widthNum,
         heightNum
       );
       setAnalysis(result);
+      Alert.alert('Success', `DPP Created!\nID: ${result.productId}`);
     } catch (error) {
       console.error('Analysis failed:', error);
       Alert.alert('Error', 'Failed to analyze circuit board. Please try again.');
     } finally {
       setIsAnalyzing(false);
-    }
-  };
-
-  const handleCreateDPP = async () => {
-    if (!capturedImage || !analysis) return;
-
-    try {
-      const result = await createCircuitBoardDPP(
-        {
-          image: capturedImage,
-          weight: parseFloat(weight),
-          width: parseFloat(width),
-          height: parseFloat(height),
-        },
-        analysis
-      );
-      setDpp(result);
-      Alert.alert('Success', `DPP Created!\nID: ${result.id}`);
-    } catch (error) {
-      console.error('Failed to create DPP:', error);
-      Alert.alert('Error', 'Failed to create DPP');
     }
   };
 
@@ -137,11 +116,18 @@ export default function CircuitBoardScreen() {
     setWidth('');
     setHeight('');
     setAnalysis(null);
-    setDpp(null);
     setIsCameraActive(false);
   };
 
-  const pcfBreakdown = analysis ? calculatePCF(parseFloat(weight) || 0) : null;
+  const handleOpenProductUrl = () => {
+    if (analysis?.productUrl) {
+      // Build full URL - adjust host for your DPP server
+      const fullUrl = `https://solai.se/dpp/product/${analysis.productDbId}/`;
+      Linking.openURL(fullUrl).catch(() => {
+        Alert.alert('Info', `Product URL: ${analysis.productUrl}`);
+      });
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -274,13 +260,13 @@ export default function CircuitBoardScreen() {
             </View>
           </View>
 
-          {/* Analyze Button */}
+          {/* Analyze & Create DPP Button (single action) */}
           <TouchableOpacity
             style={[
               styles.analyzeButton,
               (!capturedImage || isAnalyzing) && styles.buttonDisabled,
             ]}
-            onPress={handleAnalyze}
+            onPress={handleAnalyzeAndCreate}
             disabled={!capturedImage || isAnalyzing}
             activeOpacity={0.85}
           >
@@ -289,7 +275,7 @@ export default function CircuitBoardScreen() {
             ) : (
               <>
                 <MaterialIcons name="analytics" size={ms(20)} color={White} />
-                <Text style={styles.analyzeButtonText}>Analyze & Calculate Price</Text>
+                <Text style={styles.analyzeButtonText}>Analyze & Create DPP</Text>
               </>
             )}
           </TouchableOpacity>
@@ -317,13 +303,13 @@ export default function CircuitBoardScreen() {
               {/* Price */}
               <View style={styles.resultRow}>
                 <Text style={styles.resultLabel}>Price</Text>
-                <Text style={styles.priceText}>€{analysis.price.toFixed(2)}</Text>
+                <Text style={styles.priceText}>{analysis.price.toFixed(2)}</Text>
               </View>
 
               {/* PCF */}
               <View style={styles.resultRow}>
                 <Text style={styles.resultLabel}>Carbon Footprint (PCF)</Text>
-                <Text style={styles.pcfText}>{analysis.pcf.toFixed(2)} kg CO₂</Text>
+                <Text style={styles.pcfText}>{typeof analysis.pcf === 'number' ? analysis.pcf.toFixed(2) : analysis.pcf} kg CO2</Text>
               </View>
 
               {/* Description */}
@@ -347,10 +333,10 @@ export default function CircuitBoardScreen() {
               )}
 
               {/* PCF Breakdown */}
-              {pcfBreakdown && (
+              {analysis.pcfBreakdown && analysis.pcfBreakdown.length > 0 && (
                 <View style={styles.pcfBreakdown}>
-                  <Text style={styles.resultLabel}>CO₂ Breakdown</Text>
-                  {pcfBreakdown.breakdown.map((item, idx) => (
+                  <Text style={styles.resultLabel}>CO2 Breakdown</Text>
+                  {analysis.pcfBreakdown.map((item, idx) => (
                     <View key={idx} style={styles.pcfRow}>
                       <Text style={styles.pcfStage}>{item.stage}</Text>
                       <Text style={[
@@ -365,22 +351,24 @@ export default function CircuitBoardScreen() {
               )}
             </View>
 
-            {/* Create DPP Button */}
-            <TouchableOpacity
-              style={styles.createDppButton}
-              onPress={handleCreateDPP}
-              activeOpacity={0.85}
-            >
-              <MaterialIcons name="verified" size={ms(20)} color={White} />
-              <Text style={styles.createDppText}>Create Digital Product Passport</Text>
-            </TouchableOpacity>
-
-            {/* DPP Created */}
-            {dpp && (
+            {/* DPP Created Info */}
+            {analysis.productId && (
               <View style={styles.dppCreated}>
                 <MaterialIcons name="check-circle" size={ms(24)} color={SageAccent} />
-                <Text style={styles.dppCreatedText}>DPP Created: {dpp.id}</Text>
+                <Text style={styles.dppCreatedText}>DPP Created: {analysis.productId}</Text>
               </View>
+            )}
+
+            {/* View in DPP Button */}
+            {analysis.productUrl && (
+              <TouchableOpacity
+                style={styles.createDppButton}
+                onPress={handleOpenProductUrl}
+                activeOpacity={0.85}
+              >
+                <MaterialIcons name="open-in-new" size={ms(20)} color={White} />
+                <Text style={styles.createDppText}>View in DPP</Text>
+              </TouchableOpacity>
             )}
 
             {/* Reset Button */}

@@ -10,5 +10,9 @@ module.exports = ({ config }) => ({
       'https://demo.cirtag.eu': process.env.FLOWISE_DEMO_ID ?? '',
     },
     flowiseDefaultChatflowId: process.env.FLOWISE_DEFAULT_ID ?? '',
+    // DPP PCB Analysis API
+    dppApiUrl: process.env.DPP_API_URL ?? 'https://solai.se/dppx/api',
+    dppClientId: process.env.DPP_CLIENT_ID ?? '',
+    dppClientSecret: process.env.DPP_CLIENT_SECRET ?? '',
   },
 });
