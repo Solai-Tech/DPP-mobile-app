@@ -138,12 +138,22 @@ export default function ScanScreen() {
 
   const renderProductCard = (item: ScannedProduct) => {
     const name = getDisplayName(item);
-    const supplierInfo = [
-      item.supplier,
-      item.skuId ? `Batch #${item.skuId}` : null,
-    ]
-      .filter(Boolean)
-      .join(' \u00B7 ');
+    // For value_scan products: show category + price/CO2 instead of "Batch #PCB-xxx"
+    // For QR/barcode scans: show supplier and clean batch ID
+    const supplierInfo = item.type === 'value_scan'
+      ? [
+          item.supplier, // categoryName stored here for value_scan products
+          item.price || null,
+          item.co2Total || null,
+        ]
+          .filter(Boolean)
+          .join(' \u00B7 ')
+      : [
+          item.supplier,
+          item.skuId && !/^PCB-/i.test(item.skuId) ? `Batch #${item.skuId}` : null,
+        ]
+          .filter(Boolean)
+          .join(' \u00B7 ');
     const hasImage = !!item.imageUrl;
 
     const iconColors = ['#E8F0E8', '#E0F0F0', '#F5E6D8', '#F0E8F0', '#E8F0F0'];
@@ -288,11 +298,23 @@ export default function ScanScreen() {
         {/* Saved Products */}
         <View style={styles.savedHeader}>
           <Text style={styles.savedTitle}>Saved Products</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: s(12) }}>
+            {!isScanning && (
+              <TouchableOpacity
+                style={styles.rescanButton}
+                onPress={() => setIsScanning(true)}
+                activeOpacity={0.85}
+              >
+                <MaterialIcons name="refresh" size={ms(16)} color={SageAccent} />
+                <Text style={styles.rescanText}>Rescan</Text>
+              </TouchableOpacity>
+            )}
           {products.length > 0 && (
             <TouchableOpacity>
               <Text style={styles.seeAll}>See all</Text>
             </TouchableOpacity>
           )}
+          </View>
         </View>
 
         {products.length === 0 ? (
@@ -434,6 +456,20 @@ const styles = StyleSheet.create({
     fontSize: ms(20),
     fontWeight: '800',
     color: TextDark,
+  },
+  rescanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(4),
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: s(10),
+    paddingVertical: vs(5),
+    borderRadius: s(10),
+  },
+  rescanText: {
+    fontSize: ms(12),
+    fontWeight: '600',
+    color: SageAccent,
   },
   seeAll: {
     fontSize: ms(14),

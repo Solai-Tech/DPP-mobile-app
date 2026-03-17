@@ -9,6 +9,7 @@ export interface CircuitBoardInput {
 
 export interface CircuitBoardAnalysis {
   category: string | number;
+  categoryName?: string;   // Human-readable category (e.g., "Electronics", "Furniture")
   material?: string;       // Material name from database
   pricePerKg?: number;     // Price per kg
   price: number;           // Total price
@@ -19,6 +20,7 @@ export interface CircuitBoardAnalysis {
   description: string;
   components: string[];
   confidence?: number;     // LLM confidence score
+  productName?: string;    // Auto-detected product name from description
   productId?: string;      // SKU like PCB-1234-abcd
   productDbId?: number;    // DPP database product ID
   productUrl?: string;     // URL to view product in DPP

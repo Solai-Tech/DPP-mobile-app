@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,15 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Keyboard,
+  Platform,
 } from 'react-native';
 import { CameraView } from 'expo-camera';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCamera } from '../../src/hooks/useCamera';
-import { analyzeAndCreateCircuitBoard } from '../../src/utils/circuitBoardApi';
+import { analyzeAndCreateCircuitBoard, detectProductName } from '../../src/utils/circuitBoardApi';
 import { CircuitBoardAnalysis } from '../../src/types/CircuitBoard';
 import { insertProduct, getProductByRawValue } from '../../src/database/scannedProductDao';
 import { s, vs, ms } from '../../src/utils/scale';
@@ -23,20 +25,33 @@ import { s, vs, ms } from '../../src/utils/scale';
 const CreamBg = '#F7F5F0';
 const White = '#FFFFFF';
 const SageAccent = '#5A8C5A';
-const SageLight = '#7BAF7B';
 const TextDark = '#2C3E2D';
 const TextGray = 'rgba(44,62,45,0.65)';
 const TextMutedLight = 'rgba(44,62,45,0.4)';
 const CameraBg = '#2C3E2D';
 const Border = 'rgba(44,62,45,0.1)';
-const ErrorRed = '#D9534F';
 
 export default function CircuitBoardScreen() {
   const insets = useSafeAreaInsets();
   const { hasPermission, requestPermission } = useCamera();
   const cameraRef = useRef<CameraView>(null);
-
   const scrollRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+        setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardHeight(0)
+    );
+    return () => { showSub.remove(); hideSub.remove(); };
+  }, []);
 
   // State — store base64 image in ref to avoid re-renders on keystroke
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -47,35 +62,31 @@ export default function CircuitBoardScreen() {
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isDetectingName, setIsDetectingName] = useState(false);
+  const [detectedProductName, setDetectedProductName] = useState('');
   const [analysis, setAnalysis] = useState<CircuitBoardAnalysis | null>(null);
 
   const handleTakePhoto = async () => {
     if (!cameraRef.current) return;
-
     try {
-      const photo = await cameraRef.current.takePictureAsync({
-        base64: true,
-        quality: 0.7,
-      });
-
+      const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.8 });
       if (photo?.base64) {
         capturedImageRef.current = photo.base64;
         setImageUri(`data:image/jpeg;base64,${photo.base64}`);
         setHasImage(true);
         setIsCameraActive(false);
+
+        // Quick name detection — only identifies product, does NOT save
+        setIsDetectingName(true);
+        detectProductName(photo.base64).then((result) => {
+          if (result.name) setDetectedProductName(result.name);
+          setIsDetectingName(false);
+        });
       }
     } catch (error) {
       console.error('Failed to take photo:', error);
       Alert.alert('Error', 'Failed to capture photo');
     }
-  };
-
-  const handleRetakePhoto = () => {
-    capturedImageRef.current = null;
-    setImageUri(null);
-    setHasImage(false);
-    setAnalysis(null);
-    setIsCameraActive(true);
   };
 
   const handleAnalyzeAndCreate = async () => {
@@ -93,7 +104,6 @@ export default function CircuitBoardScreen() {
       Alert.alert('Error', 'Please enter a valid weight');
       return;
     }
-
     if (isNaN(widthNum) || widthNum <= 0 || isNaN(heightNum) || heightNum <= 0) {
       Alert.alert('Error', 'Please enter valid dimensions');
       return;
@@ -101,61 +111,56 @@ export default function CircuitBoardScreen() {
 
     setIsAnalyzing(true);
     try {
-      const result = await analyzeAndCreateCircuitBoard(
-        capturedImage,
-        weightNum,
-        widthNum,
-        heightNum
-      );
+      const result = await analyzeAndCreateCircuitBoard(capturedImage, weightNum, widthNum, heightNum);
       setAnalysis(result);
 
+      const detectedName = result.productName || 'Scanned Product';
+
       // Save to local product history (skip if already exists)
-      // Use stable key from specs — same weight+width+height = same board
-      const rawKey = `circuit-${weightNum}-${widthNum}-${heightNum}`;
+      const rawKey = `valuescan-${detectedName.toLowerCase().replace(/\s+/g, '-').substring(0, 30)}-${weightNum}`;
       const existing = await getProductByRawValue(rawKey);
       if (!existing) {
         const co2Details = (result.pcfBreakdown || [])
           .map((b) => `${b.stage}:${b.value.toFixed(2)} Kg CO₂`)
           .join(',');
-        const catName = result.category === 2 ? 'Complex' : 'Simple';
-        const shortName = `${catName} Circuit Board (PCB)`;
-        const area = (widthNum * heightNum).toFixed(1);
-        const components = (result.components || []).length > 0
-          ? `, featuring components such as ${result.components.join(', ')}` : '';
-        const fullDesc = result.description
-          ? result.description
-          : `This is a ${catName.toLowerCase()} printed circuit board with dimensions ${widthNum}cm x ${heightNum}cm `
-            + `and a total area of ${area} square centimeters, weighing ${weightNum}kg. `
-            + `It is classified as a Category ${result.category} PCB with ${catName === 'Complex' ? 'multi-layer' : 'single or double-layer'} construction`
-            + `${components}. The board is manufactured using standard FR4 fiberglass substrate material `
-            + `and is registered as a Digital Product Passport for EU compliance and sustainability tracking.`;
+
+        // Use server description as clean paragraph (max 55 words)
+        const descWords = (result.description || '').split(/\s+/);
+        const cleanDesc = descWords.slice(0, 55).join(' ');
+
+        // Clean product ID — don't store raw PCB-prefixed IDs for non-PCB products
+        const cleanProductId = result.productDbId
+          ? `DPP-${result.productDbId}`
+          : result.productId
+            ? `DPP-${result.productId}`
+            : rawKey;
 
         await insertProduct({
           rawValue: rawKey,
-          displayValue: shortName,
-          format: 'PCB',
-          type: 'circuit_board',
-          productName: shortName,
-          productDescription: fullDesc,
+          displayValue: detectedName,
+          format: 'DPP',
+          type: 'value_scan',
+          productName: detectedName,
+          productDescription: cleanDesc,
           imageUrl: imageUri || '',
-          productId: rawKey,
-          price: `€${result.price.toFixed(2)}`,
-          supplier: '',
-          skuId: result.productId || rawKey,
+          productId: cleanProductId,
+          price: `${result.price.toFixed(2)} kr`,
+          supplier: result.categoryName || '',
+          skuId: result.productDbId ? String(result.productDbId) : '',
           weight: `${weightNum} kg`,
           co2Total: `${typeof result.pcf === 'number' ? result.pcf.toFixed(2) : result.pcf} Kg CO₂`,
           co2Details,
-          certifications: `Category ${result.category}`,
+          certifications: 'Digital Product Passport',
           datasheetUrl: '',
           documents: '',
           scannedAt: Date.now(),
         });
       }
 
-      Alert.alert('Success', 'Circuit board analyzed and saved to product history!');
+      Alert.alert('Success', `${detectedName} analyzed and saved!`);
     } catch (error: any) {
       console.error('Analysis failed:', error);
-      Alert.alert('Error', error?.message || 'Failed to analyze circuit board. Please try again.');
+      Alert.alert('Error', error?.message || 'Failed to analyze product. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -169,6 +174,7 @@ export default function CircuitBoardScreen() {
     setWidth('');
     setHeight('');
     setAnalysis(null);
+    setDetectedProductName('');
     setIsCameraActive(false);
   };
 
@@ -177,15 +183,15 @@ export default function CircuitBoardScreen() {
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: vs(300) }}
+        contentContainerStyle={{ paddingBottom: vs(30) + keyboardHeight }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
         {/* Header */}
         <View style={[styles.pageHeader, { paddingTop: insets.top + vs(12) }]}>
-          <Text style={styles.pageTitle}>Circuit Board Scanner</Text>
+          <Text style={styles.pageTitle}>Value Scanner</Text>
           <Text style={styles.pageSubtitle}>
-            Analyze PCB and generate Digital Product Passport
+            Scan any product and generate Digital Product Passport
           </Text>
         </View>
 
@@ -194,41 +200,25 @@ export default function CircuitBoardScreen() {
           <View style={styles.cameraContainer}>
             {isCameraActive ? (
               <>
-                <CameraView
-                  ref={cameraRef}
-                  style={styles.camera}
-                  facing="back"
-                />
+                <CameraView ref={cameraRef} style={styles.camera} facing="back" />
                 <View style={styles.cameraOverlay}>
-                  <TouchableOpacity
-                    style={styles.captureButton}
-                    onPress={handleTakePhoto}
-                    activeOpacity={0.8}
-                  >
+                  <TouchableOpacity style={styles.captureButton} onPress={handleTakePhoto} activeOpacity={0.8}>
                     <MaterialIcons name="camera" size={ms(32)} color={White} />
                   </TouchableOpacity>
                 </View>
               </>
             ) : hasImage ? (
               <View style={styles.imagePreviewContainer}>
-                <Image
-                  source={{ uri: imageUri! }}
-                  style={styles.imagePreview}
-                  contentFit="cover"
-                />
+                <Image source={{ uri: imageUri! }} style={styles.imagePreview} contentFit="cover" />
               </View>
             ) : (
               <View style={styles.scanPlaceholder}>
-                <MaterialIcons name="developer-board" size={ms(48)} color={SageAccent} />
-                <Text style={styles.scanPlaceholderTitle}>Take Photo of Circuit Board</Text>
+                <MaterialIcons name="photo-camera" size={ms(48)} color={SageAccent} />
+                <Text style={styles.scanPlaceholderTitle}>Take Photo of Product</Text>
                 <Text style={styles.scanPlaceholderSub}>
-                  Capture a clear image of the PCB for analysis
+                  Capture a clear image for analysis
                 </Text>
-                <TouchableOpacity
-                  style={styles.scanStartBtn}
-                  onPress={() => setIsCameraActive(true)}
-                  activeOpacity={0.85}
-                >
+                <TouchableOpacity style={styles.scanStartBtn} onPress={() => setIsCameraActive(true)} activeOpacity={0.85}>
                   <MaterialIcons name="camera-alt" size={ms(18)} color={White} />
                   <Text style={styles.scanStartText}>Open Camera</Text>
                 </TouchableOpacity>
@@ -239,13 +229,8 @@ export default function CircuitBoardScreen() {
           <View style={styles.permissionCard}>
             <MaterialIcons name="camera-alt" size={ms(48)} color={SageAccent} />
             <Text style={styles.permTitle}>Camera Access Required</Text>
-            <Text style={styles.permSubtitle}>
-              CirTag needs camera access to capture circuit board images
-            </Text>
-            <TouchableOpacity
-              style={styles.permButton}
-              onPress={requestPermission}
-            >
+            <Text style={styles.permSubtitle}>CirTag needs camera access to scan products</Text>
+            <TouchableOpacity style={styles.permButton} onPress={requestPermission}>
               <Text style={styles.permButtonText}>Grant Permission</Text>
             </TouchableOpacity>
           </View>
@@ -254,18 +239,28 @@ export default function CircuitBoardScreen() {
         {/* Input Form */}
         <View style={styles.formSection}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={styles.sectionTitle}>Board Specifications</Text>
+            <Text style={styles.sectionTitle}>Product Details</Text>
             {analysis && (
-              <TouchableOpacity
-                style={styles.resetButton}
-                onPress={handleReset}
-                activeOpacity={0.85}
-              >
+              <TouchableOpacity style={styles.resetButton} onPress={handleReset} activeOpacity={0.85}>
                 <MaterialIcons name="refresh" size={ms(16)} color={SageAccent} />
-                <Text style={styles.resetText}>Scan New Board</Text>
+                <Text style={styles.resetText}>Scan New</Text>
               </TouchableOpacity>
             )}
           </View>
+
+          {/* Auto-detected product name — shown after photo capture or analysis */}
+          {(detectedProductName || analysis?.productName) && (
+            <View style={styles.detectedNameCard}>
+              <MaterialIcons name="check-circle" size={ms(18)} color={SageAccent} />
+              <Text style={styles.detectedNameInForm}>{analysis?.productName || detectedProductName}</Text>
+            </View>
+          )}
+          {isDetectingName && (
+            <View style={styles.detectedNameCard}>
+              <ActivityIndicator size="small" color={SageAccent} />
+              <Text style={styles.detectedNameInForm}>Identifying product...</Text>
+            </View>
+          )}
 
           <View style={styles.inputRow}>
             <View style={styles.inputGroup}>
@@ -277,7 +272,6 @@ export default function CircuitBoardScreen() {
                 placeholder="0.5"
                 placeholderTextColor={TextMutedLight}
                 keyboardType="decimal-pad"
-                onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300)}
               />
             </View>
           </View>
@@ -292,10 +286,6 @@ export default function CircuitBoardScreen() {
                 placeholder="10"
                 placeholderTextColor={TextMutedLight}
                 keyboardType="decimal-pad"
-                onFocus={() => {
-                  setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
-                  setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 500);
-                }}
               />
             </View>
             <View style={[styles.inputGroup, { flex: 1, marginLeft: s(8) }]}>
@@ -307,20 +297,12 @@ export default function CircuitBoardScreen() {
                 placeholder="8"
                 placeholderTextColor={TextMutedLight}
                 keyboardType="decimal-pad"
-                onFocus={() => {
-                  setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
-                  setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 500);
-                }}
               />
             </View>
           </View>
 
-          {/* Analyze & Create DPP Button (single action) */}
           <TouchableOpacity
-            style={[
-              styles.analyzeButton,
-              (!hasImage || isAnalyzing || !!analysis) && styles.buttonDisabled,
-            ]}
+            style={[styles.analyzeButton, (!hasImage || isAnalyzing || !!analysis) && styles.buttonDisabled]}
             onPress={handleAnalyzeAndCreate}
             disabled={!hasImage || isAnalyzing || !!analysis}
             activeOpacity={0.85}
@@ -339,10 +321,24 @@ export default function CircuitBoardScreen() {
         {/* Analysis Results */}
         {analysis && (
           <View style={styles.resultsSection}>
+            {/* Product Name */}
+            {analysis.productName && (
+              <Text style={styles.detectedName}>{analysis.productName}</Text>
+            )}
             <Text style={styles.sectionTitle}>Analysis Results</Text>
 
             <View style={styles.resultCard}>
-              {/* Material */}
+              {/* Category — for all products */}
+              {analysis.categoryName && (
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Category</Text>
+                  <View style={styles.categoryBadge}>
+                    <Text style={styles.categoryText}>{analysis.categoryName}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Material — for all products when available */}
               {analysis.material && (
                 <View style={styles.resultRow}>
                   <Text style={styles.resultLabel}>Material</Text>
@@ -350,21 +346,8 @@ export default function CircuitBoardScreen() {
                 </View>
               )}
 
-              {/* Category */}
-              <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Category</Text>
-                <View style={[
-                  styles.categoryBadge,
-                  analysis.category === 2 && styles.categoryBadge2
-                ]}>
-                  <Text style={styles.categoryText}>
-                    {typeof analysis.category === 'string' ? analysis.category : `Category ${analysis.category}`}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Price per kg */}
-              {analysis.pricePerKg && (
+              {/* Price per kg — for all products when available */}
+              {analysis.pricePerKg != null && analysis.pricePerKg > 0 && (
                 <View style={styles.resultRow}>
                   <Text style={styles.resultLabel}>Price/kg</Text>
                   <Text style={styles.pricePerKgText}>{analysis.pricePerKg} kr/kg</Text>
@@ -372,23 +355,21 @@ export default function CircuitBoardScreen() {
               )}
 
               {/* Weight */}
-              {analysis.weight && (
-                <View style={styles.resultRow}>
-                  <Text style={styles.resultLabel}>Weight</Text>
-                  <Text style={styles.weightText}>{analysis.weight} kg</Text>
-                </View>
-              )}
+              <View style={styles.resultRow}>
+                <Text style={styles.resultLabel}>Weight</Text>
+                <Text style={styles.weightText}>{analysis.weight || weight} kg</Text>
+              </View>
 
               {/* Total Price */}
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Total Price</Text>
+                <Text style={styles.resultLabel}>Estimated Value</Text>
                 <Text style={styles.priceText}>{analysis.price.toFixed(2)} kr</Text>
               </View>
 
               {/* PCF */}
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Carbon Footprint (PCF)</Text>
-                <Text style={styles.pcfText}>{typeof analysis.pcf === 'number' ? analysis.pcf.toFixed(2) : analysis.pcf} kg CO2</Text>
+                <Text style={styles.resultLabel}>Carbon Footprint</Text>
+                <Text style={styles.pcfText}>{typeof analysis.pcf === 'number' ? analysis.pcf.toFixed(2) : analysis.pcf} kg CO₂</Text>
               </View>
 
               {/* Description */}
@@ -397,10 +378,10 @@ export default function CircuitBoardScreen() {
                 <Text style={styles.descriptionText}>{analysis.description}</Text>
               </View>
 
-              {/* Components */}
+              {/* Components / Key Features — for all products */}
               {analysis.components.length > 0 && (
                 <View style={styles.componentsContainer}>
-                  <Text style={styles.resultLabel}>Detected Components</Text>
+                  <Text style={styles.resultLabel}>Key Features</Text>
                   <View style={styles.componentsList}>
                     {analysis.components.map((comp, idx) => (
                       <View key={idx} style={styles.componentChip}>
@@ -414,14 +395,11 @@ export default function CircuitBoardScreen() {
               {/* PCF Breakdown */}
               {analysis.pcfBreakdown && analysis.pcfBreakdown.length > 0 && (
                 <View style={styles.pcfBreakdown}>
-                  <Text style={styles.resultLabel}>CO2 Breakdown</Text>
+                  <Text style={styles.resultLabel}>CO₂ Breakdown</Text>
                   {analysis.pcfBreakdown.map((item, idx) => (
                     <View key={idx} style={styles.pcfRow}>
                       <Text style={styles.pcfStage}>{item.stage}</Text>
-                      <Text style={[
-                        styles.pcfValue,
-                        item.value < 0 && styles.pcfCredit
-                      ]}>
+                      <Text style={[styles.pcfValue, item.value < 0 && styles.pcfCredit]}>
                         {item.value > 0 ? '+' : ''}{item.value.toFixed(2)} kg
                       </Text>
                     </View>
@@ -431,13 +409,12 @@ export default function CircuitBoardScreen() {
             </View>
 
             {/* DPP Created Info */}
-            {analysis.productId && (
+            {analysis.productDbId && (
               <View style={styles.dppCreated}>
                 <MaterialIcons name="check-circle" size={ms(24)} color={SageAccent} />
-                <Text style={styles.dppCreatedText}>DPP Created: {analysis.productId}</Text>
+                <Text style={styles.dppCreatedText}>DPP Created: #{analysis.productDbId}</Text>
               </View>
             )}
-
           </View>
         )}
       </ScrollView>
@@ -446,338 +423,62 @@ export default function CircuitBoardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: CreamBg,
-  },
-  pageHeader: {
-    paddingHorizontal: s(20),
-    marginBottom: vs(16),
-  },
-  pageTitle: {
-    fontSize: ms(26),
-    fontWeight: '800',
-    color: TextDark,
-  },
-  pageSubtitle: {
-    fontSize: ms(14),
-    color: TextGray,
-    marginTop: vs(4),
-  },
-  cameraContainer: {
-    marginHorizontal: s(20),
-    borderRadius: s(16),
-    overflow: 'hidden',
-    height: vs(280),
-    backgroundColor: CameraBg,
-    borderWidth: 2,
-    borderColor: SageAccent,
-  },
-  camera: {
-    flex: 1,
-  },
-  cameraOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingBottom: vs(20),
-  },
-  captureButton: {
-    width: s(64),
-    height: s(64),
-    borderRadius: s(32),
-    backgroundColor: SageAccent,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: White,
-  },
-  imagePreviewContainer: {
-    flex: 1,
-    position: 'relative',
-  },
-  imagePreview: {
-    flex: 1,
-  },
-  retakeButton: {
-    position: 'absolute',
-    bottom: vs(16),
-    right: s(16),
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: s(12),
-    paddingVertical: vs(8),
-    borderRadius: s(20),
-  },
-  retakeText: {
-    color: White,
-    fontWeight: '600',
-    fontSize: ms(12),
-    marginLeft: s(4),
-  },
-  scanPlaceholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: s(20),
-  },
-  scanPlaceholderTitle: {
-    fontSize: ms(16),
-    fontWeight: '700',
-    color: TextDark,
-    marginTop: vs(12),
-  },
-  scanPlaceholderSub: {
-    fontSize: ms(12),
-    color: TextGray,
-    marginTop: vs(6),
-    textAlign: 'center',
-  },
-  scanStartBtn: {
-    marginTop: vs(14),
-    backgroundColor: SageAccent,
-    paddingHorizontal: s(18),
-    paddingVertical: vs(10),
-    borderRadius: s(12),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(6),
-  },
-  scanStartText: {
-    color: White,
-    fontWeight: '700',
-    fontSize: ms(12),
-  },
-  permissionCard: {
-    backgroundColor: White,
-    borderRadius: s(16),
-    marginHorizontal: s(20),
-    padding: s(32),
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  permTitle: {
-    fontSize: ms(16),
-    fontWeight: '700',
-    color: TextDark,
-    marginTop: vs(16),
-  },
-  permSubtitle: {
-    fontSize: ms(13),
-    color: TextGray,
-    textAlign: 'center',
-    marginTop: vs(6),
-  },
-  permButton: {
-    backgroundColor: SageAccent,
-    borderRadius: s(12),
-    paddingVertical: vs(12),
-    paddingHorizontal: s(32),
-    marginTop: vs(20),
-  },
-  permButtonText: {
-    color: White,
-    fontWeight: '700',
-    fontSize: ms(14),
-  },
-  formSection: {
-    marginTop: vs(24),
-    paddingHorizontal: s(20),
-  },
-  sectionTitle: {
-    fontSize: ms(18),
-    fontWeight: '800',
-    color: TextDark,
-    marginBottom: vs(12),
-  },
-  inputRow: {
-    flexDirection: 'row',
-    marginBottom: vs(12),
-  },
-  inputGroup: {
-    flex: 1,
-  },
-  inputLabel: {
-    fontSize: ms(12),
-    fontWeight: '600',
-    color: TextGray,
-    marginBottom: vs(6),
-  },
-  input: {
-    backgroundColor: White,
-    borderRadius: s(12),
-    paddingHorizontal: s(14),
-    paddingVertical: vs(12),
-    fontSize: ms(15),
-    color: TextDark,
-    borderWidth: 1,
-    borderColor: Border,
-  },
-  analyzeButton: {
-    backgroundColor: SageAccent,
-    borderRadius: s(12),
-    paddingVertical: vs(14),
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: s(8),
-    marginTop: vs(8),
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  analyzeButtonText: {
-    color: White,
-    fontWeight: '700',
-    fontSize: ms(14),
-  },
-  resultsSection: {
-    marginTop: vs(24),
-    paddingHorizontal: s(20),
-  },
-  resultCard: {
-    backgroundColor: White,
-    borderRadius: s(16),
-    padding: s(16),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  resultRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: vs(10),
-    borderBottomWidth: 1,
-    borderBottomColor: Border,
-  },
-  resultLabel: {
-    fontSize: ms(13),
-    fontWeight: '600',
-    color: TextGray,
-  },
-  categoryBadge: {
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: s(12),
-    paddingVertical: vs(4),
-    borderRadius: s(12),
-  },
-  categoryBadge2: {
-    backgroundColor: '#FFF3E0',
-  },
-  categoryText: {
-    fontSize: ms(12),
-    fontWeight: '700',
-    color: SageAccent,
-  },
-  materialText: {
-    fontSize: ms(14),
-    fontWeight: '600',
-    color: TextDark,
-    flex: 1,
-    textAlign: 'right',
-    marginLeft: s(12),
-  },
-  pricePerKgText: {
-    fontSize: ms(14),
-    fontWeight: '700',
-    color: SageAccent,
-  },
-  weightText: {
-    fontSize: ms(14),
-    fontWeight: '600',
-    color: TextDark,
-  },
-  priceText: {
-    fontSize: ms(18),
-    fontWeight: '800',
-    color: TextDark,
-  },
-  pcfText: {
-    fontSize: ms(14),
-    fontWeight: '700',
-    color: '#4A9F4A',
-  },
-  descriptionContainer: {
-    paddingVertical: vs(12),
-    borderBottomWidth: 1,
-    borderBottomColor: Border,
-  },
-  descriptionText: {
-    fontSize: ms(13),
-    color: TextDark,
-    marginTop: vs(6),
-    lineHeight: ms(18),
-  },
-  componentsContainer: {
-    paddingVertical: vs(12),
-    borderBottomWidth: 1,
-    borderBottomColor: Border,
-  },
-  componentsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: vs(8),
-    gap: s(6),
-  },
-  componentChip: {
-    backgroundColor: '#F0F4F0',
-    paddingHorizontal: s(10),
-    paddingVertical: vs(4),
-    borderRadius: s(8),
-  },
-  componentText: {
-    fontSize: ms(11),
-    color: TextDark,
-    fontWeight: '500',
-  },
-  pcfBreakdown: {
-    paddingTop: vs(12),
-  },
-  pcfRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: vs(6),
-  },
-  pcfStage: {
-    fontSize: ms(12),
-    color: TextGray,
-  },
-  pcfValue: {
-    fontSize: ms(12),
-    fontWeight: '600',
-    color: TextDark,
-  },
-  pcfCredit: {
-    color: '#4A9F4A',
-  },
-  dppCreated: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: vs(12),
-    gap: s(8),
-  },
-  dppCreatedText: {
-    fontSize: ms(14),
-    fontWeight: '600',
-    color: SageAccent,
-  },
-  resetButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: s(4),
-  },
-  resetText: {
-    fontSize: ms(14),
-    fontWeight: '600',
-    color: SageAccent,
-  },
+  container: { flex: 1, backgroundColor: CreamBg },
+  pageHeader: { paddingHorizontal: s(20), marginBottom: vs(16) },
+  pageTitle: { fontSize: ms(26), fontWeight: '800', color: TextDark },
+  pageSubtitle: { fontSize: ms(14), color: TextGray, marginTop: vs(4) },
+  cameraContainer: { marginHorizontal: s(20), borderRadius: s(16), overflow: 'hidden', height: vs(280), backgroundColor: CameraBg, borderWidth: 2, borderColor: SageAccent },
+  camera: { flex: 1 },
+  cameraOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: vs(20) },
+  captureButton: { width: s(64), height: s(64), borderRadius: s(32), backgroundColor: SageAccent, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: White },
+  imagePreviewContainer: { flex: 1, position: 'relative' },
+  imagePreview: { flex: 1 },
+  scanPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: s(20) },
+  scanPlaceholderTitle: { fontSize: ms(16), fontWeight: '700', color: TextDark, marginTop: vs(12) },
+  scanPlaceholderSub: { fontSize: ms(12), color: TextGray, marginTop: vs(6), textAlign: 'center' },
+  scanStartBtn: { marginTop: vs(14), backgroundColor: SageAccent, paddingHorizontal: s(18), paddingVertical: vs(10), borderRadius: s(12), flexDirection: 'row', alignItems: 'center', gap: s(6) },
+  scanStartText: { color: White, fontWeight: '700', fontSize: ms(12) },
+  permissionCard: { backgroundColor: White, borderRadius: s(16), marginHorizontal: s(20), padding: s(32), alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 3 },
+  permTitle: { fontSize: ms(16), fontWeight: '700', color: TextDark, marginTop: vs(16) },
+  permSubtitle: { fontSize: ms(13), color: TextGray, textAlign: 'center', marginTop: vs(6) },
+  permButton: { backgroundColor: SageAccent, borderRadius: s(12), paddingVertical: vs(12), paddingHorizontal: s(32), marginTop: vs(20) },
+  permButtonText: { color: White, fontWeight: '700', fontSize: ms(14) },
+  formSection: { marginTop: vs(24), paddingHorizontal: s(20) },
+  sectionTitle: { fontSize: ms(18), fontWeight: '800', color: TextDark, marginBottom: vs(12) },
+  inputRow: { flexDirection: 'row', marginBottom: vs(12) },
+  inputGroup: { flex: 1 },
+  inputLabel: { fontSize: ms(12), fontWeight: '600', color: TextGray, marginBottom: vs(6) },
+  input: { backgroundColor: White, borderRadius: s(12), paddingHorizontal: s(14), paddingVertical: vs(12), fontSize: ms(15), color: TextDark, borderWidth: 1, borderColor: Border },
+  analyzeButton: { backgroundColor: SageAccent, borderRadius: s(12), paddingVertical: vs(14), flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(8), marginTop: vs(8) },
+  buttonDisabled: { opacity: 0.5 },
+  analyzeButtonText: { color: White, fontWeight: '700', fontSize: ms(14) },
+  resultsSection: { marginTop: vs(24), paddingHorizontal: s(20) },
+  detectedName: { fontSize: ms(20), fontWeight: '800', color: SageAccent, marginBottom: vs(8) },
+  resultCard: { backgroundColor: White, borderRadius: s(16), padding: s(16), shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 3 },
+  resultRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: vs(10), borderBottomWidth: 1, borderBottomColor: Border },
+  resultLabel: { fontSize: ms(13), fontWeight: '600', color: TextGray },
+  categoryBadge: { backgroundColor: '#E8F5E9', paddingHorizontal: s(12), paddingVertical: vs(4), borderRadius: s(12) },
+  categoryText: { fontSize: ms(12), fontWeight: '700', color: SageAccent },
+  materialText: { fontSize: ms(14), fontWeight: '600', color: TextDark, flex: 1, textAlign: 'right', marginLeft: s(12) },
+  pricePerKgText: { fontSize: ms(14), fontWeight: '700', color: SageAccent },
+  weightText: { fontSize: ms(14), fontWeight: '600', color: TextDark },
+  priceText: { fontSize: ms(18), fontWeight: '800', color: TextDark },
+  pcfText: { fontSize: ms(14), fontWeight: '700', color: '#4A9F4A' },
+  descriptionContainer: { paddingVertical: vs(12), borderBottomWidth: 1, borderBottomColor: Border },
+  descriptionText: { fontSize: ms(13), color: TextDark, marginTop: vs(6), lineHeight: ms(18) },
+  componentsContainer: { paddingVertical: vs(12), borderBottomWidth: 1, borderBottomColor: Border },
+  componentsList: { flexDirection: 'row', flexWrap: 'wrap', marginTop: vs(8), gap: s(6) },
+  componentChip: { backgroundColor: '#F0F4F0', paddingHorizontal: s(10), paddingVertical: vs(4), borderRadius: s(8) },
+  componentText: { fontSize: ms(11), color: TextDark, fontWeight: '500' },
+  pcfBreakdown: { paddingTop: vs(12) },
+  pcfRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: vs(6) },
+  pcfStage: { fontSize: ms(12), color: TextGray },
+  pcfValue: { fontSize: ms(12), fontWeight: '600', color: TextDark },
+  pcfCredit: { color: '#4A9F4A' },
+  dppCreated: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: vs(12), gap: s(8) },
+  dppCreatedText: { fontSize: ms(14), fontWeight: '600', color: SageAccent },
+  detectedNameCard: { flexDirection: 'row', alignItems: 'center', gap: s(8), backgroundColor: '#E8F5E9', borderRadius: s(12), paddingHorizontal: s(14), paddingVertical: vs(10), marginBottom: vs(12) },
+  detectedNameInForm: { fontSize: ms(16), fontWeight: '700', color: SageAccent, flex: 1 },
+  resetButton: { flexDirection: 'row', alignItems: 'center', gap: s(4) },
+  resetText: { fontSize: ms(14), fontWeight: '600', color: SageAccent },
 });
