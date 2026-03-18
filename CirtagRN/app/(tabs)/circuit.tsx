@@ -328,8 +328,8 @@ export default function CircuitBoardScreen() {
             <Text style={styles.sectionTitle}>Analysis Results</Text>
 
             <View style={styles.resultCard}>
-              {/* Category — for all products */}
-              {analysis.categoryName && (
+              {/* Category — only for non-electronics (no scrap price) */}
+              {analysis.categoryName && !(analysis.pricePerKg && analysis.pricePerKg > 0) && (
                 <View style={styles.resultRow}>
                   <Text style={styles.resultLabel}>Category</Text>
                   <View style={styles.categoryBadge}>
