@@ -58,7 +58,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="circuit"
         options={{
-          title: 'Circuit',
+          title: 'Value Scanner',
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="developer-board" size={ms(size + 2)} color={color} />
           ),
