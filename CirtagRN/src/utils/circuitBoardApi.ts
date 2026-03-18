@@ -24,41 +24,6 @@ const PCF_FACTORS = {
 };
 
 /**
- * Extract a clean product name from GPT description.
- * e.g. "This is a Dyson V11 Advanced Cordless Vacuum with..." → "Dyson V11 Advanced Cordless Vacuum"
- */
-function extractProductName(description: string): string {
-  if (!description) return '';
-
-  // Get first sentence
-  const firstSentence = description.split(/\.\s/)[0] || description;
-
-  // Strip common prefixes (GPT often starts with these)
-  let name = firstSentence
-    .replace(/^(This is|This appears to be|The image shows|This product is|The product is|This seems to be|I can see|The photo shows|Shown here is|Here we have|I see)\s+(a|an|the)\s+/i, '')
-    .replace(/^(a|an|the)\s+/i, '')
-    .replace(/\s+(with|featuring|measuring|weighing|that has|having|including|which|designed for|suitable for|made of|made from)[\s,].*/i, '')
-    .replace(/\s*\(.*?\)\s*/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  // Remove trailing punctuation
-  name = name.replace(/[.,;:]+$/, '').trim();
-
-  // Capitalize first letter of each word if all lowercase
-  if (name === name.toLowerCase()) {
-    name = name.replace(/\b\w/g, c => c.toUpperCase());
-  }
-
-  // If name is too long (likely a sentence, not a product name), take first few meaningful words
-  if (name.split(/\s+/).length > 8) {
-    name = name.split(/\s+/).slice(0, 6).join(' ');
-  }
-
-  return name || '';
-}
-
-/**
  * Derive a human-readable category name from the server category and product description.
  */
 function getCategoryDisplayName(category: string | number, description: string): string {
@@ -132,44 +97,6 @@ function analyzeLocally(weight: number, width: number, height: number): CircuitB
 }
 
 /**
- * Quick name-only detection: send image to GPT Vision, get product name back.
- * Does NOT create a product on the server.
- */
-export async function detectProductName(
-  imageBase64: string
-): Promise<{ name: string; categoryName: string; material: string }> {
-  try {
-    const response = await fetch(`${DPP_API_URL}/v1/pcb/analyze/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Client-ID': CLIENT_ID,
-        'X-Client-Secret': CLIENT_SECRET,
-      },
-      body: JSON.stringify({
-        image: imageBase64,
-        weight: 1,
-        width: 10,
-        height: 10,
-        name_only: true,
-      }),
-    });
-
-    if (!response.ok) return { name: '', categoryName: '', material: '' };
-    const result = await response.json();
-    if (!result.success) return { name: '', categoryName: '', material: '' };
-
-    return {
-      name: result.product_name || '',
-      categoryName: result.categoryName || '',
-      material: result.material || '',
-    };
-  } catch {
-    return { name: '', categoryName: '', material: '' };
-  }
-}
-
-/**
  * Analyze ANY product (circuit board, electronics, furniture, etc.) and create DPP entry.
  * Server uses GPT-4o Vision to identify the product from the image.
  * Falls back to local analysis if server keeps failing.
@@ -178,14 +105,15 @@ export async function analyzeAndCreateCircuitBoard(
   imageBase64: string,
   weight: number,
   width: number,
-  height: number
+  height: number,
+  productName: string
 ): Promise<CircuitBoardAnalysis> {
   let lastError = '';
   const area = (width * height).toFixed(1);
 
-  // Minimal description with measurements — let the server's GPT Vision identify the product from the image.
+  // Include user-provided product name in description for server context.
   // Must be ~50 words to pass server validation.
-  const description = `Product submitted for Digital Product Passport registration. Physical measurements: width ${width} centimeters, height ${height} centimeters, surface area approximately ${area} square centimeters, weight ${weight} kilograms. Please identify this product from the submitted image including its type brand model and key specifications for European Union Digital Product Passport compliance sustainability tracking carbon footprint calculation and circular economy lifecycle documentation.`;
+  const description = `${productName} submitted for Digital Product Passport registration. Physical measurements: width ${width} centimeters, height ${height} centimeters, surface area approximately ${area} square centimeters, weight ${weight} kilograms. Product name provided by user: ${productName}. Please analyze this product for European Union Digital Product Passport compliance sustainability tracking carbon footprint calculation and circular economy lifecycle documentation.`;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -202,6 +130,7 @@ export async function analyzeAndCreateCircuitBoard(
           width,
           height,
           description,
+          product_name: productName,
         }),
       });
 
@@ -233,10 +162,8 @@ export async function analyzeAndCreateCircuitBoard(
 
       const desc = result.description || '';
 
-      // Use server's product_name if available, otherwise extract from description
-      const serverName = result.product_name || result.name || '';
-      const extractedName = extractProductName(desc);
-      const detectedName = serverName || extractedName || 'Scanned Product';
+      // Use user-provided product name as primary
+      const detectedName = productName;
 
       // Use server's category name if available, otherwise derive from description
       const catName = result.categoryName || getCategoryDisplayName(result.category || 1, desc);

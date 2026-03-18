@@ -16,8 +16,10 @@ import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useCamera } from '../../src/hooks/useCamera';
-import { analyzeAndCreateCircuitBoard, detectProductName } from '../../src/utils/circuitBoardApi';
+import { analyzeAndCreateCircuitBoard } from '../../src/utils/circuitBoardApi';
+import { sendProductToRemat } from '../../src/utils/rematApi';
 import { CircuitBoardAnalysis } from '../../src/types/CircuitBoard';
+import { useUserProfile } from '../../src/hooks/useUserProfile';
 import { insertProduct, getProductByRawValue } from '../../src/database/scannedProductDao';
 import { s, vs, ms } from '../../src/utils/scale';
 
@@ -33,6 +35,7 @@ const Border = 'rgba(44,62,45,0.1)';
 
 export default function CircuitBoardScreen() {
   const insets = useSafeAreaInsets();
+  const { profile } = useUserProfile();
   const { hasPermission, requestPermission } = useCamera();
   const cameraRef = useRef<CameraView>(null);
   const scrollRef = useRef<ScrollView>(null);
@@ -61,9 +64,10 @@ export default function CircuitBoardScreen() {
   const [weight, setWeight] = useState('');
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
+  const [productName, setProductName] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isDetectingName, setIsDetectingName] = useState(false);
-  const [detectedProductName, setDetectedProductName] = useState('');
+  const [isSendingToRemat, setIsSendingToRemat] = useState(false);
+  const [rematSent, setRematSent] = useState(false);
   const [analysis, setAnalysis] = useState<CircuitBoardAnalysis | null>(null);
 
   const handleTakePhoto = async () => {
@@ -75,13 +79,6 @@ export default function CircuitBoardScreen() {
         setImageUri(`data:image/jpeg;base64,${photo.base64}`);
         setHasImage(true);
         setIsCameraActive(false);
-
-        // Quick name detection — only identifies product, does NOT save
-        setIsDetectingName(true);
-        detectProductName(photo.base64).then((result) => {
-          if (result.name) setDetectedProductName(result.name);
-          setIsDetectingName(false);
-        });
       }
     } catch (error) {
       console.error('Failed to take photo:', error);
@@ -100,6 +97,11 @@ export default function CircuitBoardScreen() {
     const widthNum = parseFloat(width);
     const heightNum = parseFloat(height);
 
+    const trimmedName = productName.trim();
+    if (!trimmedName) {
+      Alert.alert('Error', 'Please enter a product name');
+      return;
+    }
     if (isNaN(weightNum) || weightNum <= 0) {
       Alert.alert('Error', 'Please enter a valid weight');
       return;
@@ -111,10 +113,10 @@ export default function CircuitBoardScreen() {
 
     setIsAnalyzing(true);
     try {
-      const result = await analyzeAndCreateCircuitBoard(capturedImage, weightNum, widthNum, heightNum);
+      const result = await analyzeAndCreateCircuitBoard(capturedImage, weightNum, widthNum, heightNum, trimmedName);
       setAnalysis(result);
 
-      const detectedName = result.productName || 'Scanned Product';
+      const detectedName = trimmedName;
 
       // Save to local product history (skip if already exists)
       const rawKey = `valuescan-${detectedName.toLowerCase().replace(/\s+/g, '-').substring(0, 30)}-${weightNum}`;
@@ -166,6 +168,35 @@ export default function CircuitBoardScreen() {
     }
   };
 
+  const handleSendToRemat = async () => {
+    if (!analysis?.productDbId) return;
+
+    if (!profile.email && !profile.phone) {
+      Alert.alert(
+        'Profile Required',
+        'Please add your email or phone number in the Profile tab before sending to ReMat.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    setIsSendingToRemat(true);
+    try {
+      await sendProductToRemat({
+        productDbId: analysis.productDbId,
+        userName: profile.name,
+        userEmail: profile.email,
+        userPhone: profile.phone,
+      });
+      setRematSent(true);
+      Alert.alert('Sent!', 'Product details have been sent to ReMat.');
+    } catch (error: any) {
+      Alert.alert('Error', error?.message || 'Failed to send to ReMat');
+    } finally {
+      setIsSendingToRemat(false);
+    }
+  };
+
   const handleReset = () => {
     capturedImageRef.current = null;
     setImageUri(null);
@@ -173,8 +204,9 @@ export default function CircuitBoardScreen() {
     setWeight('');
     setWidth('');
     setHeight('');
+    setProductName('');
     setAnalysis(null);
-    setDetectedProductName('');
+    setRematSent(false);
     setIsCameraActive(false);
   };
 
@@ -191,13 +223,26 @@ export default function CircuitBoardScreen() {
         <View style={[styles.pageHeader, { paddingTop: insets.top + vs(12) }]}>
           <Text style={styles.pageTitle}>Value Scanner</Text>
           <Text style={styles.pageSubtitle}>
-            Scan any product and generate Digital Product Passport
+            {!hasImage
+              ? 'Take a photo of your product to get started'
+              : !analysis
+                ? 'Fill in the details below'
+                : 'Digital Product Passport created'}
           </Text>
         </View>
 
+        {/* Step Indicators */}
+        {!analysis && (
+          <View style={styles.stepsRow}>
+            <View style={[styles.stepDot, styles.stepActive]} />
+            <View style={[styles.stepLine, hasImage && styles.stepLineActive]} />
+            <View style={[styles.stepDot, hasImage && styles.stepActive]} />
+          </View>
+        )}
+
         {/* Camera / Image Section */}
         {hasPermission ? (
-          <View style={styles.cameraContainer}>
+          <View style={[styles.cameraContainer, analysis && styles.cameraSmall]}>
             {isCameraActive ? (
               <>
                 <CameraView ref={cameraRef} style={styles.camera} facing="back" />
@@ -210,6 +255,22 @@ export default function CircuitBoardScreen() {
             ) : hasImage ? (
               <View style={styles.imagePreviewContainer}>
                 <Image source={{ uri: imageUri! }} style={styles.imagePreview} contentFit="cover" />
+                {/* Retake button overlay — only before analysis */}
+                {!analysis && (
+                  <TouchableOpacity
+                    style={styles.retakeButton}
+                    onPress={() => {
+                      capturedImageRef.current = null;
+                      setImageUri(null);
+                      setHasImage(false);
+                      setIsCameraActive(true);
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <MaterialIcons name="replay" size={ms(16)} color={White} />
+                    <Text style={styles.retakeText}>Retake</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ) : (
               <View style={styles.scanPlaceholder}>
@@ -236,91 +297,92 @@ export default function CircuitBoardScreen() {
           </View>
         )}
 
-        {/* Input Form */}
-        <View style={styles.formSection}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Input Form — only show after photo is taken and before analysis is done */}
+        {hasImage && !analysis && (
+          <View style={styles.formSection}>
             <Text style={styles.sectionTitle}>Product Details</Text>
-            {analysis && (
-              <TouchableOpacity style={styles.resetButton} onPress={handleReset} activeOpacity={0.85}>
-                <MaterialIcons name="refresh" size={ms(16)} color={SageAccent} />
-                <Text style={styles.resetText}>Scan New</Text>
-              </TouchableOpacity>
-            )}
-          </View>
 
-          {/* Auto-detected product name — shown after photo capture or analysis */}
-          {(detectedProductName || analysis?.productName) && (
-            <View style={styles.detectedNameCard}>
-              <MaterialIcons name="check-circle" size={ms(18)} color={SageAccent} />
-              <Text style={styles.detectedNameInForm}>{analysis?.productName || detectedProductName}</Text>
-            </View>
-          )}
-          {isDetectingName && (
-            <View style={styles.detectedNameCard}>
-              <ActivityIndicator size="small" color={SageAccent} />
-              <Text style={styles.detectedNameInForm}>Identifying product...</Text>
-            </View>
-          )}
-
-          <View style={styles.inputRow}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Weight (kg)</Text>
+              <Text style={styles.inputLabel}>Product Name</Text>
               <TextInput
                 style={styles.input}
-                value={weight}
-                onChangeText={setWeight}
-                placeholder="0.5"
+                value={productName}
+                onChangeText={setProductName}
+                placeholder="e.g. Samsung Galaxy S21"
                 placeholderTextColor={TextMutedLight}
-                keyboardType="decimal-pad"
+                autoCapitalize="words"
               />
             </View>
-          </View>
 
-          <View style={styles.inputRow}>
-            <View style={[styles.inputGroup, { flex: 1, marginRight: s(8) }]}>
-              <Text style={styles.inputLabel}>Width (cm)</Text>
-              <TextInput
-                style={styles.input}
-                value={width}
-                onChangeText={setWidth}
-                placeholder="10"
-                placeholderTextColor={TextMutedLight}
-                keyboardType="decimal-pad"
-              />
+            <View style={[styles.inputRow, { marginTop: vs(12) }]}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Weight (kg)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={weight}
+                  onChangeText={setWeight}
+                  placeholder="0.5"
+                  placeholderTextColor={TextMutedLight}
+                  keyboardType="decimal-pad"
+                />
+              </View>
             </View>
-            <View style={[styles.inputGroup, { flex: 1, marginLeft: s(8) }]}>
-              <Text style={styles.inputLabel}>Height (cm)</Text>
-              <TextInput
-                style={styles.input}
-                value={height}
-                onChangeText={setHeight}
-                placeholder="8"
-                placeholderTextColor={TextMutedLight}
-                keyboardType="decimal-pad"
-              />
-            </View>
-          </View>
 
-          <TouchableOpacity
-            style={[styles.analyzeButton, (!hasImage || isAnalyzing || !!analysis) && styles.buttonDisabled]}
-            onPress={handleAnalyzeAndCreate}
-            disabled={!hasImage || isAnalyzing || !!analysis}
-            activeOpacity={0.85}
-          >
-            {isAnalyzing ? (
-              <ActivityIndicator color={White} size="small" />
-            ) : (
-              <>
-                <MaterialIcons name="analytics" size={ms(20)} color={White} />
-                <Text style={styles.analyzeButtonText}>Analyze & Create DPP</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+            <View style={styles.inputRow}>
+              <View style={[styles.inputGroup, { flex: 1, marginRight: s(8) }]}>
+                <Text style={styles.inputLabel}>Width (cm)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={width}
+                  onChangeText={setWidth}
+                  placeholder="10"
+                  placeholderTextColor={TextMutedLight}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+              <View style={[styles.inputGroup, { flex: 1, marginLeft: s(8) }]}>
+                <Text style={styles.inputLabel}>Height (cm)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={height}
+                  onChangeText={setHeight}
+                  placeholder="8"
+                  placeholderTextColor={TextMutedLight}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.analyzeButton, isAnalyzing && styles.buttonDisabled]}
+              onPress={handleAnalyzeAndCreate}
+              disabled={isAnalyzing}
+              activeOpacity={0.85}
+            >
+              {isAnalyzing ? (
+                <>
+                  <ActivityIndicator color={White} size="small" />
+                  <Text style={styles.analyzeButtonText}>Analyzing...</Text>
+                </>
+              ) : (
+                <>
+                  <MaterialIcons name="analytics" size={ms(20)} color={White} />
+                  <Text style={styles.analyzeButtonText}>Analyze & Create DPP</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Analysis Results */}
         {analysis && (
           <View style={styles.resultsSection}>
+            {/* Scan New — top of results for easy access */}
+            <TouchableOpacity style={styles.scanNewButton} onPress={handleReset} activeOpacity={0.85}>
+              <MaterialIcons name="add-a-photo" size={ms(20)} color={White} />
+              <Text style={styles.scanNewText}>Scan Another Product</Text>
+            </TouchableOpacity>
+
             {/* Product Name */}
             {analysis.productName && (
               <Text style={styles.detectedName}>{analysis.productName}</Text>
@@ -415,6 +477,35 @@ export default function CircuitBoardScreen() {
                 <Text style={styles.dppCreatedText}>DPP Created: #{analysis.productDbId}</Text>
               </View>
             )}
+
+            {/* Send to ReMat Button */}
+            {analysis.productDbId && !rematSent && (
+              <TouchableOpacity
+                style={[styles.rematButton, isSendingToRemat && styles.buttonDisabled]}
+                onPress={handleSendToRemat}
+                disabled={isSendingToRemat}
+                activeOpacity={0.85}
+              >
+                {isSendingToRemat ? (
+                  <>
+                    <ActivityIndicator color={White} size="small" />
+                    <Text style={styles.rematButtonText}>Sending...</Text>
+                  </>
+                ) : (
+                  <>
+                    <MaterialIcons name="send" size={ms(20)} color={White} />
+                    <Text style={styles.rematButtonText}>Send to ReMat</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+            {rematSent && (
+              <View style={styles.rematSentBadge}>
+                <MaterialIcons name="check-circle" size={ms(20)} color={SageAccent} />
+                <Text style={styles.rematSentText}>Sent to ReMat</Text>
+              </View>
+            )}
+
           </View>
         )}
       </ScrollView>
@@ -424,15 +515,23 @@ export default function CircuitBoardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: CreamBg },
-  pageHeader: { paddingHorizontal: s(20), marginBottom: vs(16) },
+  pageHeader: { paddingHorizontal: s(20), marginBottom: vs(12) },
   pageTitle: { fontSize: ms(26), fontWeight: '800', color: TextDark },
   pageSubtitle: { fontSize: ms(14), color: TextGray, marginTop: vs(4) },
+  stepsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: vs(16), paddingHorizontal: s(60) },
+  stepDot: { width: s(10), height: s(10), borderRadius: s(5), backgroundColor: Border },
+  stepActive: { backgroundColor: SageAccent },
+  stepLine: { flex: 1, height: 2, backgroundColor: Border, marginHorizontal: s(8) },
+  stepLineActive: { backgroundColor: SageAccent },
   cameraContainer: { marginHorizontal: s(20), borderRadius: s(16), overflow: 'hidden', height: vs(280), backgroundColor: CameraBg, borderWidth: 2, borderColor: SageAccent },
+  cameraSmall: { height: vs(160) },
   camera: { flex: 1 },
   cameraOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: vs(20) },
   captureButton: { width: s(64), height: s(64), borderRadius: s(32), backgroundColor: SageAccent, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: White },
   imagePreviewContainer: { flex: 1, position: 'relative' },
   imagePreview: { flex: 1 },
+  retakeButton: { position: 'absolute', bottom: vs(10), right: s(10), backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: s(10), paddingHorizontal: s(12), paddingVertical: vs(6), flexDirection: 'row', alignItems: 'center', gap: s(4) },
+  retakeText: { color: White, fontWeight: '600', fontSize: ms(12) },
   scanPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: s(20) },
   scanPlaceholderTitle: { fontSize: ms(16), fontWeight: '700', color: TextDark, marginTop: vs(12) },
   scanPlaceholderSub: { fontSize: ms(12), color: TextGray, marginTop: vs(6), textAlign: 'center' },
@@ -443,15 +542,15 @@ const styles = StyleSheet.create({
   permSubtitle: { fontSize: ms(13), color: TextGray, textAlign: 'center', marginTop: vs(6) },
   permButton: { backgroundColor: SageAccent, borderRadius: s(12), paddingVertical: vs(12), paddingHorizontal: s(32), marginTop: vs(20) },
   permButtonText: { color: White, fontWeight: '700', fontSize: ms(14) },
-  formSection: { marginTop: vs(24), paddingHorizontal: s(20) },
+  formSection: { marginTop: vs(20), paddingHorizontal: s(20) },
   sectionTitle: { fontSize: ms(18), fontWeight: '800', color: TextDark, marginBottom: vs(12) },
   inputRow: { flexDirection: 'row', marginBottom: vs(12) },
   inputGroup: { flex: 1 },
   inputLabel: { fontSize: ms(12), fontWeight: '600', color: TextGray, marginBottom: vs(6) },
   input: { backgroundColor: White, borderRadius: s(12), paddingHorizontal: s(14), paddingVertical: vs(12), fontSize: ms(15), color: TextDark, borderWidth: 1, borderColor: Border },
-  analyzeButton: { backgroundColor: SageAccent, borderRadius: s(12), paddingVertical: vs(14), flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(8), marginTop: vs(8) },
-  buttonDisabled: { opacity: 0.5 },
-  analyzeButtonText: { color: White, fontWeight: '700', fontSize: ms(14) },
+  analyzeButton: { backgroundColor: SageAccent, borderRadius: s(14), paddingVertical: vs(16), flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(8), marginTop: vs(8) },
+  buttonDisabled: { opacity: 0.6 },
+  analyzeButtonText: { color: White, fontWeight: '700', fontSize: ms(15) },
   resultsSection: { marginTop: vs(24), paddingHorizontal: s(20) },
   detectedName: { fontSize: ms(20), fontWeight: '800', color: SageAccent, marginBottom: vs(8) },
   resultCard: { backgroundColor: White, borderRadius: s(16), padding: s(16), shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 3 },
@@ -475,10 +574,12 @@ const styles = StyleSheet.create({
   pcfStage: { fontSize: ms(12), color: TextGray },
   pcfValue: { fontSize: ms(12), fontWeight: '600', color: TextDark },
   pcfCredit: { color: '#4A9F4A' },
-  dppCreated: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: vs(12), gap: s(8) },
+  dppCreated: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: vs(16), gap: s(8) },
   dppCreatedText: { fontSize: ms(14), fontWeight: '600', color: SageAccent },
-  detectedNameCard: { flexDirection: 'row', alignItems: 'center', gap: s(8), backgroundColor: '#E8F5E9', borderRadius: s(12), paddingHorizontal: s(14), paddingVertical: vs(10), marginBottom: vs(12) },
-  detectedNameInForm: { fontSize: ms(16), fontWeight: '700', color: SageAccent, flex: 1 },
-  resetButton: { flexDirection: 'row', alignItems: 'center', gap: s(4) },
-  resetText: { fontSize: ms(14), fontWeight: '600', color: SageAccent },
+  rematButton: { backgroundColor: '#2E6B8A', borderRadius: s(14), paddingVertical: vs(16), flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(8), marginTop: vs(16) },
+  rematButtonText: { color: White, fontWeight: '700', fontSize: ms(15) },
+  rematSentBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: s(8), marginTop: vs(16), paddingVertical: vs(12), backgroundColor: '#E8F5E9', borderRadius: s(14) },
+  rematSentText: { fontSize: ms(14), fontWeight: '600', color: SageAccent },
+  scanNewButton: { backgroundColor: SageAccent, borderRadius: s(14), paddingVertical: vs(16), flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: s(8), marginTop: vs(12) },
+  scanNewText: { color: White, fontWeight: '700', fontSize: ms(15) },
 });

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -73,15 +73,32 @@ const menuStyles = StyleSheet.create({
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile } = useUserProfile();
+  const { profile, updateProfile } = useUserProfile();
   const { products } = useProducts();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(profile.name);
+  const [editEmail, setEditEmail] = useState(profile.email);
+  const [editPhone, setEditPhone] = useState(profile.phone);
+
+  const handleSaveProfile = () => {
+    updateProfile({ name: editName, email: editEmail, phone: editPhone });
+    setIsEditing(false);
+    Alert.alert('Saved', 'Profile updated successfully');
+  };
 
   return (
     <GradientBackground>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
+      >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingTop: insets.top + vs(12), paddingBottom: vs(32) }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         <View style={{ height: vs(20) }} />
 
@@ -90,8 +107,21 @@ export default function ProfileScreen() {
           <View style={styles.avatar}>
             <MaterialIcons name="person" size={ms(36)} color={Accent} />
           </View>
+          {profile.name ? <Text style={styles.name}>{profile.name}</Text> : null}
           <Text style={styles.role}>Sustainability</Text>
           <Text style={styles.company}>CirTag Industries</Text>
+          {profile.email ? (
+            <View style={styles.contactRow}>
+              <MaterialIcons name="email" size={ms(14)} color={TextSecondary} />
+              <Text style={styles.contactText}>{profile.email}</Text>
+            </View>
+          ) : null}
+          {profile.phone ? (
+            <View style={styles.contactRow}>
+              <MaterialIcons name="phone" size={ms(14)} color={TextSecondary} />
+              <Text style={styles.contactText}>{profile.phone}</Text>
+            </View>
+          ) : null}
 
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
@@ -104,9 +134,60 @@ export default function ProfileScreen() {
               <Text style={styles.statLabel}>Scans</Text>
             </View>
           </View>
+
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => {
+              setEditName(profile.name);
+              setEditEmail(profile.email);
+              setEditPhone(profile.phone);
+              setIsEditing(!isEditing);
+            }}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name={isEditing ? 'close' : 'edit'} size={ms(16)} color={Accent} />
+            <Text style={styles.editButtonText}>{isEditing ? 'Cancel' : 'Edit Profile'}</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={{ height: vs(40) }} />
+        {/* Edit Form */}
+        {isEditing && (
+          <View style={styles.editCard}>
+            <Text style={styles.editLabel}>Name</Text>
+            <TextInput
+              style={styles.editInput}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Your name"
+              placeholderTextColor={TextMuted}
+            />
+            <Text style={styles.editLabel}>Email</Text>
+            <TextInput
+              style={styles.editInput}
+              value={editEmail}
+              onChangeText={setEditEmail}
+              placeholder="your@email.com"
+              placeholderTextColor={TextMuted}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <Text style={styles.editLabel}>Phone</Text>
+            <TextInput
+              style={styles.editInput}
+              value={editPhone}
+              onChangeText={setEditPhone}
+              placeholder="+46 70 123 4567"
+              placeholderTextColor={TextMuted}
+              keyboardType="phone-pad"
+            />
+            <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile} activeOpacity={0.85}>
+              <MaterialIcons name="check" size={ms(18)} color="#FFFFFF" />
+              <Text style={styles.saveButtonText}>Save Profile</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={{ height: vs(20) }} />
 
         {/* Menu Items */}
         <View style={styles.menuSection}>
@@ -127,6 +208,7 @@ export default function ProfileScreen() {
 
         <View style={{ height: vs(24) }} />
       </ScrollView>
+      </KeyboardAvoidingView>
     </GradientBackground>
   );
 }
@@ -205,6 +287,70 @@ const styles = StyleSheet.create({
   menuSection: {
     paddingHorizontal: s(20),
     gap: s(8),
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(6),
+    marginTop: vs(4),
+  },
+  contactText: {
+    fontSize: ms(13),
+    color: TextSecondary,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: s(6),
+    marginTop: vs(16),
+    paddingHorizontal: s(16),
+    paddingVertical: vs(8),
+    borderRadius: s(10),
+    backgroundColor: AccentDim,
+  },
+  editButtonText: {
+    fontSize: ms(13),
+    fontWeight: '600',
+    color: Accent,
+  },
+  editCard: {
+    backgroundColor: CardDark,
+    borderRadius: s(16),
+    marginHorizontal: s(20),
+    marginTop: vs(12),
+    padding: s(20),
+  },
+  editLabel: {
+    fontSize: ms(12),
+    fontWeight: '600',
+    color: TextSecondary,
+    marginBottom: vs(6),
+    marginTop: vs(10),
+  },
+  editInput: {
+    backgroundColor: 'rgba(44,62,45,0.04)',
+    borderRadius: s(10),
+    paddingHorizontal: s(14),
+    paddingVertical: vs(10),
+    fontSize: ms(15),
+    color: TextPrimary,
+    borderWidth: 1,
+    borderColor: 'rgba(44,62,45,0.1)',
+  },
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: s(8),
+    backgroundColor: Accent,
+    borderRadius: s(12),
+    paddingVertical: vs(14),
+    marginTop: vs(16),
+  },
+  saveButtonText: {
+    fontSize: ms(14),
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   signOutBtn: {
     flexDirection: 'row',
