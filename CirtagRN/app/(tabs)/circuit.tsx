@@ -390,10 +390,20 @@ export default function CircuitBoardScreen() {
             <Text style={styles.sectionTitle}>Analysis Results</Text>
 
             <View style={styles.resultCard}>
-              {/* Category — only for non-electronics (no scrap price) */}
-              {analysis.categoryName && !(analysis.pricePerKg && analysis.pricePerKg > 0) && (
+              {/* Category Number (1 or 2) */}
+              {analysis.category != null && (
                 <View style={styles.resultRow}>
                   <Text style={styles.resultLabel}>Category</Text>
+                  <View style={styles.categoryBadge}>
+                    <Text style={styles.categoryText}>{analysis.category}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Category Name — only for non-electronics (no scrap price) */}
+              {analysis.categoryName && !(analysis.pricePerKg && analysis.pricePerKg > 0) && (
+                <View style={styles.resultRow}>
+                  <Text style={styles.resultLabel}>Type</Text>
                   <View style={styles.categoryBadge}>
                     <Text style={styles.categoryText}>{analysis.categoryName}</Text>
                   </View>
