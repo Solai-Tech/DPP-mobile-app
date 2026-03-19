@@ -190,6 +190,9 @@ export default function CircuitBoardScreen() {
         userName: freshProfile.name,
         userEmail: freshProfile.email,
         userPhone: freshProfile.phone,
+        categoryName: analysis.categoryName,
+        categoryNumber: analysis.category,
+        pricePerKg: analysis.pricePerKg,
       });
       setRematSent(true);
       Alert.alert('Sent!', 'Product details have been sent to ReMat.');

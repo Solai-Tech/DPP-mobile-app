@@ -10,6 +10,9 @@ export interface SendToRematParams {
   userName: string;
   userEmail: string;
   userPhone: string;
+  categoryName?: string;
+  categoryNumber?: string | number;
+  pricePerKg?: number;
 }
 
 export async function sendProductToRemat(params: SendToRematParams): Promise<{ success: boolean; message: string }> {
@@ -25,6 +28,9 @@ export async function sendProductToRemat(params: SendToRematParams): Promise<{ s
       user_name: params.userName,
       user_email: params.userEmail,
       user_phone: params.userPhone,
+      category_name: params.categoryName || '',
+      category_number: params.categoryNumber || '',
+      price_per_kg: params.pricePerKg || '',
     }),
   });
 
