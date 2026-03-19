@@ -46,21 +46,23 @@ function saveField(key: string, value: string) {
   );
 }
 
+/** Read profile directly from DB — always fresh */
+export function getProfileSync(): UserProfile {
+  return loadProfile();
+}
+
 export function useUserProfile() {
-  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+  const [profile, setProfile] = useState<UserProfile>(() => loadProfile());
 
   useEffect(() => {
     setProfile(loadProfile());
   }, []);
 
   const updateProfile = useCallback((updates: Partial<UserProfile>) => {
-    setProfile((prev) => {
-      const next = { ...prev, ...updates };
-      for (const [key, value] of Object.entries(updates)) {
-        saveField(key, value as string);
-      }
-      return next;
-    });
+    for (const [key, value] of Object.entries(updates)) {
+      saveField(key, value as string);
+    }
+    setProfile(loadProfile());
   }, []);
 
   return { profile, updateProfile };

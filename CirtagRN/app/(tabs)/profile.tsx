@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -88,71 +88,72 @@ export default function ProfileScreen() {
 
   return (
     <GradientBackground>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-      >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingTop: insets.top + vs(12), paddingBottom: vs(32) }}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
       >
         <View style={{ height: vs(20) }} />
 
-        {/* Avatar + Info */}
-        <View style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <MaterialIcons name="person" size={ms(36)} color={Accent} />
+        {/* Avatar + Info — hide when editing */}
+        {!isEditing && (
+          <View style={styles.profileCard}>
+            <View style={styles.avatar}>
+              <MaterialIcons name="person" size={ms(36)} color={Accent} />
+            </View>
+            {profile.name ? <Text style={styles.name}>{profile.name}</Text> : null}
+            <Text style={styles.role}>Sustainability</Text>
+            <Text style={styles.company}>CirTag Industries</Text>
+            {profile.email ? (
+              <View style={styles.contactRow}>
+                <MaterialIcons name="email" size={ms(14)} color={TextSecondary} />
+                <Text style={styles.contactText}>{profile.email}</Text>
+              </View>
+            ) : null}
+            {profile.phone ? (
+              <View style={styles.contactRow}>
+                <MaterialIcons name="phone" size={ms(14)} color={TextSecondary} />
+                <Text style={styles.contactText}>{profile.phone}</Text>
+              </View>
+            ) : null}
+
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{products.length}</Text>
+                <Text style={styles.statLabel}>Products</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{products.length}</Text>
+                <Text style={styles.statLabel}>Scans</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => {
+                setEditName(profile.name);
+                setEditEmail(profile.email);
+                setEditPhone(profile.phone);
+                setIsEditing(true);
+              }}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="edit" size={ms(16)} color={Accent} />
+              <Text style={styles.editButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
           </View>
-          {profile.name ? <Text style={styles.name}>{profile.name}</Text> : null}
-          <Text style={styles.role}>Sustainability</Text>
-          <Text style={styles.company}>CirTag Industries</Text>
-          {profile.email ? (
-            <View style={styles.contactRow}>
-              <MaterialIcons name="email" size={ms(14)} color={TextSecondary} />
-              <Text style={styles.contactText}>{profile.email}</Text>
-            </View>
-          ) : null}
-          {profile.phone ? (
-            <View style={styles.contactRow}>
-              <MaterialIcons name="phone" size={ms(14)} color={TextSecondary} />
-              <Text style={styles.contactText}>{profile.phone}</Text>
-            </View>
-          ) : null}
+        )}
 
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{products.length}</Text>
-              <Text style={styles.statLabel}>Products</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{products.length}</Text>
-              <Text style={styles.statLabel}>Scans</Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => {
-              setEditName(profile.name);
-              setEditEmail(profile.email);
-              setEditPhone(profile.phone);
-              setIsEditing(!isEditing);
-            }}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name={isEditing ? 'close' : 'edit'} size={ms(16)} color={Accent} />
-            <Text style={styles.editButtonText}>{isEditing ? 'Cancel' : 'Edit Profile'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Edit Form */}
+        {/* Edit Form — shown at top when editing */}
         {isEditing && (
           <View style={styles.editCard}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: vs(8) }}>
+              <Text style={{ fontSize: ms(18), fontWeight: '700', color: TextPrimary }}>Edit Profile</Text>
+              <TouchableOpacity onPress={() => setIsEditing(false)} activeOpacity={0.7}>
+                <MaterialIcons name="close" size={ms(22)} color={TextSecondary} />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.editLabel}>Name</Text>
             <TextInput
               style={styles.editInput}
@@ -208,7 +209,6 @@ export default function ProfileScreen() {
 
         <View style={{ height: vs(24) }} />
       </ScrollView>
-      </KeyboardAvoidingView>
     </GradientBackground>
   );
 }

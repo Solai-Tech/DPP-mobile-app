@@ -19,7 +19,7 @@ import { useCamera } from '../../src/hooks/useCamera';
 import { analyzeAndCreateCircuitBoard } from '../../src/utils/circuitBoardApi';
 import { sendProductToRemat } from '../../src/utils/rematApi';
 import { CircuitBoardAnalysis } from '../../src/types/CircuitBoard';
-import { useUserProfile } from '../../src/hooks/useUserProfile';
+import { getProfileSync } from '../../src/hooks/useUserProfile';
 import { insertProduct, getProductByRawValue } from '../../src/database/scannedProductDao';
 import { s, vs, ms } from '../../src/utils/scale';
 
@@ -35,7 +35,6 @@ const Border = 'rgba(44,62,45,0.1)';
 
 export default function CircuitBoardScreen() {
   const insets = useSafeAreaInsets();
-  const { profile } = useUserProfile();
   const { hasPermission, requestPermission } = useCamera();
   const cameraRef = useRef<CameraView>(null);
   const scrollRef = useRef<ScrollView>(null);
@@ -116,7 +115,8 @@ export default function CircuitBoardScreen() {
       const result = await analyzeAndCreateCircuitBoard(capturedImage, weightNum, widthNum, heightNum, trimmedName);
       setAnalysis(result);
 
-      const detectedName = trimmedName;
+      // Use server's detected name for history, fall back to user input
+      const detectedName = result.productName || trimmedName;
 
       // Save to local product history (skip if already exists)
       const rawKey = `valuescan-${detectedName.toLowerCase().replace(/\s+/g, '-').substring(0, 30)}-${weightNum}`;
@@ -171,10 +171,13 @@ export default function CircuitBoardScreen() {
   const handleSendToRemat = async () => {
     if (!analysis?.productDbId) return;
 
-    if (!profile.email && !profile.phone) {
+    // Always read fresh from DB so we get latest saved email
+    const freshProfile = getProfileSync();
+
+    if (!freshProfile.email) {
       Alert.alert(
-        'Profile Required',
-        'Please add your email or phone number in the Profile tab before sending to ReMat.',
+        'Email Required',
+        'Please add your email in the Profile tab before sending to ReMat.',
         [{ text: 'OK' }]
       );
       return;
@@ -184,9 +187,9 @@ export default function CircuitBoardScreen() {
     try {
       await sendProductToRemat({
         productDbId: analysis.productDbId,
-        userName: profile.name,
-        userEmail: profile.email,
-        userPhone: profile.phone,
+        userName: freshProfile.name,
+        userEmail: freshProfile.email,
+        userPhone: freshProfile.phone,
       });
       setRematSent(true);
       Alert.alert('Sent!', 'Product details have been sent to ReMat.');
