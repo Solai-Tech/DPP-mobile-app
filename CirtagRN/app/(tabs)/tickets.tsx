@@ -270,7 +270,6 @@ export default function TicketsScreen() {
                         key={ticket.id}
                         ticket={ticket}
                         onPress={() => {
-                          console.log('TICKET_OPEN', ticket.id);
                           router.push({ pathname: '/ticket-detail', params: { ticketId: String(ticket.id) } });
                         }}
                       />

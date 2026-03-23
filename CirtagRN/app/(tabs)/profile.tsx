@@ -198,7 +198,7 @@ export default function ProfileScreen() {
           <MenuItem
             icon="info-outline"
             label="About CirTag"
-            subtitle="Version 1.0.0"
+            subtitle="Version 1.1.0"
             onPress={() =>
               router.push(
                 `/webview?url=${encodeURIComponent('https://solai.se/dppx/')}&title=${encodeURIComponent('About CirTag')}`

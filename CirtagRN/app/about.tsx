@@ -8,7 +8,7 @@ export default function AboutScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top + vs(12) }]}>
       <Text style={styles.title}>About CirTag</Text>
-      <Text style={styles.sub}>Version 1.0.0</Text>
+      <Text style={styles.sub}>Version 1.1.0</Text>
     </View>
   );
 }

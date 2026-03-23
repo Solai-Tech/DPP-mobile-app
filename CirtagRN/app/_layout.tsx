@@ -6,7 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold } from '@expo-google-fonts/outfit';
 import { BackgroundDark } from '../src/theme/colors';
 
-LogBox.ignoreAllLogs(true);
+if (__DEV__) LogBox.ignoreAllLogs(true);
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({

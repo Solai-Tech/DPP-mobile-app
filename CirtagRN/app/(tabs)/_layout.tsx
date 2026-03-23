@@ -27,7 +27,7 @@ export default function TabLayout() {
           shadowRadius: 8,
         },
         tabBarActiveTintColor: TabBarActive,
-        tabBarInactiveTintColor: TabBarActive,
+        tabBarInactiveTintColor: TabBarInactive,
         tabBarLabelStyle: {
           fontWeight: '600',
           fontSize: ms(11),
