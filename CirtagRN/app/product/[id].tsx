@@ -297,6 +297,49 @@ export default function ProductDetailScreen() {
           </View>
         ) : null}
 
+        {/* Price & Details Section — for value_scan products */}
+        {(product.price || product.material || product.pricePerKg) && (
+          <View style={styles.sectionCard}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons name="assessment" size={ms(16)} color={SageAccent} />
+              <Text style={styles.sectionTitle}>Price & Details</Text>
+            </View>
+            <View style={styles.divider} />
+            {product.supplier ? (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Category</Text>
+                <View style={styles.detailBadge}>
+                  <Text style={styles.detailBadgeText}>{product.supplier}</Text>
+                </View>
+              </View>
+            ) : null}
+            {product.material ? (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Material</Text>
+                <Text style={styles.detailValue}>{product.material}</Text>
+              </View>
+            ) : null}
+            {product.pricePerKg ? (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Price/kg</Text>
+                <Text style={styles.detailValueAccent}>{product.pricePerKg}</Text>
+              </View>
+            ) : null}
+            {product.weight ? (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Weight</Text>
+                <Text style={styles.detailValue}>{product.weight}</Text>
+              </View>
+            ) : null}
+            {product.price ? (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Estimated Value</Text>
+                <Text style={styles.detailPrice}>{product.price}</Text>
+              </View>
+            ) : null}
+          </View>
+        )}
+
         {/* CO2 Footprint Section */}
         {co2Boxes.length > 0 && (
           <View style={styles.sectionCard}>
@@ -549,6 +592,47 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Border,
     marginVertical: vs(10),
+  },
+
+  // --- Detail Rows ---
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: vs(8),
+    borderBottomWidth: 1,
+    borderBottomColor: Border,
+  },
+  detailLabel: {
+    fontSize: ms(13),
+    fontWeight: '600',
+    color: TextGray,
+  },
+  detailValue: {
+    fontSize: ms(13),
+    fontWeight: '600',
+    color: TextDark,
+  },
+  detailValueAccent: {
+    fontSize: ms(13),
+    fontWeight: '700',
+    color: SageAccent,
+  },
+  detailBadge: {
+    backgroundColor: 'rgba(90,140,90,0.10)',
+    paddingHorizontal: s(10),
+    paddingVertical: vs(3),
+    borderRadius: s(10),
+  },
+  detailBadgeText: {
+    fontSize: ms(12),
+    fontWeight: '700',
+    color: SageAccent,
+  },
+  detailPrice: {
+    fontSize: ms(16),
+    fontWeight: '800',
+    color: TextDark,
   },
 
   // --- Description ---

@@ -24,8 +24,8 @@ export async function insertProduct(product: Omit<ScannedProduct, 'id'>): Promis
     `INSERT INTO scanned_products (
       rawValue, displayValue, format, type, productName, productDescription,
       imageUrl, productId, price, supplier, skuId, weight,
-      co2Total, co2Details, certifications, datasheetUrl, documents, scannedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      co2Total, co2Details, certifications, datasheetUrl, documents, material, pricePerKg, scannedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       product.rawValue,
       product.displayValue,
@@ -44,6 +44,8 @@ export async function insertProduct(product: Omit<ScannedProduct, 'id'>): Promis
       product.certifications,
       product.datasheetUrl,
       product.documents,
+      product.material,
+      product.pricePerKg,
       product.scannedAt,
     ]
   );

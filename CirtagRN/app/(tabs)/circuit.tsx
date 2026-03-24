@@ -155,6 +155,8 @@ export default function CircuitBoardScreen() {
           certifications: 'Digital Product Passport',
           datasheetUrl: '',
           documents: '',
+          material: result.material || '',
+          pricePerKg: result.pricePerKg ? `${result.pricePerKg} kr/kg` : '',
           scannedAt: Date.now(),
         });
       }

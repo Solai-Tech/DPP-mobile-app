@@ -53,6 +53,8 @@ export function getDatabaseSync(): SQLite.SQLiteDatabase {
   `);
   // Schema migrations — add new columns if they don't exist yet
   try { db.execSync('ALTER TABLE scanned_products ADD COLUMN documents TEXT NOT NULL DEFAULT \'\''); } catch {}
+  try { db.execSync('ALTER TABLE scanned_products ADD COLUMN material TEXT NOT NULL DEFAULT \'\''); } catch {}
+  try { db.execSync('ALTER TABLE scanned_products ADD COLUMN pricePerKg TEXT NOT NULL DEFAULT \'\''); } catch {}
   try { db.execSync('ALTER TABLE chat_messages ADD COLUMN productId INTEGER'); } catch {}
 
   return db;

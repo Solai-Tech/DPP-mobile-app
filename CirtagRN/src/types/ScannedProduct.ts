@@ -17,5 +17,7 @@ export interface ScannedProduct {
   certifications: string;   // "ISO 14001,BPA Free,FCC Approved"
   datasheetUrl: string;
   documents: string;
+  material: string;
+  pricePerKg: string;
   scannedAt: number;
 }

@@ -72,6 +72,8 @@ export default function ScanScreen() {
         certifications: '',
         datasheetUrl: '',
         documents: '',
+        material: '',
+        pricePerKg: '',
         scannedAt: Date.now(),
       };
 

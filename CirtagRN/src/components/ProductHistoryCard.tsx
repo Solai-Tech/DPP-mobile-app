@@ -76,15 +76,20 @@ export default function ProductHistoryCard({ product, onPress, onDelete }: Props
           {displayName}
         </Text>
 
-        {product.productId ? (
-          <Text style={styles.productId} numberOfLines={1}>
-            ID: {product.productId}
-          </Text>
+        {product.supplier ? (
+          <Text style={styles.category} numberOfLines={1}>{product.supplier}</Text>
+        ) : null}
+
+        {product.material ? (
+          <Text style={styles.material} numberOfLines={1}>{product.material}</Text>
         ) : null}
 
         <View style={styles.metaRow}>
           <MaterialIcons name="history" size={ms(12)} color={TextMuted} />
           <Text style={styles.date}>{formatHistoryDate(product.scannedAt)}</Text>
+          {product.pricePerKg ? (
+            <Text style={styles.pricePerKg}>{product.pricePerKg}</Text>
+          ) : null}
           {product.price ? (
             <Text style={styles.price}>{product.price}</Text>
           ) : null}
@@ -142,6 +147,24 @@ const styles = StyleSheet.create({
   date: {
     fontSize: ms(11),
     color: TextMuted,
+  },
+  category: {
+    fontSize: ms(11),
+    color: Accent,
+    fontWeight: '600',
+    marginTop: vs(2),
+  },
+  material: {
+    fontSize: ms(11),
+    color: TextSecondary,
+    fontWeight: '500',
+    marginTop: vs(1),
+  },
+  pricePerKg: {
+    fontSize: ms(11),
+    color: TextSecondary,
+    fontWeight: '600',
+    marginLeft: s(8),
   },
   price: {
     fontSize: ms(11),
