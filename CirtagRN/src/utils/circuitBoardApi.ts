@@ -106,7 +106,8 @@ export async function analyzeAndCreateCircuitBoard(
   weight: number,
   width: number,
   height: number,
-  productName: string
+  productName: string,
+  userName?: string
 ): Promise<CircuitBoardAnalysis> {
   let lastError = '';
   const area = (width * height).toFixed(1);
@@ -131,6 +132,7 @@ export async function analyzeAndCreateCircuitBoard(
           height,
           description,
           product_name: productName,
+          user_name: userName || '',
         }),
       });
 

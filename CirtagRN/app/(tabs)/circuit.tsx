@@ -112,7 +112,8 @@ export default function CircuitBoardScreen() {
 
     setIsAnalyzing(true);
     try {
-      const result = await analyzeAndCreateCircuitBoard(capturedImage, weightNum, widthNum, heightNum, trimmedName);
+      const profile = getProfileSync();
+      const result = await analyzeAndCreateCircuitBoard(capturedImage, weightNum, widthNum, heightNum, trimmedName, profile.name);
       setAnalysis(result);
 
       // Use server's detected name for history, fall back to user input
