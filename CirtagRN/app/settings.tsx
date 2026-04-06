@@ -53,7 +53,7 @@ export default function SettingsScreen() {
           label="About"
           onPress={() =>
             router.push(
-              `/webview?url=${encodeURIComponent('https://solai.se/dppx/')}&title=${encodeURIComponent('About CirTag')}`
+              `/webview?url=${encodeURIComponent('https://solai.se/dppx/')}&title=${encodeURIComponent('About ReMat')}`
             )
           }
         />

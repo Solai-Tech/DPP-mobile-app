@@ -38,7 +38,7 @@ export default function PrivacyScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Privacy & Data Terms</Text>
         <Text style={styles.intro}>
-          At CirTag, your privacy is important to us.
+          At ReMat, your privacy is important to us.
         </Text>
         <Text style={styles.subIntro}>
           By using this app, you acknowledge and agree to the following:

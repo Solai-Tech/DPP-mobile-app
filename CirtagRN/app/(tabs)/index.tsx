@@ -45,7 +45,7 @@ export default function HomeScreen() {
 
         {/* Top Row */}
         <View style={styles.topRow}>
-          <Text style={styles.topLabel}>CirTag</Text>
+          <Text style={styles.topLabel}>ReMat</Text>
           <View style={styles.activePill}>
             <View style={styles.activeDot} />
             <Text style={styles.activeText}>Live Tracking</Text>
@@ -57,14 +57,13 @@ export default function HomeScreen() {
           <View style={styles.logoSection}>
             <View style={styles.logoGlow}>
               <Image
-                source={require('../../assets/cirtag_logo.png')}
+                source={require('../../assets/remat_logo.png')}
                 style={styles.logoMark}
                 contentFit="contain"
               />
             </View>
-            <View style={styles.logoTextRow}>
-              <Text style={styles.logoName}>CIR</Text>
-              <Text style={styles.logoNameAccent}>TAG</Text>
+            <View style={styles.rematLogoBox}>
+              <Text style={styles.rematLogoText}>ReMat</Text>
             </View>
             <Text style={styles.taglineSub}>Digital Product Passport Platform</Text>
           </View>
@@ -195,6 +194,20 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Accent,
     letterSpacing: -2,
+  },
+  rematLogoBox: {
+    borderWidth: 2,
+    borderColor: TextPrimary,
+    borderRadius: s(6),
+    paddingHorizontal: s(20),
+    paddingVertical: vs(10),
+    marginBottom: vs(12),
+  },
+  rematLogoText: {
+    fontSize: ms(42),
+    fontWeight: '400',
+    color: TextPrimary,
+    letterSpacing: 1,
   },
   tagline: {
     fontSize: ms(20),

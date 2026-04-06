@@ -299,7 +299,7 @@ export default function CircuitBoardScreen() {
           <View style={styles.permissionCard}>
             <MaterialIcons name="camera-alt" size={ms(48)} color={SageAccent} />
             <Text style={styles.permTitle}>Camera Access Required</Text>
-            <Text style={styles.permSubtitle}>CirTag needs camera access to scan products</Text>
+            <Text style={styles.permSubtitle}>ReMat needs camera access to scan products</Text>
             <TouchableOpacity style={styles.permButton} onPress={requestPermission}>
               <Text style={styles.permButtonText}>Grant Permission</Text>
             </TouchableOpacity>

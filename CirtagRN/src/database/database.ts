@@ -57,6 +57,26 @@ export function getDatabaseSync(): SQLite.SQLiteDatabase {
   try { db.execSync('ALTER TABLE scanned_products ADD COLUMN pricePerKg TEXT NOT NULL DEFAULT \'\''); } catch {}
   try { db.execSync('ALTER TABLE chat_messages ADD COLUMN productId INTEGER'); } catch {}
 
+  // Auth table for ReMat login
+  db.execSync(`
+    CREATE TABLE IF NOT EXISTS auth_user (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      name TEXT NOT NULL DEFAULT '',
+      createdAt INTEGER NOT NULL
+    );
+  `);
+  db.execSync(`
+    CREATE TABLE IF NOT EXISTS auth_session (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER NOT NULL,
+      isLoggedIn INTEGER NOT NULL DEFAULT 1,
+      createdAt INTEGER NOT NULL,
+      FOREIGN KEY (userId) REFERENCES auth_user(id)
+    );
+  `);
+
   return db;
 }
 
