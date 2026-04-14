@@ -6,6 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import GradientBackground from '../../src/components/GradientBackground';
 import { useUserProfile } from '../../src/hooks/useUserProfile';
 import { useProducts } from '../../src/hooks/useProducts';
+import { useAuth } from '../../src/context/AuthContext';
 import { s, vs, ms } from '../../src/utils/scale';
 import {
   Accent,
@@ -75,6 +76,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { profile, updateProfile } = useUserProfile();
   const { products } = useProducts();
+  const { logout, user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editEmail, setEditEmail] = useState(profile.email);
@@ -103,7 +105,7 @@ export default function ProfileScreen() {
             </View>
             {profile.name ? <Text style={styles.name}>{profile.name}</Text> : null}
             <Text style={styles.role}>Sustainability</Text>
-            <Text style={styles.company}>CirTag Industries</Text>
+            <Text style={styles.company}>ReMat Industries</Text>
             {profile.email ? (
               <View style={styles.contactRow}>
                 <MaterialIcons name="email" size={ms(14)} color={TextSecondary} />
@@ -197,15 +199,42 @@ export default function ProfileScreen() {
           <MenuItem icon="security" label="Privacy & Security" subtitle="Privacy & Data Terms" onPress={() => router.push('/privacy')} />
           <MenuItem
             icon="info-outline"
-            label="About CirTag"
+            label="About ReMat"
             subtitle="Version 1.1.0"
             onPress={() =>
               router.push(
-                `/webview?url=${encodeURIComponent('https://solai.se/dppx/')}&title=${encodeURIComponent('About CirTag')}`
+                `/webview?url=${encodeURIComponent('https://solai.se/dppx/')}&title=${encodeURIComponent('About ReMat')}`
               )
             }
           />
         </View>
+
+        <View style={{ height: vs(24) }} />
+
+        {/* Sign Out Button */}
+        <TouchableOpacity
+          style={styles.signOutBtn}
+          onPress={() => {
+            Alert.alert(
+              'Sign Out',
+              'Are you sure you want to sign out?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Sign Out',
+                  style: 'destructive',
+                  onPress: () => {
+                    logout();
+                  },
+                },
+              ]
+            );
+          }}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="logout" size={ms(18)} color="#C45A5A" />
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
 
         <View style={{ height: vs(24) }} />
       </ScrollView>
