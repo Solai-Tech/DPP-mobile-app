@@ -62,8 +62,9 @@ export default function HomeScreen() {
                 contentFit="contain"
               />
             </View>
-            <View style={styles.rematLogoBox}>
-              <Text style={styles.rematLogoText}>ReMat</Text>
+            <View style={styles.logoTextRow}>
+              <Text style={styles.logoName}>RE</Text>
+              <Text style={styles.logoNameAccent}>MAT</Text>
             </View>
             <Text style={styles.taglineSub}>Digital Product Passport Platform</Text>
           </View>
@@ -194,20 +195,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Accent,
     letterSpacing: -2,
-  },
-  rematLogoBox: {
-    borderWidth: 2,
-    borderColor: TextPrimary,
-    borderRadius: s(6),
-    paddingHorizontal: s(20),
-    paddingVertical: vs(10),
-    marginBottom: vs(12),
-  },
-  rematLogoText: {
-    fontSize: ms(42),
-    fontWeight: '400',
-    color: TextPrimary,
-    letterSpacing: 1,
   },
   tagline: {
     fontSize: ms(20),

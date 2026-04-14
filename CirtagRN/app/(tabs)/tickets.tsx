@@ -153,7 +153,7 @@ export default function TicketsScreen() {
                   <View style={styles.onlineDot} />
                 </View>
                 <View style={styles.agentInfo}>
-                  <Text style={styles.agentName}>REMAT Support</Text>
+                  <Text style={styles.agentName}>CIRTAG Support</Text>
                   <Text style={styles.agentStatus}>
                     Online, replies in ~2 min
                   </Text>
@@ -172,7 +172,7 @@ export default function TicketsScreen() {
                     <View style={styles.welcomeIcon}>
                       <MaterialIcons name="support-agent" size={ms(32)} color={SageAccent} />
                     </View>
-                    <Text style={styles.welcomeTitle}>ReMat Support</Text>
+                    <Text style={styles.welcomeTitle}>CirTag Support</Text>
                     <Text style={styles.welcomeSubtext}>
                       Hi there! How can we help you today? Ask about product
                       verification, CO{'\u2082'} data, or raise a support ticket.

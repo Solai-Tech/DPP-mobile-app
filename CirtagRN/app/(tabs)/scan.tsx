@@ -286,7 +286,7 @@ export default function ScanScreen() {
             <MaterialIcons name="camera-alt" size={ms(48)} color={SageAccent} />
             <Text style={styles.permTitle}>Camera Access Required</Text>
             <Text style={styles.permSubtitle}>
-              ReMat needs camera access to scan QR codes
+              CirTag needs camera access to scan QR codes
             </Text>
             <TouchableOpacity
               style={styles.permButton}

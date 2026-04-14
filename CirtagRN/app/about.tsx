@@ -7,7 +7,7 @@ export default function AboutScreen() {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.container, { paddingTop: insets.top + vs(12) }]}>
-      <Text style={styles.title}>About ReMat</Text>
+      <Text style={styles.title}>About CirTag</Text>
       <Text style={styles.sub}>Version 1.1.0</Text>
     </View>
   );

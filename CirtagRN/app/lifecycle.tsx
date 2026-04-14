@@ -104,7 +104,7 @@ export default function LifeCycleScreen() {
           <TouchableOpacity
             style={styles.actionBtn}
             activeOpacity={0.7}
-            onPress={() => Share.share({ message: 'Check out this Digital Product Passport from ReMat!' })}
+            onPress={() => Share.share({ message: 'Check out this Digital Product Passport from CirTag!' })}
           >
             <MaterialIcons name="share" size={ms(18)} color="#1A1A1A" />
             <Text style={styles.actionText}>Share DPP</Text>
