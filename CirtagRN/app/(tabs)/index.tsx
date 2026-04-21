@@ -45,7 +45,7 @@ export default function HomeScreen() {
 
         {/* Top Row */}
         <View style={styles.topRow}>
-          <Text style={styles.topLabel}>ReMat</Text>
+          <Text style={styles.topLabel}>CirTag</Text>
           <View style={styles.activePill}>
             <View style={styles.activeDot} />
             <Text style={styles.activeText}>Live Tracking</Text>
@@ -57,14 +57,14 @@ export default function HomeScreen() {
           <View style={styles.logoSection}>
             <View style={styles.logoGlow}>
               <Image
-                source={require('../../assets/remat_logo.png')}
+                source={require('../../assets/cirtag_logo.png')}
                 style={styles.logoMark}
                 contentFit="contain"
               />
             </View>
             <View style={styles.logoTextRow}>
-              <Text style={styles.logoName}>RE</Text>
-              <Text style={styles.logoNameAccent}>MAT</Text>
+              <Text style={styles.logoName}>CIR</Text>
+              <Text style={styles.logoNameAccent}>TAG</Text>
             </View>
             <Text style={styles.taglineSub}>Digital Product Passport Platform</Text>
           </View>

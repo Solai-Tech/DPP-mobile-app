@@ -1,5 +1,6 @@
 // Reads secrets from environment variables — never commit real keys here.
 // Copy .env.example to .env.local and fill in your values.
+require('dotenv').config({ path: require('path').join(__dirname, '.env.local') });
 module.exports = ({ config }) => ({
   ...config,
   extra: {

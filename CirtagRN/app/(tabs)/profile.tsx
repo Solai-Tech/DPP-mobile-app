@@ -103,7 +103,7 @@ export default function ProfileScreen() {
             </View>
             {profile.name ? <Text style={styles.name}>{profile.name}</Text> : null}
             <Text style={styles.role}>Sustainability</Text>
-            <Text style={styles.company}>ReMat Industries</Text>
+            <Text style={styles.company}>CirTag Industries</Text>
             {profile.email ? (
               <View style={styles.contactRow}>
                 <MaterialIcons name="email" size={ms(14)} color={TextSecondary} />
@@ -197,11 +197,11 @@ export default function ProfileScreen() {
           <MenuItem icon="security" label="Privacy & Security" subtitle="Privacy & Data Terms" onPress={() => router.push('/privacy')} />
           <MenuItem
             icon="info-outline"
-            label="About ReMat"
+            label="About CirTag"
             subtitle="Version 1.2.0"
             onPress={() =>
               router.push(
-                `/webview?url=${encodeURIComponent('https://solai.se/dppx/')}&title=${encodeURIComponent('About ReMat')}`
+                `/webview?url=${encodeURIComponent('https://solai.se/dppx/')}&title=${encodeURIComponent('About CirTag')}`
               )
             }
           />
