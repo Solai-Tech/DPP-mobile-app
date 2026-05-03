@@ -329,7 +329,7 @@ export default function CircuitBoardScreen() {
                 <TextInput
                   style={styles.input}
                   value={weight}
-                  onChangeText={setWeight}
+                  onChangeText={(v) => setWeight(v.replace(',', '.'))}
                   placeholder="0.5"
                   placeholderTextColor={TextMutedLight}
                   keyboardType="decimal-pad"
@@ -343,7 +343,7 @@ export default function CircuitBoardScreen() {
                 <TextInput
                   style={styles.input}
                   value={width}
-                  onChangeText={setWidth}
+                  onChangeText={(v) => setWidth(v.replace(',', '.'))}
                   placeholder="10"
                   placeholderTextColor={TextMutedLight}
                   keyboardType="decimal-pad"
@@ -354,7 +354,7 @@ export default function CircuitBoardScreen() {
                 <TextInput
                   style={styles.input}
                   value={height}
-                  onChangeText={setHeight}
+                  onChangeText={(v) => setHeight(v.replace(',', '.'))}
                   placeholder="8"
                   placeholderTextColor={TextMutedLight}
                   keyboardType="decimal-pad"
