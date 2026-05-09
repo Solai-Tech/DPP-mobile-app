@@ -8,6 +8,14 @@ export async function getAllProducts(): Promise<ScannedProduct[]> {
   );
 }
 
+export async function getProductsBySource(source: 'dpp' | 'value'): Promise<ScannedProduct[]> {
+  const db = getDatabaseSync();
+  return db.getAllSync<ScannedProduct>(
+    'SELECT * FROM scanned_products WHERE source = ? ORDER BY scannedAt DESC',
+    [source]
+  );
+}
+
 export async function getProductById(id: number): Promise<ScannedProduct | null> {
   const db = getDatabaseSync();
   return db.getFirstSync<ScannedProduct>('SELECT * FROM scanned_products WHERE id = ?', [id]);
@@ -24,8 +32,8 @@ export async function insertProduct(product: Omit<ScannedProduct, 'id'>): Promis
     `INSERT INTO scanned_products (
       rawValue, displayValue, format, type, productName, productDescription,
       imageUrl, productId, price, supplier, skuId, weight,
-      co2Total, co2Details, certifications, datasheetUrl, documents, material, pricePerKg, scannedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      co2Total, co2Details, certifications, datasheetUrl, documents, material, pricePerKg, source, scannedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       product.rawValue,
       product.displayValue,
@@ -46,6 +54,7 @@ export async function insertProduct(product: Omit<ScannedProduct, 'id'>): Promis
       product.documents,
       product.material,
       product.pricePerKg,
+      product.source,
       product.scannedAt,
     ]
   );

@@ -14,15 +14,15 @@ function fixLocalhostUrl(url: string): string {
   return url.replace(/localhost|127\.0\.0\.1/g, machineIp);
 }
 
-export function useProducts() {
+export function useProducts(source?: 'dpp' | 'value') {
   const [products, setProducts] = useState<ScannedProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const fixedRef = useRef(false);
 
   const refreshProducts = useCallback(async () => {
-    const data = await dao.getAllProducts();
+    const data = source ? await dao.getProductsBySource(source) : await dao.getAllProducts();
     setProducts(data);
-  }, []);
+  }, [source]);
 
   useEffect(() => {
     refreshProducts();
@@ -110,11 +110,11 @@ export function useProducts() {
         }
       }
       if (anyFixed) {
-        const updated = await dao.getAllProducts();
+        const updated = source ? await dao.getProductsBySource(source) : await dao.getAllProducts();
         setProducts(updated);
       }
     })();
-  }, [products]);
+  }, [products, source]);
 
   const scanAndSaveProduct = useCallback(
     async (

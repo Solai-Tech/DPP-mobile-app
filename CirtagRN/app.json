@@ -16,9 +16,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "ReMat needs camera access to scan QR codes on products"
+        "NSCameraUsageDescription": "CirTag needs camera access to scan QR codes on products"
       },
-      "bundleIdentifier": "com.anonymous.CirtagRN"
+      "bundleIdentifier": "se.cirtag.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -48,7 +48,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "ReMat needs camera access to scan QR codes on products"
+          "cameraPermission": "CirTag needs camera access to scan QR codes on products"
         }
       ],
       "expo-sqlite",

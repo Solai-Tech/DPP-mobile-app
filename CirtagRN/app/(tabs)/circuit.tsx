@@ -158,6 +158,7 @@ export default function CircuitBoardScreen() {
           documents: '',
           material: result.material || '',
           pricePerKg: result.pricePerKg ? `${result.pricePerKg} kr/kg` : '',
+          source: 'value',
           scannedAt: Date.now(),
         });
       }

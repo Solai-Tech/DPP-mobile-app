@@ -55,6 +55,11 @@ export function getDatabaseSync(): SQLite.SQLiteDatabase {
   try { db.execSync('ALTER TABLE scanned_products ADD COLUMN documents TEXT NOT NULL DEFAULT \'\''); } catch {}
   try { db.execSync('ALTER TABLE scanned_products ADD COLUMN material TEXT NOT NULL DEFAULT \'\''); } catch {}
   try { db.execSync('ALTER TABLE scanned_products ADD COLUMN pricePerKg TEXT NOT NULL DEFAULT \'\''); } catch {}
+  try {
+    db.execSync('ALTER TABLE scanned_products ADD COLUMN source TEXT NOT NULL DEFAULT \'dpp\'');
+    // Backfill existing PCB/value scans (added a column → backfill once)
+    db.execSync("UPDATE scanned_products SET source = 'value' WHERE type = 'value_scan'");
+  } catch {}
   try { db.execSync('ALTER TABLE chat_messages ADD COLUMN productId INTEGER'); } catch {}
 
   return db;

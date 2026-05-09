@@ -19,5 +19,6 @@ export interface ScannedProduct {
   documents: string;
   material: string;
   pricePerKg: string;
+  source: 'dpp' | 'value';
   scannedAt: number;
 }

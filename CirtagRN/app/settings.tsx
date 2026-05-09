@@ -3,7 +3,13 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { s, vs, ms } from '../src/utils/scale';
+
+const dppApiUrl: string = Constants.expoConfig?.extra?.dppApiUrl ?? '';
+const isVolvo = dppApiUrl.includes('cirtag.eu');
+const clientName = isVolvo ? 'Volvo' : 'ReMat';
+const appVersion: string = Constants.expoConfig?.version ?? '1.0.0';
 
 const CreamBg = '#F7F5F0';
 const White = '#FFFFFF';
@@ -57,6 +63,16 @@ export default function SettingsScreen() {
             )
           }
         />
+
+        <View style={styles.clientBox}>
+          <Text style={styles.clientTitle}>Configured for {clientName}</Text>
+          <Text style={styles.clientVersion}>Version {appVersion}</Text>
+          <Text style={styles.clientDesc}>
+            {isVolvo
+              ? 'This build connects to the Volvo DPP backend.\nBuilt for Volvo product passport workflows.'
+              : 'This build connects to the ReMat DPP backend.\nBuilt for ReMat product passport workflows.'}
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -120,5 +136,35 @@ const styles = StyleSheet.create({
     fontSize: ms(15),
     fontWeight: '600',
     color: TextDark,
+  },
+  clientBox: {
+    backgroundColor: White,
+    borderRadius: s(14),
+    padding: s(16),
+    marginTop: vs(4),
+    borderWidth: 1,
+    borderColor: Border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  clientTitle: {
+    fontSize: ms(14),
+    fontWeight: '700',
+    color: SageAccent,
+  },
+  clientVersion: {
+    fontSize: ms(12),
+    fontWeight: '600',
+    color: TextDark,
+    marginTop: vs(4),
+  },
+  clientDesc: {
+    fontSize: ms(11),
+    color: TextMuted,
+    marginTop: vs(6),
+    lineHeight: ms(15),
   },
 });

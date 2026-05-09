@@ -49,7 +49,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="scan"
         options={{
-          title: 'Scan',
+          title: 'DPP Scanner',
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="qr-code-scanner" size={ms(size + 2)} color={color} />
           ),

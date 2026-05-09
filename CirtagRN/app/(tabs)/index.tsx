@@ -29,10 +29,6 @@ export default function HomeScreen() {
   const totalScans = products.length;
   const totalScansDisplay = `${totalScans}`;
 
-  const handleHistoryPress = () => {
-    router.push('/(tabs)/scan');
-  };
-
   useFocusEffect(
     useCallback(() => {
       refreshProducts();
@@ -84,6 +80,32 @@ export default function HomeScreen() {
             </View>
           </View>
 
+          {/* DPP Scanner Product History */}
+          <TouchableOpacity
+            style={styles.historyCard}
+            onPress={() => router.push('/history?source=dpp')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.historyIconCircle}>
+              <MaterialIcons name="qr-code-scanner" size={ms(20)} color={Accent} />
+            </View>
+            <Text style={styles.historyLabel}>DPP Scanner Product History</Text>
+            <MaterialIcons name="chevron-right" size={ms(20)} color={TextMuted} />
+          </TouchableOpacity>
+
+          {/* Value Scanner Product History */}
+          <TouchableOpacity
+            style={styles.historyCard}
+            onPress={() => router.push('/history?source=value')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.historyIconCircle}>
+              <MaterialIcons name="developer-board" size={ms(20)} color={Accent} />
+            </View>
+            <Text style={styles.historyLabel}>Value Scanner Product History</Text>
+            <MaterialIcons name="chevron-right" size={ms(20)} color={TextMuted} />
+          </TouchableOpacity>
+
           {/* DPP Portal */}
           <TouchableOpacity
             style={styles.dppCard}
@@ -96,19 +118,6 @@ export default function HomeScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.dppLabel}>DPP Portal</Text>
             </View>
-          </TouchableOpacity>
-
-          {/* Products History */}
-          <TouchableOpacity
-            style={styles.historyCard}
-            onPress={handleHistoryPress}
-            activeOpacity={0.85}
-          >
-            <View style={styles.historyIconCircle}>
-              <MaterialIcons name="history" size={ms(20)} color={Accent} />
-            </View>
-            <Text style={styles.historyLabel}>Products History</Text>
-            <MaterialIcons name="chevron-right" size={ms(20)} color={TextMuted} />
           </TouchableOpacity>
         </View>
       </View>

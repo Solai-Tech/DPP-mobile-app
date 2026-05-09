@@ -37,7 +37,7 @@ export default function ScanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { hasPermission, requestPermission } = useCamera();
-  const { products, isLoading, scanAndSaveProduct, deleteProduct, refreshProducts } = useProducts();
+  const { products, isLoading, scanAndSaveProduct, deleteProduct, refreshProducts } = useProducts('dpp');
   const canScan = useRef(true);
   const [isScanning, setIsScanning] = useState(false);
 
@@ -74,6 +74,7 @@ export default function ScanScreen() {
         documents: '',
         material: '',
         pricePerKg: '',
+        source: 'dpp',
         scannedAt: Date.now(),
       };
 
@@ -276,7 +277,7 @@ export default function ScanScreen() {
                   onPress={() => setIsScanning(true)}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.scanStartText}>Start Scan</Text>
+                  <Text style={styles.scanStartText}>Start DPP Scanner</Text>
                 </TouchableOpacity>
               </View>
             )}
