@@ -15,9 +15,11 @@ import { CameraView } from 'expo-camera';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useCamera } from '../../src/hooks/useCamera';
 import { analyzeAndCreateCircuitBoard } from '../../src/utils/circuitBoardApi';
 import { sendProductToRemat } from '../../src/utils/rematApi';
+import { fetchProductData } from '../../src/utils/productDataFetcher';
 import { CircuitBoardAnalysis } from '../../src/types/CircuitBoard';
 import { getProfileSync } from '../../src/hooks/useUserProfile';
 import { insertProduct, getProductByRawValue } from '../../src/database/scannedProductDao';
@@ -114,7 +116,31 @@ export default function CircuitBoardScreen() {
     try {
       const profile = getProfileSync();
       const result = await analyzeAndCreateCircuitBoard(capturedImage, weightNum, widthNum, heightNum, trimmedName, profile.name);
-      setAnalysis(result);
+
+      // Server may return pcfBreakdown=null for non-PCB products; the website-rendered
+      // product page always has the breakdown, so scrape it from there as a fallback.
+      let breakdown = result.pcfBreakdown || [];
+      let webCo2Details = '';
+      if (breakdown.length === 0 && result.productDbId) {
+        try {
+          const apiUrl: string = Constants.expoConfig?.extra?.dppApiUrl ?? '';
+          const baseUrl = apiUrl.replace(/\/api\/?$/, '');
+          const productPageUrl = `${baseUrl}/product/${result.productDbId}/`;
+          const webData = await fetchProductData(productPageUrl);
+          if (webData.co2Details) {
+            webCo2Details = webData.co2Details;
+            breakdown = webData.co2Details.split(',').map((item) => {
+              const [stage, val] = item.split(':');
+              const num = parseFloat((val || '').replace(/[^\d.]/g, ''));
+              return { stage: (stage || '').trim(), value: isNaN(num) ? 0 : num };
+            }).filter((b) => b.stage);
+          }
+        } catch {
+          // ignore — fall through with empty breakdown
+        }
+      }
+
+      setAnalysis({ ...result, pcfBreakdown: breakdown });
 
       // Use server's detected name for history, fall back to user input
       const detectedName = result.productName || trimmedName;
@@ -123,7 +149,7 @@ export default function CircuitBoardScreen() {
       const rawKey = `valuescan-${detectedName.toLowerCase().replace(/\s+/g, '-').substring(0, 30)}-${weightNum}`;
       const existing = await getProductByRawValue(rawKey);
       if (!existing) {
-        const co2Details = (result.pcfBreakdown || [])
+        const co2Details = webCo2Details || breakdown
           .map((b) => `${b.stage}:${b.value.toFixed(2)} Kg CO₂`)
           .join(',');
 

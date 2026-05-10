@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
+import Constants from 'expo-constants';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
 import { useProducts } from '../../src/hooks/useProducts';
 import { fetchProductData, DocumentInfo } from '../../src/utils/productDataFetcher';
@@ -48,16 +49,29 @@ export default function ProductDetailScreen() {
 
   // Re-fetch CO2 details and documents if missing/incomplete
   useEffect(() => {
-    if (!product || !product.rawValue.startsWith('http')) return;
+    if (!product) return;
     const needsCo2 = !product.co2Details || product.co2Details.split(',').length < 2;
     const needsDocs = !product.documents;
     if (!needsCo2 && !needsDocs) return;
+
+    // Determine fetch URL: DPP scans store URL in rawValue; Value scans store the
+    // server product DB id in skuId, so we reconstruct the product page URL.
+    let fetchUrl = '';
+    if (product.rawValue.startsWith('http')) {
+      fetchUrl = product.rawValue;
+    } else if (product.source === 'value' && product.skuId) {
+      const apiUrl: string = Constants.expoConfig?.extra?.dppApiUrl ?? '';
+      const baseUrl = apiUrl.replace(/\/api\/?$/, '');
+      if (baseUrl) fetchUrl = `${baseUrl}/product/${product.skuId}/`;
+    }
+    if (!fetchUrl) return;
+
     let cancelled = false;
-    fetchProductData(product.rawValue).then((data) => {
+    fetchProductData(fetchUrl).then((data) => {
       if (cancelled) return;
       if (needsCo2 && data.co2Details && data.co2Details.split(',').length >= 2) {
-        dao.updateProductCO2(product.id, data.co2Total, data.co2Details);
-        setProduct((prev) => prev ? { ...prev, co2Total: data.co2Total, co2Details: data.co2Details } : prev);
+        dao.updateProductCO2(product.id, data.co2Total || product.co2Total, data.co2Details);
+        setProduct((prev) => prev ? { ...prev, co2Total: data.co2Total || prev.co2Total, co2Details: data.co2Details } : prev);
       }
       if (needsDocs && data.documents) {
         dao.updateProductDocuments(product.id, data.documents);
