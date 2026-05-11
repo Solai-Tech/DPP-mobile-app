@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +21,18 @@ export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { source } = useLocalSearchParams<{ source?: string }>();
   const sourceFilter: 'dpp' | 'value' = source === 'value' ? 'value' : 'dpp';
-  const { products, refreshProducts } = useProducts(sourceFilter);
+  const { products, refreshProducts, deleteProduct } = useProducts(sourceFilter);
+
+  const handleDelete = (item: ScannedProduct) => {
+    Alert.alert(
+      'Delete product?',
+      `Remove "${getDisplayName(item)}" from history?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteProduct(item.id) },
+      ]
+    );
+  };
 
   const title = sourceFilter === 'value' ? 'Value Scanner Product History' : 'DPP Scanner Product History';
 
@@ -69,7 +80,13 @@ export default function HistoryScreen() {
           <Text style={styles.cardName} numberOfLines={1}>{name}</Text>
           {!!meta && <Text style={styles.cardMeta} numberOfLines={1}>{meta}</Text>}
         </View>
-        <MaterialIcons name="chevron-right" size={ms(20)} color={TextMutedLight} />
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={() => handleDelete(item)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <MaterialIcons name="delete-outline" size={ms(22)} color={TextMutedLight} />
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   };
@@ -135,4 +152,5 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingVertical: vs(60) },
   emptyTitle: { fontSize: ms(16), fontWeight: '700', color: TextDark, marginTop: vs(12) },
   emptySub: { fontSize: ms(12), color: TextGray, marginTop: vs(6), textAlign: 'center' },
+  deleteBtn: { padding: s(6) },
 });

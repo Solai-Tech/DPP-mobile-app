@@ -8,7 +8,11 @@ const DPP_API_URL: string = extra.dppApiUrl ?? 'https://solai.se/dppx/api';
 const CLIENT_ID: string = extra.dppClientId ?? '';
 const CLIENT_SECRET: string = extra.dppClientSecret ?? '';
 
-const MAX_RETRIES = 5;
+const MAX_RETRIES = 2;
+// Per-attempt fetch timeout — server's GPT-4 Vision call can legitimately take up
+// to ~60s, so we give each attempt 90s before aborting. Without this, RN's default
+// can vary by platform and the request may either hang or time out too aggressively.
+const REQUEST_TIMEOUT_MS = 90_000;
 
 // Pricing config (matches DPP server logic)
 const CATEGORY_PRICING = {
@@ -117,6 +121,8 @@ export async function analyzeAndCreateCircuitBoard(
   const description = `${productName} submitted for Digital Product Passport registration. Physical measurements: width ${width} centimeters, height ${height} centimeters, surface area approximately ${area} square centimeters, weight ${weight} kilograms. Product name provided by user: ${productName}. Please analyze this product for European Union Digital Product Passport compliance sustainability tracking carbon footprint calculation and circular economy lifecycle documentation.`;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(`${DPP_API_URL}/v1/pcb/analyze/`, {
         method: 'POST',
@@ -134,7 +140,9 @@ export async function analyzeAndCreateCircuitBoard(
           product_name: productName,
           user_name: userName || '',
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         let serverMsg = 'Failed to analyze product';
@@ -187,11 +195,15 @@ export async function analyzeAndCreateCircuitBoard(
         productUrl: result.product_url,
       };
     } catch (e: any) {
-      lastError = e?.message || 'Network error';
+      clearTimeout(timeoutId);
+      lastError = e?.name === 'AbortError'
+        ? `Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s`
+        : e?.message || 'Network error';
       if (attempt < MAX_RETRIES) continue;
     }
   }
 
-  console.log('Server failed after retries, using local analysis. Last error:', lastError);
-  return analyzeLocally(weight, width, height);
+  // No silent local fallback — surface the error so the UI can prompt a retry
+  // instead of showing inaccurate estimated values that don't match the server.
+  throw new Error(lastError || 'Unable to reach analysis server');
 }

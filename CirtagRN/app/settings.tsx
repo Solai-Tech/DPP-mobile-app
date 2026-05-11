@@ -9,7 +9,15 @@ import { s, vs, ms } from '../src/utils/scale';
 const dppApiUrl: string = Constants.expoConfig?.extra?.dppApiUrl ?? '';
 const isVolvo = dppApiUrl.includes('cirtag.eu');
 const clientName = isVolvo ? 'Volvo' : 'ReMat';
-const appVersion: string = Constants.expoConfig?.version ?? '1.0.0';
+// Volvo and ReMat ship on independent version tracks. Volvo follows app.json (the
+// CirTag/Volvo build version), ReMat is its own 2.x line that doesn't follow Volvo bumps.
+const REMAT_VERSION = '2.0.0';
+const displayVersion: string = isVolvo
+  ? Constants.expoConfig?.version ?? '1.0.0'
+  : REMAT_VERSION;
+const serverUrl = isVolvo ? 'https://demo.cirtag.eu/dppx/' : 'https://solai.se/dppx/';
+const credEmail = isVolvo ? 'Volvo' : 'Remat';
+const credPassword = 'dpppassword';
 
 const CreamBg = '#F7F5F0';
 const White = '#FFFFFF';
@@ -66,27 +74,27 @@ export default function SettingsScreen() {
 
         <View style={styles.clientBox}>
           <Text style={styles.clientTitle}>Configured for {clientName}</Text>
-          <Text style={styles.clientVersion}>Version {appVersion}</Text>
+          <Text style={styles.clientVersion}>Version {displayVersion}</Text>
 
           <TouchableOpacity
             onPress={() =>
               router.push(
-                `/webview?url=${encodeURIComponent('https://demo.cirtag.eu/dppx/')}&title=${encodeURIComponent('DPP Server')}`
+                `/webview?url=${encodeURIComponent(serverUrl)}&title=${encodeURIComponent('DPP Server')}`
               )
             }
             activeOpacity={0.7}
           >
-            <Text style={[styles.clientLink, { marginTop: vs(6) }]}>https://demo.cirtag.eu/dppx/</Text>
+            <Text style={[styles.clientLink, { marginTop: vs(6) }]}>{serverUrl}</Text>
           </TouchableOpacity>
 
           <Text style={[styles.clientFieldLabel, { marginTop: vs(12) }]}>Credentials</Text>
           <View style={styles.credRow}>
             <Text style={styles.credKey}>Email</Text>
-            <Text selectable style={styles.credValue}>Volvo</Text>
+            <Text selectable style={styles.credValue}>{credEmail}</Text>
           </View>
           <View style={styles.credRow}>
             <Text style={styles.credKey}>Password</Text>
-            <Text selectable style={styles.credValue}>dpppassword</Text>
+            <Text selectable style={styles.credValue}>{credPassword}</Text>
           </View>
         </View>
       </ScrollView>

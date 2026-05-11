@@ -5,7 +5,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import Constants from 'expo-constants';
 import GradientBackground from '../../src/components/GradientBackground';
+
+const dppApiUrl: string = Constants.expoConfig?.extra?.dppApiUrl ?? '';
+const isVolvo = dppApiUrl.includes('cirtag.eu');
 import { useProducts } from '../../src/hooks/useProducts';
 import { useUserProfile } from '../../src/hooks/useUserProfile';
 import {
@@ -41,7 +45,7 @@ export default function HomeScreen() {
 
         {/* Top Row */}
         <View style={styles.topRow}>
-          <Text style={styles.topLabel}>CirTag</Text>
+          <Text style={styles.topLabel}>{isVolvo ? 'CirTag' : 'ReMat'}</Text>
           <View style={styles.activePill}>
             <View style={styles.activeDot} />
             <Text style={styles.activeText}>Live Tracking</Text>
@@ -53,15 +57,24 @@ export default function HomeScreen() {
           <View style={styles.logoSection}>
             <View style={styles.logoGlow}>
               <Image
-                source={require('../../assets/cirtag_logo.png')}
+                source={isVolvo
+                  ? require('../../assets/cirtag_logo.png')
+                  : require('../../assets/remat_logo.png')}
                 style={styles.logoMark}
                 contentFit="contain"
               />
             </View>
-            <View style={styles.logoTextRow}>
-              <Text style={styles.logoName}>CIR</Text>
-              <Text style={styles.logoNameAccent}>TAG</Text>
-            </View>
+            {isVolvo ? (
+              <View style={styles.logoTextRow}>
+                <Text style={styles.logoName}>CIR</Text>
+                <Text style={styles.logoNameAccent}>TAG</Text>
+              </View>
+            ) : (
+              <View style={styles.logoTextRow}>
+                <Text style={styles.logoName}>Re</Text>
+                <Text style={styles.logoNameAccent}>Mat</Text>
+              </View>
+            )}
             <Text style={styles.taglineSub}>Digital Product Passport Platform</Text>
           </View>
         </View>

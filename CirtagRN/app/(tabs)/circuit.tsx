@@ -508,7 +508,7 @@ export default function CircuitBoardScreen() {
                     <View key={idx} style={styles.pcfRow}>
                       <Text style={styles.pcfStage}>{item.stage}</Text>
                       <Text style={[styles.pcfValue, item.value < 0 && styles.pcfCredit]}>
-                        {item.value > 0 ? '+' : ''}{item.value.toFixed(2)} kg
+                        {item.value.toFixed(2)} kg
                       </Text>
                     </View>
                   ))}
