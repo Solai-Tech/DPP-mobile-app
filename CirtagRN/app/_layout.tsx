@@ -47,6 +47,10 @@ export default function RootLayout() {
           name="pdf-viewer"
           options={{ animation: 'slide_from_right' }}
         />
+        <Stack.Screen
+          name="paywall"
+          options={{ animation: 'slide_from_bottom' }}
+        />
       </Stack>
     </View>
   );

@@ -16,6 +16,7 @@ import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
 import { useCamera } from '../../src/hooks/useCamera';
 import { analyzeAndCreateCircuitBoard } from '../../src/utils/circuitBoardApi';
 import { sendProductToRemat } from '../../src/utils/rematApi';
@@ -23,6 +24,7 @@ import { fetchProductData } from '../../src/utils/productDataFetcher';
 import { CircuitBoardAnalysis } from '../../src/types/CircuitBoard';
 import { getProfileSync } from '../../src/hooks/useUserProfile';
 import { insertProduct, getProductByRawValue } from '../../src/database/scannedProductDao';
+import { canScan as checkCanScan, recordScan } from '../../src/utils/subscription';
 import { s, vs, ms } from '../../src/utils/scale';
 
 // Theme colors
@@ -37,6 +39,7 @@ const Border = 'rgba(44,62,45,0.1)';
 
 export default function CircuitBoardScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { hasPermission, requestPermission } = useCamera();
   const cameraRef = useRef<CameraView>(null);
   const scrollRef = useRef<ScrollView>(null);
@@ -111,6 +114,17 @@ export default function CircuitBoardScreen() {
       Alert.alert('Error', 'Please enter valid dimensions');
       return;
     }
+
+    // Paywall gate — free quota exhausted for the Value scanner.
+    // Checked BEFORE any analysis so the 11th attempt shows the paywall
+    // instantly without spending time/server on an analysis.
+    if (!checkCanScan('value')) {
+      router.push('/paywall?source=value');
+      return;
+    }
+    // Count this attempt now (success or fail) so the quota reflects what
+    // the user actually did — the next attempt is gated on this.
+    recordScan('value');
 
     setIsAnalyzing(true);
     try {

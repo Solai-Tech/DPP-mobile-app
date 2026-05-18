@@ -20,6 +20,7 @@ import { useCamera } from '../../src/hooks/useCamera';
 import { useProducts } from '../../src/hooks/useProducts';
 import { ScannedProduct } from '../../src/types/ScannedProduct';
 import { getBarcodeFormatName, inferBarcodeType } from '../../src/utils/barcodeHelpers';
+import { canScan as checkCanScan, recordScan } from '../../src/utils/subscription';
 import { s, vs, ms } from '../../src/utils/scale';
 
 // Botanical Fresh theme colors
@@ -51,7 +52,20 @@ export default function ScanScreen() {
   const handleBarCodeScanned = useCallback(
     (result: BarcodeScanningResult) => {
       if (!canScan.current || isLoading) return;
+
+      // Paywall gate — free quota exhausted for the DPP scanner
+      if (!checkCanScan('dpp')) {
+        canScan.current = false;
+        router.push('/paywall?source=dpp');
+        setTimeout(() => {
+          canScan.current = true;
+        }, 1500);
+        return;
+      }
+
       canScan.current = false;
+      // Count this scan attempt now; the next scan is gated on this.
+      recordScan('dpp');
 
       const rawValue = result.data;
       const product = {

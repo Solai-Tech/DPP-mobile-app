@@ -6,6 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import GradientBackground from '../../src/components/GradientBackground';
 import { useUserProfile } from '../../src/hooks/useUserProfile';
 import { useProducts } from '../../src/hooks/useProducts';
+import { useSubscription } from '../../src/hooks/useSubscription';
 import { s, vs, ms } from '../../src/utils/scale';
 import {
   Accent,
@@ -75,6 +76,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { profile, updateProfile } = useUserProfile();
   const { products } = useProducts();
+  const { subscribed, plan } = useSubscription();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editEmail, setEditEmail] = useState(profile.email);
@@ -192,6 +194,16 @@ export default function ProfileScreen() {
 
         {/* Menu Items */}
         <View style={styles.menuSection}>
+          <MenuItem
+            icon="workspace-premium"
+            label="Subscription"
+            subtitle={
+              subscribed
+                ? `Premium · ${plan === 'yearly' ? 'Yearly' : 'Monthly'} plan`
+                : 'Free plan · Upgrade for unlimited scans'
+            }
+            onPress={() => router.push('/paywall')}
+          />
           <MenuItem icon="settings" label="Settings" subtitle="App preferences" onPress={() => router.push('/settings')} />
           <MenuItem icon="notifications" label="Notifications" subtitle="Manage alerts" onPress={() => router.push('/notifications')} />
           <MenuItem icon="security" label="Privacy & Security" subtitle="Privacy & Data Terms" onPress={() => router.push('/privacy')} />
